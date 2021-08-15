@@ -1,1 +1,37 @@
- 
+project(libhttppp)
+cmake_minimum_required(VERSION 3.0)
+enable_testing ()
+
+set(LIBV "1.0.0")
+set(Upstream_VERSION 1.0.0)
+
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
+     SET(CMAKE_CXX_FLAGS "-g -Wall")
+  endif( CMAKE_CXX_COMPILER_ID MATCHES GNU )
+  if(CMAKE_CXX_COMPILER_ID MATCHES ".*clang")
+    SET(CMAKE_CXX_FLAGS "-g -Wthread-safety -Wall")
+  endif( CMAKE_CXX_COMPILER_ID MATCHES ".*clang" )
+ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG )
+  if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
+    SET(CMAKE_CXX_FLAGS "-O0 -Wall")
+  endif( CMAKE_CXX_COMPILER_ID MATCHES GNU )
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
+if( CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  SET(CMAKE_CXX_FLAGS "-D_SCL_SECURE_NO_WARNINGS  /EHsc")	
+endif( CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}  ${CMAKE_SOURCE_DIR}/cmake/)
+
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  list(APPEND ${CMAKE_CXX_FLAGS} "-msse2")
+  add_definitions( -Dx86_64)
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+#add_subdirectory(doc)
+add_subdirectory(src)

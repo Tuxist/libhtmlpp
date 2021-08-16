@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "system.h"
 
 libhtmlpp::Console &libhtmlpp::Console::operator<< (const char* out){
+    if(!out)
+        return *this;
     write(STDOUT_FILENO,out,getlen(out));
     return *this;    
 }

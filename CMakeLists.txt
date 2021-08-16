@@ -5,7 +5,7 @@ enable_testing ()
 set(LIBV "1.0.0")
 set(Upstream_VERSION 1.0.0)
 
-set(CMAKE_CXX_FLAGS "-nostdinc++ -nodefaultlibs")
+set(CMAKE_CXX_FLAGS "-nostdinc++")
 
 configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 

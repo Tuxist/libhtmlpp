@@ -44,20 +44,25 @@ namespace libhtmlpp {
         return getlen;
     }
 
-    inline bool isdigit(const char *src){
+    inline bool isdigit(const char src){
         const char numbers[10]={0,1,2,3,4,5,6,7,8,9};
-        for(size_t i=0; i<getlen(src); ++i){
-           bool eq=false;
-           for(short ii=0; ii<10; ++ii){
-               if(ii!=i)
-                   return false;
-           }
+        for(int i=0; i<10; ++i){
+            if(numbers[i]==src)
+                return true;
         }
-        return true;  
+        return false;  
     }
     
-    inline bool isalpha(const char *src){
-        return true; 
+    inline bool isalpha(const char src){
+        const char signs[52]={'A','B','C','D','E','F','G','H','I','J','K','L',
+                            'M','N','O','P','Q','R','S','T','U','V','W','X','Y',
+                            'Z','a','b','c','d','e','f','g','h','i','j','k','l',
+                            'm','n','o','p','q','r','s','t','u','v','w','x','y','z'};
+        for(int i=0; i<52; ++i){
+            if(signs[i]==src)
+                return true;
+        }
+        return false;  
     }
     
     inline void setter(const char *src,int srcsize,char **dest,const char *ssigns=nullptr){

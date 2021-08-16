@@ -1,1 +1,0 @@
-#define HTML_BLOCKSIZE 255

@@ -1,1 +1,0 @@
-/usr/bin/c++ -nostdinc++ -nodefaultlibs -g -rdynamic CMakeFiles/htmlpagetest.dir/htmlpagetest.cpp.o -o htmlpagetest  ../src/libhtmlpp-static.a -lpthread 

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libhtmlpp-static.a CMakeFiles/htmlpp-static.dir/hstring.cpp.o CMakeFiles/htmlpp-static.dir/css.cpp.o CMakeFiles/htmlpp-static.dir/html.cpp.o CMakeFiles/htmlpp-static.dir/request.cpp.o CMakeFiles/htmlpp-static.dir/system.cpp.o CMakeFiles/htmlpp-static.dir/request/ajax.cpp.o CMakeFiles/htmlpp-static.dir/request/httpform.cpp.o CMakeFiles/htmlpp-static.dir/request/websocket.cpp.o
-/usr/bin/ranlib libhtmlpp-static.a

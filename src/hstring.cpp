@@ -134,7 +134,7 @@ size_t libhtmlpp::HtmlString::size(){
 }
   
 bool libhtmlpp::HtmlString::validate(){
-    size_t oa=0,ta=0,ca=0;  
+    size_t oa=0,ca=0;  
     for(size_t i=0; i<_DataSize; ++i){
         switch(_Data[i]){
             case HTMLTAG_OPEN:
@@ -143,20 +143,20 @@ bool libhtmlpp::HtmlString::validate(){
             case HTMLTAG_CLOSE:
                 ++ca;
                 break;
-            case HTMLTAG_TERMINATE:
-                ++ta;
-                break;
             default:
                 break;
         }
     }
     
-    if(oa!=(ta+ca))
-        return false;
+    Console con;
+    con << oa << ": " << ca << con.endl();
+    
+    if(oa!=ca)
+        return false;  
     
     ssize_t **htable = new ssize_t*[oa];
     for (size_t is = 0; is < oa; is++) {
-        htable[is] = new ssize_t[3]{-1,-1,-1};
+        htable[is] = new ssize_t[3]{-1,-1};
     }
     
     bool open=false;
@@ -164,17 +164,14 @@ bool libhtmlpp::HtmlString::validate(){
         for(size_t ip=0; ip<_DataSize; ++ip){
           switch(_Data[ip]){
             case HTMLTAG_OPEN:{
-                open =true;
+                open=true;
                 htable[ii][0]=ip;
             }break;
             case HTMLTAG_CLOSE:{
-                if(!open || htable[ii][0]==-1 )
+                if(!open)
                     return false;
-                htable[ii][3]=ip;
+                htable[ii][2]=ip;
                 open=false;
-            }break;
-            case HTMLTAG_TERMINATE:{
-                htable[ii][1]=ip;
             }break;
             default:
                 break;
@@ -182,5 +179,5 @@ bool libhtmlpp::HtmlString::validate(){
         }
     }
     
-    return false;
+    return true;
 }

@@ -40,7 +40,18 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (const char* out){
 }
 
 libhtmlpp::Console &libhtmlpp::Console::operator<< (int out){
-    write(STDOUT_FILENO,&out,sizeof(int));
+    char *buf=new char[sizeof(int)+2];
+    int otmp=out, ocnt=0;
+    while(otmp){
+        otmp/=10;
+        ocnt++;
+    }
+    for(int i=1; i>=0; i--){
+        buf[i]=(char)((out%10)|48);
+        out/=10;
+    }
+    buf[sizeof(int)]='\0';
+    write(STDOUT_FILENO,buf,sizeof(int));
     return *this;    
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright (c) 2014, Jan Koester jan.koester@gmx.net
+Copyright (c) 2021, Jan Koester jan.koester@gmx.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,20 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "hstring.h"
+#include <ctype.h>
 
-#ifndef HTML_H
-#define HTML_H
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
 namespace libhtmlpp {
-    
-    class HtmlElement {
-    protected:
-        virtual void setID(const char *id)=0;
-        virtual void setClass(const char *cname)=0;
-        virtual void setStyle(const char *css)=0;
-        virtual const char *printHtmlElement()=0;
-    };
-    
-    class HtmlPage{
+    class Console {
     public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char *path);
-        void addElement(HtmlElement *element);
-        const char *printHtml();
-    private:
-        HtmlString *_HtmlDocument;
-    }; 
-    
-    class HtmlTable : public HtmlElement{
-    public:
-        HtmlTable();
-        ~HtmlTable();
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        const char *printHtmlElement();
-    private:
-        char       *_ID;
-        char       *_Class;
-        char       *_Style;
+        Console &operator<<(const char *out);
+        Console &operator<<(int out);
+        Console &operator<<(Console &console);
+        Console &endl();
     };
 };
 
 #endif
+

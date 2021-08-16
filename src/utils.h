@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright (c) 2014, Jan Koester jan.koester@gmx.net
+Copyright (c) 2021, Jan Koester jan.koester@gmx.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,64 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "hstring.h"
+#include <unistd.h>
+#include "fcntl.h"
 
-#ifndef HTML_H
-#define HTML_H
+#include "exception.h"
+#include <ctype.h>
+
+#ifndef UTIL_H
+#define UTIL_H
 
 namespace libhtmlpp {
+
+    inline unsigned int getlen(const char *str) {
+        unsigned int getlen = 0;
+        while ((*str++) != '\0') {
+            ++getlen;
+        }
+        return getlen;
+    }
+
+    inline bool isdigit(const char *src){
+        const char numbers[10]={0,1,2,3,4,5,6,7,8,9};
+        for(size_t i=0; i<getlen(src); ++i){
+           bool eq=false;
+           for(short ii=0; ii<10; ++ii){
+               if(ii!=i)
+                   return false;
+           }
+        }
+        return true;  
+    }
     
-    class HtmlElement {
-    protected:
-        virtual void setID(const char *id)=0;
-        virtual void setClass(const char *cname)=0;
-        virtual void setStyle(const char *css)=0;
-        virtual const char *printHtmlElement()=0;
-    };
+    inline bool isalpha(const char *src){
+        return true; 
+    }
     
-    class HtmlPage{
-    public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char *path);
-        void addElement(HtmlElement *element);
-        const char *printHtml();
-    private:
-        HtmlString *_HtmlDocument;
-    }; 
-    
-    class HtmlTable : public HtmlElement{
-    public:
-        HtmlTable();
-        ~HtmlTable();
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        const char *printHtmlElement();
-    private:
-        char       *_ID;
-        char       *_Class;
-        char       *_Style;
-    };
+    inline void setter(const char *src,int srcsize,char **dest,const char *ssigns=nullptr){
+        delete[] *dest;
+        char *buf = new char[srcsize];
+        bool nallowd=false;
+        for(int i=0; i<srcsize; ++i){
+            if(!isdigit(src[i]) || !isalpha(src[i]) || ssigns){
+                nallowd=true;
+                for(size_t pos=0; pos<getlen(ssigns); ++pos){
+                    if(ssigns[pos]==src[i]){
+                        nallowd=false;
+                        
+                    }
+                }
+            }
+            buf[i]=src[i];
+        }
+        *dest=buf;
+        if(nallowd){
+            libhtmlpp::HTMLException excp;
+            excp.Error("setter: Wrong input no digit or Alphanumeric");
+            throw excp;
+        }
+    }
 };
 
 #endif

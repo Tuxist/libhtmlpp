@@ -25,22 +25,62 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <cstring>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "utils.h"
 #include "html.h"
+#include "config.h"
 
 using namespace libhtmlpp;
+
+HtmlPage::HtmlPage(){
+    _HtmlDocument=new HtmlString();
+}
+
+HtmlPage::~HtmlPage(){
+    delete _HtmlDocument;
+}
+
+void HtmlPage::addElement(HtmlElement *element){
+    return;
+}
+
+const char *HtmlPage::printHtml(){
+    return _HtmlDocument->c_str();
+}
+
+void libhtmlpp::HtmlPage::loadFile(const char* path){
+    int fd=open(path,O_RDONLY);
+    if(fd<0){
+        HTMLException exp;
+        exp.Critical("HtmlPage can't open File: ",path);
+        throw exp;
+    }
+    char buf[HTML_BLOCKSIZE];
+READFILE:
+    ssize_t rdd=read(fd,&buf,HTML_BLOCKSIZE);
+    if(rdd>0){
+        _HtmlDocument->assign(buf,rdd);
+        goto READFILE;
+    }
+    close(fd);
+    if(!_HtmlDocument->validate()){
+        HTMLException exp;
+        exp.Critical("HtmlPage can't Validate File!");
+        throw exp;        
+    }
+}
 
 HtmlTable::HtmlTable() {
     _ID=nullptr;
     _Class=nullptr;
     _Style=nullptr;
+    
 }
 
 
 HtmlTable::~HtmlTable(){
-    
 }
 
 void HtmlTable::setID(const char *id){
@@ -54,6 +94,11 @@ void HtmlTable::setClass(const char *cname){
 void HtmlTable::setStyle(const char *css){
     setter(css,getlen(css),&_Style,":;(),+~'");
 }
+
+const char * libhtmlpp::HtmlTable::printHtmlElement(){
+    return nullptr;
+}
+
 
 //     class Row {
 //     public:

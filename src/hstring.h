@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright (c) 2014, Jan Koester jan.koester@gmx.net
+Copyright (c) 2021, Jan Koester jan.koester@gmx.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,39 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "hstring.h"
+#include <stddef.h>
 
-#ifndef HTML_H
-#define HTML_H
+#ifndef HSTRING_H
+#define HSTRING_H
 
 namespace libhtmlpp {
-    
-    class HtmlElement {
-    protected:
-        virtual void setID(const char *id)=0;
-        virtual void setClass(const char *cname)=0;
-        virtual void setStyle(const char *css)=0;
-        virtual const char *printHtmlElement()=0;
-    };
-    
-    class HtmlPage{
+    class HtmlString {
     public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char *path);
-        void addElement(HtmlElement *element);
-        const char *printHtml();
+        HtmlString();
+        ~HtmlString();
+
+        void assign(const char *src,size_t srcsize);
+        void assign(const char *src);
+        
+        void push_back(const char  src);
+        
+        void insert(size_t pos,char src);
+        
+        HtmlString &operator+=(const char *src);
+        HtmlString &operator=(const char *src);
+        char &operator[](size_t pos);
+        
+        HtmlString &operator<<(const char *src);
+        HtmlString &operator<<(int src);
+        HtmlString &operator<<(size_t src);
+        
+        const char *c_str();
+        size_t      size();
+        void        clear();
+        bool        validate();
     private:
-        HtmlString *_HtmlDocument;
-    }; 
-    
-    class HtmlTable : public HtmlElement{
-    public:
-        HtmlTable();
-        ~HtmlTable();
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        const char *printHtmlElement();
-    private:
-        char       *_ID;
-        char       *_Class;
-        char       *_Style;
+        char   *_Data;
+        size_t  _DataSize;
     };
 };
 

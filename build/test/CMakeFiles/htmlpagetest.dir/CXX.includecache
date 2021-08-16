@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/hstring.h
+stddef.h
+-
+
+../src/html.h
+hstring.h
+../src/hstring.h
+
+../src/system.h
+ctype.h
+-
+
+/home/jan.koester/projects/libhtmlpp/test/htmlpagetest.cpp
+html.h
+/home/jan.koester/projects/libhtmlpp/test/html.h
+system.h
+/home/jan.koester/projects/libhtmlpp/test/system.h
+

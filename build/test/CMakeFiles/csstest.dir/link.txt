@@ -1,0 +1,1 @@
+/usr/bin/c++ -nostdinc++ -nodefaultlibs -g -rdynamic CMakeFiles/csstest.dir/csstest.cpp.o -o csstest  ../src/libhtmlpp-static.a -lpthread 

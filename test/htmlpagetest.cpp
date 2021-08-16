@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright (c) 2014, Jan Koester jan.koester@gmx.net
+Copyright (c) 2021, Jan Koester jan.koester@gmx.net
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,21 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "hstring.h"
+#include "html.h"
+#include "system.h"
 
-#ifndef HTML_H
-#define HTML_H
+#define Red     "\033[0;31m"
+#define Green   "\033[0;32m"
+#define NOCOLOR "\033[0m"
 
-namespace libhtmlpp {
-    
-    class HtmlElement {
-    protected:
-        virtual void setID(const char *id)=0;
-        virtual void setClass(const char *cname)=0;
-        virtual void setStyle(const char *css)=0;
-        virtual const char *printHtmlElement()=0;
-    };
-    
-    class HtmlPage{
-    public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char *path);
-        void addElement(HtmlElement *element);
-        const char *printHtml();
-    private:
-        HtmlString *_HtmlDocument;
-    }; 
-    
-    class HtmlTable : public HtmlElement{
-    public:
-        HtmlTable();
-        ~HtmlTable();
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        const char *printHtmlElement();
-    private:
-        char       *_ID;
-        char       *_Class;
-        char       *_Style;
-    };
-};
-
-#endif
+int main(int arc,char *argv[]){
+    libhtmlpp::HtmlPage page;
+    libhtmlpp::Console console;
+    try{
+        page.loadFile(argv[1]);
+        console << page.printHtml() << console.endl(); 
+        console << Green << "Test Passed!" << NOCOLOR << console.endl(); 
+    }catch(...){
+        console << Red << "Test not Passed!" << NOCOLOR << console.endl();
+    }
+}

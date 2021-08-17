@@ -149,7 +149,7 @@ bool libhtmlpp::HtmlString::validate(){
     }
     
     Console con;
-    con << oa << ": " << ca << con.endl();
+    con << oa << " : " << ca << con.endl();
     
     if(oa!=ca)
         return false;  

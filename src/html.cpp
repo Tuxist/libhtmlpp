@@ -27,26 +27,211 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 #include "utils.h"
 #include "html.h"
 #include "config.h"
+#include "exception.h"
 
-using namespace libhtmlpp;
+#define HTMLTAG_OPEN '<'
+#define HTMLTAG_TERMINATE '/'
+#define HTMLTAG_CLOSE '>'
 
-HtmlPage::HtmlPage(){
+libhtmlpp::HtmlString::HtmlString(){
+    _Data=nullptr;
+    _DataSize=0;
+    _OpenTags=0;
+    _CloseTags=0;
+    _HTable=nullptr;
+    _HTableSize=0;
+    _HtmlRootNode=nullptr;
+}
+
+libhtmlpp::HtmlString::~HtmlString(){
+    delete[] _Data;
+    delete[] _HTable;
+    delete   _HtmlRootNode;
+}
+
+void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
+    size_t nsize=_DataSize+srcsize;
+    char *buf=new char [nsize+1];
+    size_t i=0;
+    while(i<_DataSize){
+       buf[i]=_Data[i];
+       ++i;
+    }
+    for(size_t ii = 0; ii<srcsize; ++ii)
+        buf[i++]=src[ii];
+    _DataSize=nsize;
+    delete[] _Data;
+    buf[nsize]='\0';
+    _Data=buf;
+}
+
+void libhtmlpp::HtmlString::push_back(const char src){
+    size_t nsize=_DataSize+1;
+    char *buf=new char [nsize+1];
+    size_t i;
+    for(i = 0; i<_DataSize; ++i){
+        buf[i]=_Data[i];
+    }
+    buf[++i]=src;
+    buf[nsize]='\0';
+    _DataSize=nsize;
+    delete[] _Data;
+    _Data=buf;
+}
+
+void libhtmlpp::HtmlString::assign(const char* src) {
+    assign(src,getlen(src));
+}
+
+void libhtmlpp::HtmlString::insert(size_t pos, char src){
+    if(pos < _DataSize){
+        libhtmlpp::HTMLException excep;
+        excep.Critical("HtmlString: out of String");
+        throw excep;
+    }
+    _Data[pos]=src;
+}
+
+void libhtmlpp::HtmlString::clear(){
+    delete[] _Data;
+    _Data=nullptr;
+    _DataSize=0;
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
+    assign(src);
+    return *this;
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
+    clear();
+    _DataSize=getlen(src);
+    _Data = new char[_DataSize];
+    for(size_t i = 0; i<_DataSize; ++i){
+        _Data[i]=src[i];
+    } 
+    return *this;
+}
+
+char &libhtmlpp::HtmlString::operator[](size_t pos){
+    return _Data[pos];
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(const char* src){
+    assign(src);
+    return *this;
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
+    push_back((const char)src);
+    return *this;
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(size_t src){
+    push_back((const char)src);
+    return *this;
+}
+
+const char *libhtmlpp::HtmlString::c_str() {
+    return _Data;
+}
+
+size_t libhtmlpp::HtmlString::size(){
+    return _DataSize;
+}
+  
+bool libhtmlpp::HtmlString::validate(){
+    for(size_t i=0; i<_DataSize; ++i){
+        switch(_Data[i]){
+            case HTMLTAG_OPEN:
+                ++_OpenTags;
+                break;
+            case HTMLTAG_CLOSE:
+                ++_CloseTags;
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if(_OpenTags!=_CloseTags)
+        return false;  
+    
+    return true;
+}
+
+void libhtmlpp::HtmlString::_parseTree(){
+    if(_HTable)
+        delete[] _HTable;
+    _HTable = new ssize_t*[_OpenTags];
+    for (size_t is = 0; is < _OpenTags; is++) {
+        _HTable[is] = new ssize_t[3]{-1,-1,-1};
+    }
+    
+    _HTableSize=_OpenTags;
+    
+    bool open=false;
+    for(size_t ii=0; ii<_CloseTags; ++ii){
+        for(size_t ip=0; ip<_DataSize; ++ip){
+          switch(_Data[ip]){
+            case HTMLTAG_OPEN:{
+                open=true;
+                _HTable[ii][0]=ip;
+            }break;
+            case HTMLTAG_TERMINATE:{
+                _HTable[ii][1]=ip;
+            }
+            case HTMLTAG_CLOSE:{
+                if(!open){
+                    HTMLException excp;
+                    excp.Error("HtmlString: parseTree parse Error couldn't fid opentag");
+                }
+                _HTable[ii][2]=ip;
+                open=false;
+            }break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void libhtmlpp::HtmlString::_buildTree(){
+    _HtmlRootNode = new HtmlElement();
+    for (size_t i = 0; i < _HTableSize;) {
+        size_t epos= (_HTable[i][1]!=-1) ? _HTable[i][1] : _HTable[i][2];
+        size_t esize=(epos-_HTable[i][0]);
+        char *buf=new char[esize+1];
+        size_t bpos=0;
+BUILDTREESUBEL:
+        buf[bpos++]=_Data[i];
+        if(size_t(++_HTable[i])< epos)
+            goto BUILDTREESUBEL;
+        buf[esize]='\0';
+        Console con;
+        delete[] buf;
+    }
+}
+
+libhtmlpp::HtmlPage::HtmlPage(){
     _HtmlDocument=new HtmlString();
 }
 
-HtmlPage::~HtmlPage(){
+libhtmlpp::HtmlPage::~HtmlPage(){
     delete _HtmlDocument;
 }
 
-void HtmlPage::addElement(HtmlElement *element){
+void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
     return;
 }
 
-const char *HtmlPage::printHtml(){
+const char *libhtmlpp::HtmlPage::printHtml(){
     return _HtmlDocument->c_str();
 }
 
@@ -70,9 +255,10 @@ READFILE:
         exp.Critical("HtmlPage can't Validate File!");
         throw exp;        
     }
+    _HtmlDocument->_parseTree();
 }
 
-HtmlTable::HtmlTable() {
+libhtmlpp::HtmlTable::HtmlTable() {
     _ID=nullptr;
     _Class=nullptr;
     _Style=nullptr;
@@ -80,18 +266,18 @@ HtmlTable::HtmlTable() {
 }
 
 
-HtmlTable::~HtmlTable(){
+libhtmlpp::HtmlTable::~HtmlTable(){
 }
 
-void HtmlTable::setID(const char *id){
+void libhtmlpp::HtmlTable::setID(const char *id){
     setter(id,getlen(id),&_ID);
 }
 
-void HtmlTable::setClass(const char *cname){
+void libhtmlpp::HtmlTable::setClass(const char *cname){
     setter(cname,getlen(cname),&_Class);
 }
 
-void HtmlTable::setStyle(const char *css){
+void libhtmlpp::HtmlTable::setStyle(const char *css){
     setter(css,getlen(css),&_Style,":;(),+~'");
 }
 

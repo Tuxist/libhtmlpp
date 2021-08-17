@@ -38,8 +38,10 @@ int main(int arc,char *argv[]){
     try{
         page.loadFile(argv[1]);
         console << page.printHtml() << console.endl(); 
-        console << Green << "Test Passed!" << NOCOLOR << console.endl(); 
+        console << Green << "Test Passed!" << NOCOLOR << console.endl();
     }catch(...){
         console << Red << "Test not Passed!" << NOCOLOR << console.endl();
+        return -1;
     }
+    return 0;
 }

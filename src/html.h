@@ -31,16 +31,73 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTML_H
 
 namespace libhtmlpp {
-    
-    class HtmlElement {
+        class HtmlElement {
     protected:
-        virtual void setID(const char *id)=0;
-        virtual void setClass(const char *cname)=0;
-        virtual void setStyle(const char *css)=0;
-        virtual const char *printHtmlElement()=0;
+        HtmlElement();
+        ~HtmlElement();
+        char            *_Tag;
+        char            *_Text;
+        HtmlElement *_Parent;
+
+        class HtmlAttributes {
+        protected:
+            HtmlAttributes();
+            ~HtmlAttributes();
+            char           *_Key;
+            char           *_Value;
+            HtmlAttributes *_nextHtmlAttributes;
+            friend class HtmlString;
+        };
+
+        class HtmlChilds{
+        private:
+            HtmlChilds();
+            ~HtmlChilds();
+            HtmlElement *_Child;
+            HtmlElement *_nextChild;
+            friend class HtmlString;
+        };
+        friend class HtmlString;
     };
-    
-    class HtmlPage{
+        
+    class HtmlString {
+    public:
+        HtmlString();
+        ~HtmlString();
+
+        void assign(const char *src,size_t srcsize);
+        void assign(const char *src);
+        
+        void push_back(const char  src);
+        
+        void insert(size_t pos,char src);
+        
+        HtmlString &operator+=(const char *src);
+        HtmlString &operator=(const char *src);
+        char &operator[](size_t pos);
+        
+        HtmlString &operator<<(const char *src);
+        HtmlString &operator<<(int src);
+        HtmlString &operator<<(size_t src);
+        
+        const char *c_str();
+        size_t      size();
+        void        clear();
+        bool        validate();
+     private:        
+        void              _parseTree();
+        void              _buildTree();
+        size_t            _OpenTags;
+        size_t            _CloseTags;
+        char             *_Data;
+        size_t            _DataSize;
+        ssize_t         **_HTable;
+        size_t            _HTableSize;
+        HtmlElement      *_HtmlRootNode;
+        friend class HtmlPage;
+    };
+
+    class HtmlPage {
     public:
         HtmlPage();
         ~HtmlPage();

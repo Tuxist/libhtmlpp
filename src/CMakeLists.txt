@@ -4,7 +4,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
 include(GenerateExportHeader)
 
 set(libhtmlSrcs
-    hstring.cpp
     css.cpp
     html.cpp
     request.cpp
@@ -51,7 +50,6 @@ install(FILES
     html.h
     request.h
     utils.h
-    hstring.h
     system.h
     "${CMAKE_BINARY_DIR}/config.h"
     "${CMAKE_CURRENT_BINARY_DIR}/htmlpp_export.h"

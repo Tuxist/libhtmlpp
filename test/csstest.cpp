@@ -41,12 +41,15 @@ int main(){
         console << Green << "Test Passed!" << NOCOLOR << console.endl();
     }catch(...){
         console << Red << "Test not Passed!" << NOCOLOR << console.endl();
+        return -1;
     }
     
     try{
         table.setStyle(":\"");
         console << Red << "Test not Passed!" << NOCOLOR<< console.endl();
+        return -1;
     }catch(...){
         console << Green << "Test Passed!" << NOCOLOR << console.endl();
     }
+    return 0;
 }

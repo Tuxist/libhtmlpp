@@ -25,10 +25,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <unistd.h>
 #include <fcntl.h>
-#include <stddef.h>
-#include <sys/types.h>
 
 #include "utils.h"
 #include "html.h"
@@ -51,7 +48,7 @@ libhtmlpp::HtmlString::HtmlString(){
 
 libhtmlpp::HtmlString::~HtmlString(){
     delete[] _Data;
-    delete[] _HTable;
+    delete   _HTable;
     delete   _HtmlRootNode;
 }
 
@@ -92,7 +89,7 @@ void libhtmlpp::HtmlString::assign(const char* src) {
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
     if(pos < _DataSize){
         libhtmlpp::HTMLException excep;
-        excep.Critical("HtmlString: out of String");
+        excep[HTMLException::Critical] << "HtmlString: out of String";
         throw excep;
     }
     _Data[pos]=src;
@@ -129,12 +126,34 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(const char* src){
 }
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
-    push_back((const char)src);
+    char *buf=new char[sizeof(int)+2];
+    int otmp=src, ocnt=0;
+    while(otmp){
+        otmp/=10;
+        ocnt++;
+    }
+    for(int i=1; i>=0; i--){
+        buf[i]=(char)((src%10)|48);
+        src/=10;
+    }
+    buf[sizeof(int)]='\0';
+    push_back(src);
     return *this;
 }
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(size_t src){
-    push_back((const char)src);
+    char *buf=new char[sizeof(int)+2];
+    size_t otmp=src, ocnt=0;
+    while(otmp){
+        otmp/=10;
+        ocnt++;
+    }
+    for(int i=1; i>=0; i--){
+        buf[i]=(char)((src%10)|48);
+        src/=10;
+    }
+    buf[sizeof(int)]='\0';
+    push_back(src);
     return *this;
 }
 
@@ -167,8 +186,14 @@ bool libhtmlpp::HtmlString::validate(){
 }
 
 void libhtmlpp::HtmlString::_parseTree(){
-    if(_HTable)
-        delete[] _HTable;
+    if(!validate()){
+        HTMLException excp;
+        excp[HTMLException::Error]<< "HtmlString:" << "parseTree parse Error html not validate !";
+        throw excp;
+    }
+    if(_HTable){
+        delete _HTable;
+    }
     _HTable = new ssize_t*[_OpenTags];
     for (size_t is = 0; is < _OpenTags; is++) {
         _HTable[is] = new ssize_t[3]{-1,-1,-1};
@@ -186,11 +211,13 @@ void libhtmlpp::HtmlString::_parseTree(){
             }break;
             case HTMLTAG_TERMINATE:{
                 _HTable[ii][1]=ip;
+                break;
             }
             case HTMLTAG_CLOSE:{
                 if(!open){
                     HTMLException excp;
-                    excp.Error("HtmlString: parseTree parse Error couldn't fid opentag");
+                    excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
+                    throw excp;
                 }
                 _HTable[ii][2]=ip;
                 open=false;
@@ -204,19 +231,25 @@ void libhtmlpp::HtmlString::_parseTree(){
 
 void libhtmlpp::HtmlString::_buildTree(){
     _HtmlRootNode = new HtmlElement();
-    for (size_t i = 0; i < _HTableSize;) {
-        size_t epos= (_HTable[i][1]!=-1) ? _HTable[i][1] : _HTable[i][2];
+    for (size_t i = 0; i < _HTableSize; ++i) {
+        size_t epos=0;
+        (_HTable[i][1]!=-1) ? epos=_HTable[i][1] : epos=_HTable[i][2];
         size_t esize=(epos-_HTable[i][0]);
         char *buf=new char[esize+1];
-        size_t bpos=0;
-BUILDTREESUBEL:
-        buf[bpos++]=_Data[i];
-        if(size_t(++_HTable[i])< epos)
-            goto BUILDTREESUBEL;
-        buf[esize]='\0';
+        size_t bpos=_HTable[i][0];
         Console con;
+        for(size_t bi=0; bpos < epos; ++bi)
+            buf[bi]=_Data[bpos++];
+        buf[esize]='\0';
+        con << buf << con.endl();
         delete[] buf;
     }
+}
+
+libhtmlpp::HtmlElement::HtmlElement(){
+}
+
+libhtmlpp::HtmlElement::~HtmlElement(){
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
@@ -239,7 +272,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     int fd=open(path,O_RDONLY);
     if(fd<0){
         HTMLException exp;
-        exp.Critical("HtmlPage can't open File: ",path);
+        exp[HTMLException::Critical] << "HtmlPage can't open File: "<<path;
         throw exp;
     }
     char buf[HTML_BLOCKSIZE];
@@ -250,12 +283,8 @@ READFILE:
         goto READFILE;
     }
     close(fd);
-    if(!_HtmlDocument->validate()){
-        HTMLException exp;
-        exp.Critical("HtmlPage can't Validate File!");
-        throw exp;        
-    }
     _HtmlDocument->_parseTree();
+    _HtmlDocument->_buildTree();
 }
 
 libhtmlpp::HtmlTable::HtmlTable() {
@@ -278,13 +307,8 @@ void libhtmlpp::HtmlTable::setClass(const char *cname){
 }
 
 void libhtmlpp::HtmlTable::setStyle(const char *css){
-    setter(css,getlen(css),&_Style,":;(),+~'");
+    setter(css,getlen(css),&_Style,css);
 }
-
-const char * libhtmlpp::HtmlTable::printHtmlElement(){
-    return nullptr;
-}
-
 
 //     class Row {
 //     public:

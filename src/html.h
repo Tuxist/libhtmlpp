@@ -25,20 +25,20 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include "hstring.h"
+#include <sys/types.h>
 
 #ifndef HTML_H
 #define HTML_H
 
 namespace libhtmlpp {
-        class HtmlElement {
+    class HtmlElement {
     protected:
         HtmlElement();
         ~HtmlElement();
         char            *_Tag;
         char            *_Text;
-        HtmlElement *_Parent;
-
+        HtmlElement     *_Parent;
+        
         class HtmlAttributes {
         protected:
             HtmlAttributes();
@@ -46,7 +46,6 @@ namespace libhtmlpp {
             char           *_Key;
             char           *_Value;
             HtmlAttributes *_nextHtmlAttributes;
-            friend class HtmlString;
         };
 
         class HtmlChilds{
@@ -55,7 +54,6 @@ namespace libhtmlpp {
             ~HtmlChilds();
             HtmlElement *_Child;
             HtmlElement *_nextChild;
-            friend class HtmlString;
         };
         friend class HtmlString;
     };

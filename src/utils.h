@@ -37,11 +37,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
 
     inline unsigned int getlen(const char *str) {
-        unsigned int getlen = 0;
-        while ((*str++) != '\0') {
-            ++getlen;
+        if(!str)
+            return 0;
+        size_t len= 0;
+        while (*(str++) != '\0') {
+            ++len;
         }
-        return getlen;
+        return len;
     }
 
     inline bool isdigit(const char src){
@@ -84,7 +86,7 @@ namespace libhtmlpp {
         *dest=buf;
         if(nallowd){
             libhtmlpp::HTMLException excp;
-            excp.Error("setter: Wrong input no digit or Alphanumeric");
+            excp[HTMLException::Error] << "setter: Wrong input no digit or Alphanumeric";
             throw excp;
         }
     }

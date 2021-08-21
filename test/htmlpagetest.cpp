@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "html.h"
 #include "system.h"
+#include "exception.h"
 
 #define Red     "\033[0;31m"
 #define Green   "\033[0;32m"
@@ -39,7 +40,8 @@ int main(int arc,char *argv[]){
         page.loadFile(argv[1]);
         console << page.printHtml() << console.endl(); 
         console << Green << "Test Passed!" << NOCOLOR << console.endl();
-    }catch(...){
+    }catch(libhtmlpp::HTMLException &exp){
+        console << exp.what() << console.endl();
         console << Red << "Test not Passed!" << NOCOLOR << console.endl();
         return -1;
     }

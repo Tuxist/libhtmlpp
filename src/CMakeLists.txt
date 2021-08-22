@@ -8,6 +8,7 @@ set(libhtmlSrcs
     html.cpp
     request.cpp
     system.cpp
+    exception.cpp
     request/ajax.cpp
     request/httpform.cpp
     request/websocket.cpp

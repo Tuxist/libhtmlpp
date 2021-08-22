@@ -50,87 +50,19 @@ namespace libhtmlpp {
     class HTMLException {
     public:
         
-        HTMLException(){
-            _CType=Note;
-            _Buffer=nullptr;
-            _BufferSize=0;
-        };
-       
-        ~HTMLException(){
-            delete[] _Buffer;
-        }
+        HTMLException();
+        ~HTMLException();
         
-        int getErrorType(){
-           return _CType; 
-        }
+        int getErrorType();
         
-        const char* what() const throw(){
-            return _Buffer;
-        }
+        const char* what() const throw();
         
         enum Type {Note,Warning,Error,Critical};
         
-    
-        HTMLException& asign(const char *src){
-            if(!src)
-                return *this;
-            size_t srcsize=0;
-EXCEPTIONLEN:
-            if(src[srcsize]!='\0'){
-                ++srcsize;
-                goto EXCEPTIONLEN;
-            }
-            size_t nsize=(srcsize+_BufferSize);
-            char *buf=new char[nsize+1];
-            size_t i;
-            for(i=0; i<_BufferSize; ++i)
-                buf[i]=_Buffer[i];
-            for(size_t ii = 0; ii<srcsize; ++ii)
-                buf[i++]=src[ii];
-            _BufferSize=nsize;
-            buf[nsize]='\0';
-            delete[] _Buffer;
-            _Buffer=buf;
-            return *this;   
-        }
-
-        HTMLException& operator[](int errtype){
-            _CType=errtype;
-            return *this;
-        }
-        
-        HTMLException& operator<<(const char *src){
-            return asign(src);       
-        };
-
-        HTMLException& operator<<(int src){
-            char *buf=new char[sizeof(int)+1];
-            int i, sign;
-            if ((sign = src) < 0) 
-                src = -src;         
-            i = 0;
-            do {       /* generate digits in reverse order */
-                buf[i++] = src % 10 + '0';   /* get next digit */
-            } while ((src /= 10) > 0);     /* delete it */
-            if (sign < 0)
-                buf[i++] = '-';
-            buf[i] = '\0';
-            char c;
-            int slen=0;
-EXCEPTIONLEN2:
-            if(buf[slen]!='\0'){
-                ++slen;
-                goto EXCEPTIONLEN2;
-            }
-            for (int i = 0, j = slen-1; i<j; i++, j--) {
-                c = buf[i];
-                buf[i] = buf[j];
-                buf[j] = c;
-            }
-            asign(buf);
-            delete[] buf;
-            return *this;
-        }
+        HTMLException& asign(const char *src);
+        HTMLException& operator[](int errtype);
+        HTMLException& operator<<(const char *src);
+        HTMLException& operator<<(int src);
     private:
         char  *_Buffer;
         size_t _BufferSize;        

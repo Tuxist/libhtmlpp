@@ -220,7 +220,7 @@ void libhtmlpp::HtmlString::_buildTree(){
     for (size_t i = 0; i < _HTableSize; ++i) {
         size_t epos=0;
         (_HTable[i][1]!=-1) ? epos=_HTable[i][1] : epos=_HTable[i][2];
-        size_t esize=(epos-_HTable[i][0]);
+        size_t esize=(epos-_HTable[i][0])+1;
         char *buf=new char[esize+1];
         size_t bpos=_HTable[i][0];
         con << _HTable[i][0] << con.endl();

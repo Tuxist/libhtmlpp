@@ -102,36 +102,31 @@ EXCEPTIONLEN:
         HTMLException& operator<<(const char *src){
             return asign(src);       
         };
-        
-        HTMLException& operator<<(size_t src){
-            char *buf=new char[sizeof(size_t)+2];
-            size_t otmp=src, ocnt=0;
-            while(otmp){
-                otmp/=10;
-                ocnt++;
-            }
-            for(size_t i=1; i>=0; i--){
-                buf[i]=(char)((src%10)|48);
-                src/=10;
-            }
-            buf[sizeof(size_t)]='\0';
-            asign(buf);
-            delete[] buf;
-            return *this;
-        }
 
         HTMLException& operator<<(int src){
-            char *buf=new char[sizeof(int)+2];
-            int otmp=src, ocnt=0;
-            while(otmp){
-                otmp/=10;
-                ocnt++;
+            char *buf=new char[sizeof(int)+1];
+            int i, sign;
+            if ((sign = src) < 0) 
+                src = -src;         
+            i = 0;
+            do {       /* generate digits in reverse order */
+                buf[i++] = src % 10 + '0';   /* get next digit */
+            } while ((src /= 10) > 0);     /* delete it */
+            if (sign < 0)
+                buf[i++] = '-';
+            buf[i] = '\0';
+            char c;
+            int slen=0;
+EXCEPTIONLEN2:
+            if(buf[slen]!='\0'){
+                ++slen;
+                goto EXCEPTIONLEN2;
             }
-            for(int i=1; i>=0; i--){
-                buf[i]=(char)((src%10)|48);
-                src/=10;
+            for (int i = 0, j = slen-1; i<j; i++, j--) {
+                c = buf[i];
+                buf[i] = buf[j];
+                buf[j] = c;
             }
-            buf[sizeof(int)]='\0';
             asign(buf);
             delete[] buf;
             return *this;

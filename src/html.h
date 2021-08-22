@@ -78,7 +78,6 @@ namespace libhtmlpp {
         
         HtmlString &operator<<(const char *src);
         HtmlString &operator<<(int src);
-        HtmlString &operator<<(size_t src);
         
         const char *c_str();
         size_t      size();

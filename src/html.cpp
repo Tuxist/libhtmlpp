@@ -118,34 +118,10 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(const char* src){
 }
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
-    char *buf=new char[sizeof(int)+2];
-    int otmp=src, ocnt=0;
-    while(otmp){
-        otmp/=10;
-        ocnt++;
-    }
-    for(int i=1; i>=0; i--){
-        buf[i]=(char)((src%10)|48);
-        src/=10;
-    }
-    buf[sizeof(int)]='\0';
-    push_back(src);
-    return *this;
-}
-
-libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(size_t src){
-    char *buf=new char[sizeof(int)+2];
-    size_t otmp=src, ocnt=0;
-    while(otmp){
-        otmp/=10;
-        ocnt++;
-    }
-    for(int i=1; i>=0; i--){
-        buf[i]=(char)((src%10)|48);
-        src/=10;
-    }
-    buf[sizeof(int)]='\0';
-    push_back(src);
+    char *buf=new char[sizeof(int)+1];
+    itoa(src,buf);
+    assign(buf);
+    delete[] buf;
     return *this;
 }
 
@@ -192,9 +168,14 @@ void libhtmlpp::HtmlString::_parseTree(){
         _HTMLException[HTMLException::Error] << "HtmlString:" << "parseTree parse Error html not validate !";
         throw _HTMLException;
     }
+    
     if(_HTable){
+        for(size_t i=0; i<_HTableSize; ++i){
+            delete[] _HTable[i];
+        }
         delete _HTable;
     }
+    
     _HTable = new ssize_t*[_OpenTags];
     for (size_t is = 0; is < _OpenTags; is++) {
         _HTable[is] = new ssize_t[3]{-1,-1,-1};
@@ -203,42 +184,47 @@ void libhtmlpp::HtmlString::_parseTree(){
     _HTableSize=_OpenTags;
     
     bool open=false;
-    for(size_t ii=0; ii<_CloseTags; ++ii){
-        for(size_t ip=0; ip<_DataSize; ++ip){
-          switch(_Data[ip]){
-            case HTMLTAG_OPEN:{
+    size_t ip=0;
+    for(size_t ii=0; ii<_DataSize; ++ii){
+        switch(_Data[ii]){
+            case HTMLTAG_OPEN:
                 open=true;
-                _HTable[ii][0]=ip;
-            }break;
-            case HTMLTAG_TERMINATE:{
-                _HTable[ii][1]=ip;
+                _HTable[ip][0]=ii;
                 break;
-            }
-            case HTMLTAG_CLOSE:{
+            case HTMLTAG_TERMINATE:
+                _HTable[ip][1]=ii;
+                break;
+            case HTMLTAG_CLOSE:
                 if(!open){
                     _HTMLException[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
                     throw _HTMLException;
                 }
-                _HTable[ii][2]=ip;
+                _HTable[ip][2]=ii;
+                ++ip;
                 open=false;
-            }break;
+                break;
             default:
                 break;
-            }
         }
+    }
+    for(size_t i=0; i<_HTableSize; ++i){
+        Console con;
+        con << _HTable[i][0] << ":" << _HTable[i][1] << ":" << _HTable[i][2] << con.endl();
     }
 }
 
 void libhtmlpp::HtmlString::_buildTree(){
     _HtmlRootNode = new HtmlElement();
+    Console con;
+    con << _HTableSize << con.endl();
     for (size_t i = 0; i < _HTableSize; ++i) {
         size_t epos=0;
         (_HTable[i][1]!=-1) ? epos=_HTable[i][1] : epos=_HTable[i][2];
         size_t esize=(epos-_HTable[i][0]);
         char *buf=new char[esize+1];
         size_t bpos=_HTable[i][0];
-        Console con;
-        for(size_t bi=0; bpos < epos; ++bi)
+        con << _HTable[i][0] << con.endl();
+        for(size_t bi=0; bi < esize; ++bi)
             buf[bi]=_Data[bpos++];
         buf[esize]='\0';
         con << buf << con.endl();
@@ -277,7 +263,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     char buf[HTML_BLOCKSIZE];
 READFILE:
     ssize_t rdd=read(fd,&buf,HTML_BLOCKSIZE);
-    if(rdd<0){
+    if(rdd>0){
         _HtmlDocument->assign(buf,rdd);
         goto READFILE;
     }

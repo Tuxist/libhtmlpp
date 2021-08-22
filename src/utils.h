@@ -35,8 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define UTIL_H
 
 namespace libhtmlpp {
-
-    inline unsigned int getlen(const char *str) {
+    inline size_t getlen(const char *str){
         if(!str)
             return 0;
         size_t len= 0;
@@ -44,6 +43,31 @@ namespace libhtmlpp {
             ++len;
         }
         return len;
+    }
+
+    inline void reverse(char s[]){
+        int i, j;
+        char c;
+        
+        for (i = 0, j = getlen(s)-1; i<j; i++, j--) {
+            c = s[i];
+            s[i] = s[j];
+            s[j] = c;
+        }
+    }    
+    
+    inline void itoa(int n, char s[]){
+        int i, sign;
+        if ((sign = n) < 0) 
+            n = -n;         
+        i = 0;
+        do {       /* generate digits in reverse order */
+            s[i++] = n % 10 + '0';   /* get next digit */
+        } while ((n /= 10) > 0);     /* delete it */
+        if (sign < 0)
+            s[i++] = '-';
+        s[i] = '\0';
+        reverse(s);
     }
 
     inline bool isdigit(const char src){

@@ -27,6 +27,7 @@
 
 #include <stddef.h>
 
+#include "utils.h"
 #include "exception.h"
 
 libhtmlpp::HTMLException::HTMLException(){
@@ -82,28 +83,7 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){
     char *buf=new char[sizeof(int)+1];
-    int i, sign;
-    if ((sign = src) < 0) 
-        src = -src;         
-    i = 0;
-    do {       /* generate digits in reverse order */
-        buf[i++] = src % 10 + '0';   /* get next digit */
-    } while ((src /= 10) > 0);     /* delete it */
-    if (sign < 0)
-        buf[i++] = '-';
-    buf[i] = '\0';
-    char c;
-    int slen=0;
-    EXCEPTIONLEN2:
-    if(buf[slen]!='\0'){
-        ++slen;
-        goto EXCEPTIONLEN2;
-    }
-    for (int i = 0, j = slen-1; i<j; i++, j--) {
-        c = buf[i];
-        buf[i] = buf[j];
-        buf[j] = c;
-    }
+    itoa(src,buf);
     asign(buf);
     delete[] buf;
     return *this;

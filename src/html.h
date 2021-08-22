@@ -119,9 +119,10 @@ namespace libhtmlpp {
         void setStyle(const char *css);
         const char *printHtmlElement();
     private:
-        char       *_ID;
-        char       *_Class;
-        char       *_Style;
+        char          *_ID;
+        char          *_Class;
+        char          *_Style;
+        HTMLException  _HTMLException;
     };
 };
 

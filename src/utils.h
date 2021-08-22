@@ -73,7 +73,7 @@ namespace libhtmlpp {
     inline bool isdigit(const char src){
         const char numbers[10]={0,1,2,3,4,5,6,7,8,9};
         for(int i=0; i<10; ++i){
-            if(numbers[i]==src)
+            if((char)numbers[i]==src)
                 return true;
         }
         return false;
@@ -91,28 +91,39 @@ namespace libhtmlpp {
         return false;  
     }
     
-    inline void setter(const char *src,int srcsize,char **dest,const char *ssigns=nullptr){
-        delete[] *dest;
-        char *buf = new char[srcsize];
+    inline bool setter(const char *src,int srcsize,char **dest,const char *ssigns=nullptr){
+        char *buf = new char[srcsize+1];
         bool nallowd=false;
-        for(int i=0; i<srcsize; ++i){
+        for(int i=0; i<(srcsize-1); ++i){
             if(!isdigit(src[i]) || !isalpha(src[i]) || ssigns){
                 nallowd=true;
                 for(size_t pos=0; pos<getlen(ssigns); ++pos){
                     if(ssigns[pos]==src[i]){
                         nallowd=false;
-                        
                     }
+                }
+                if(nallowd){
+                    delete[] buf;
+                    return false;
                 }
             }
             buf[i]=src[i];
         }
+        delete[] *dest;
+        buf[srcsize]='\0';
         *dest=buf;
-        if(nallowd){
-            libhtmlpp::HTMLException excp;
-            excp[HTMLException::Error] << "setter: Wrong input no digit or Alphanumeric";
-            throw excp;
+        return true;
+    }
+    
+    inline void substr(const char *src,char **dest,size_t spos,size_t endpos){
+        size_t srcsize=endpos-spos;
+        char *buf = new char[srcsize+1];
+        for(int i=spos,j=0; j<srcsize; ++i,++j){
+            buf[j]=src[i];
         }
+        delete[] *dest;
+        buf[srcsize]='\0';
+        *dest=buf;       
     }
 };
 

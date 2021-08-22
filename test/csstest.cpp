@@ -45,7 +45,7 @@ int main(){
     }
     
     try{
-        table.setStyle(":\"");
+        table.setStyle("\"");
         console << Red << "Test not Passed!" << NOCOLOR<< console.endl();
         return -1;
     }catch(...){

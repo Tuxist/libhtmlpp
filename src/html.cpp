@@ -207,35 +207,47 @@ void libhtmlpp::HtmlString::_parseTree(){
                 break;
         }
     }
-    for(size_t i=0; i<_HTableSize; ++i){
-        Console con;
-        con << _HTable[i][0] << ":" << _HTable[i][1] << ":" << _HTable[i][2] << con.endl();
-    }
 }
 
 void libhtmlpp::HtmlString::_buildTree(){
-    _HtmlRootNode = new HtmlElement();
     Console con;
-    con << _HTableSize << con.endl();
-    for (size_t i = 0; i < _HTableSize; ++i) {
+    size_t i = 0;
+    while(i < _HTableSize) {
         size_t epos=0;
-        (_HTable[i][1]!=-1) ? epos=_HTable[i][1] : epos=_HTable[i][2];
-        size_t esize=(epos-_HTable[i][0])+1;
-        char *buf=new char[esize+1];
-        size_t bpos=_HTable[i][0];
-        con << _HTable[i][0] << con.endl();
-        for(size_t bi=0; bi < esize; ++bi)
-            buf[bi]=_Data[bpos++];
-        buf[esize]='\0';
-        con << buf << con.endl();
-        delete[] buf;
+        if(_HTable[i][1]!=-1){
+            epos=_HTable[i][1];
+        }else{
+            epos=_HTable[i][2];
+        }
+        for(size_t spos=_HTable[i][0]; spos<epos; ++spos){
+            if(_Data[spos]==' ' || _Data[spos]==_HTable[i][2]){
+                 if(!_HtmlRootNode){
+                     _HtmlRootNode = new HtmlElement();
+                     char *tag=nullptr;
+                     substr(_Data,&tag,_HTable[i][0]+1,spos);
+                     con << tag << con.endl();
+                     delete[] tag;
+                 }else{
+                     _HtmlRootNode->_Parent = new HtmlElement();
+                     char *tag=nullptr;
+                     substr(_Data,&tag,_HTable[i][0]+1,spos);
+                     con << tag << con.endl();
+                     delete[] tag;
+                 }
+            }
+        }
+        ++i;
     }
 }
 
 libhtmlpp::HtmlElement::HtmlElement(){
+    _Tag=nullptr;
+    _Text=nullptr;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
+    delete[] _Tag;
+    delete[] _Text;
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
@@ -287,15 +299,24 @@ libhtmlpp::HtmlTable::~HtmlTable(){
 }
 
 void libhtmlpp::HtmlTable::setID(const char *id){
-    setter(id,getlen(id),&_ID);
+    if(!setter(id,getlen(id),&_ID)){
+        _HTMLException[HTMLException::Error] << "HtmlTable can't id: " << id;
+        throw _HTMLException;        
+    }
 }
 
 void libhtmlpp::HtmlTable::setClass(const char *cname){
-    setter(cname,getlen(cname),&_Class);
+    if(!setter(cname,getlen(cname),&_Class)){
+        _HTMLException[HTMLException::Error] << "HtmlTable can't class name: " << cname;
+        throw _HTMLException;          
+    }
 }
 
 void libhtmlpp::HtmlTable::setStyle(const char *css){
-    setter(css,getlen(css),&_Style,css);
+    if(!setter(css,getlen(css),&_Style,":;(),+~'")){
+        _HTMLException[HTMLException::Error] << "HtmlTable can't set Style: " << css;
+        throw _HTMLException;          
+    }
 }
 
 //     class Row {

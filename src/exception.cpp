@@ -53,13 +53,11 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
     if(!src)
         return *this;
     size_t srcsize=0;
-    EXCEPTIONLEN:
-    if(src[srcsize]!='\0'){
-        ++srcsize;
+EXCEPTIONLEN:
+    if(src[srcsize++]!='\0')
         goto EXCEPTIONLEN;
-    }
     size_t nsize=(srcsize+_BufferSize);
-    char *buf=new char[nsize+1];
+    char *buf=new char[nsize];
     size_t i;
     for(i=0; i<_BufferSize; ++i)
         buf[i]=_Buffer[i];

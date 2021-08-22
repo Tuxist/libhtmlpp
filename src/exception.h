@@ -51,17 +51,17 @@ namespace libhtmlpp {
     public:
         
         HTMLException(){
-            CType=Note;
+            _CType=Note;
             _Buffer=nullptr;
             _BufferSize=0;
         };
        
-        virtual ~HTMLException(){
+        ~HTMLException(){
             delete[] _Buffer;
         }
         
         int getErrorType(){
-           return CType; 
+           return _CType; 
         }
         
         const char* what() const throw(){
@@ -74,10 +74,14 @@ namespace libhtmlpp {
         HTMLException& asign(const char *src){
             if(!src)
                 return *this;
-            size_t srcsize;
-            for(srcsize=0; src[srcsize]!='\0'; ++srcsize);
+            size_t srcsize=0;
+EXCEPTIONLEN:
+            if(src[srcsize]!='\0'){
+                ++srcsize;
+                goto EXCEPTIONLEN;
+            }
             size_t nsize=(srcsize+_BufferSize);
-            char *buf=new char[1+nsize];
+            char *buf=new char[nsize+1];
             size_t i;
             for(i=0; i<_BufferSize; ++i)
                 buf[i]=_Buffer[i];
@@ -87,11 +91,11 @@ namespace libhtmlpp {
             buf[nsize]='\0';
             delete[] _Buffer;
             _Buffer=buf;
-            return *this;        
+            return *this;   
         }
 
         HTMLException& operator[](int errtype){
-            CType=errtype;
+            _CType=errtype;
             return *this;
         }
         
@@ -135,7 +139,7 @@ namespace libhtmlpp {
     private:
         char  *_Buffer;
         size_t _BufferSize;        
-        int     CType;
+        int    _CType;
     };
 }
 #endif

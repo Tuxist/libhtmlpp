@@ -30,36 +30,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utils.h"
 #include "html.h"
 #include "config.h"
-#include "exception.h"
 
 #define HTMLTAG_OPEN '<'
 #define HTMLTAG_TERMINATE '/'
 #define HTMLTAG_CLOSE '>'
 
 libhtmlpp::HtmlString::HtmlString(){
-    _Data=nullptr;
-    _DataSize=0;
-    _OpenTags=0;
-    _CloseTags=0;
-    _HTable=nullptr;
-    _HTableSize=0;
-    _HtmlRootNode=nullptr;
+    _InitString();
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
-    delete[] _Data;
-    delete   _HTable;
-    delete   _HtmlRootNode;
+   clear();
 }
 
 void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
     size_t nsize=_DataSize+srcsize;
     char *buf=new char [nsize+1];
     size_t i=0;
-    while(i<_DataSize){
-       buf[i]=_Data[i];
-       ++i;
-    }
+    for(i=0; i<_DataSize; ++i)
+        buf[i]=_Data[i];
     for(size_t ii = 0; ii<srcsize; ++ii)
         buf[i++]=src[ii];
     _DataSize=nsize;
@@ -88,17 +77,20 @@ void libhtmlpp::HtmlString::assign(const char* src) {
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
     if(pos < _DataSize){
-        libhtmlpp::HTMLException excep;
-        excep[HTMLException::Critical] << "HtmlString: out of String";
-        throw excep;
+        _HTMLException[HTMLException::Critical] << "HtmlString: out of String";
+        throw _HTMLException;
     }
     _Data[pos]=src;
 }
 
 void libhtmlpp::HtmlString::clear(){
+    for(size_t i=0; i<_HTableSize; ++i){
+        delete[] _HTable[i];
+    }
+    delete[] _HTable;
+    delete   _HtmlRootNode;
     delete[] _Data;
-    _Data=nullptr;
-    _DataSize=0;
+    _InitString();
 }
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
@@ -185,11 +177,20 @@ bool libhtmlpp::HtmlString::validate(){
     return true;
 }
 
+void libhtmlpp::HtmlString::_InitString(){
+    _Data=nullptr;
+    _DataSize=0;
+    _OpenTags=0;
+    _CloseTags=0;
+    _HTable=nullptr;
+    _HTableSize=0;
+    _HtmlRootNode=nullptr;   
+}
+
 void libhtmlpp::HtmlString::_parseTree(){
     if(!validate()){
-        HTMLException excp;
-        excp[HTMLException::Error]<< "HtmlString:" << "parseTree parse Error html not validate !";
-        throw excp;
+        _HTMLException[HTMLException::Error] << "HtmlString:" << "parseTree parse Error html not validate !";
+        throw _HTMLException;
     }
     if(_HTable){
         delete _HTable;
@@ -215,9 +216,8 @@ void libhtmlpp::HtmlString::_parseTree(){
             }
             case HTMLTAG_CLOSE:{
                 if(!open){
-                    HTMLException excp;
-                    excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
-                    throw excp;
+                    _HTMLException[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
+                    throw _HTMLException;
                 }
                 _HTable[ii][2]=ip;
                 open=false;
@@ -271,14 +271,13 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     int fd=open(path,O_RDONLY);
     if(fd<0){
-        HTMLException exp;
-        exp[HTMLException::Critical] << "HtmlPage can't open File: "<<path;
-        throw exp;
+        _HTMLException[HTMLException::Critical] << "HtmlPage can't open File: "<<path;
+        throw _HTMLException;
     }
     char buf[HTML_BLOCKSIZE];
 READFILE:
     ssize_t rdd=read(fd,&buf,HTML_BLOCKSIZE);
-    if(rdd>0){
+    if(rdd<0){
         _HtmlDocument->assign(buf,rdd);
         goto READFILE;
     }
@@ -296,6 +295,9 @@ libhtmlpp::HtmlTable::HtmlTable() {
 
 
 libhtmlpp::HtmlTable::~HtmlTable(){
+    delete[] _Style;
+    delete[] _Class;
+    delete[] _ID;
 }
 
 void libhtmlpp::HtmlTable::setID(const char *id){

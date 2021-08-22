@@ -52,7 +52,7 @@ namespace libhtmlpp {
             if(numbers[i]==src)
                 return true;
         }
-        return false;  
+        return false;
     }
     
     inline bool isalpha(const char src){

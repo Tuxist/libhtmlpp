@@ -27,6 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sys/types.h>
 
+#include "exception.h"
+
 #ifndef HTML_H
 #define HTML_H
 
@@ -82,7 +84,8 @@ namespace libhtmlpp {
         size_t      size();
         void        clear();
         bool        validate();
-     private:        
+     private:
+        void              _InitString();
         void              _parseTree();
         void              _buildTree();
         size_t            _OpenTags;
@@ -92,6 +95,7 @@ namespace libhtmlpp {
         ssize_t         **_HTable;
         size_t            _HTableSize;
         HtmlElement      *_HtmlRootNode;
+        HTMLException     _HTMLException;
         friend class HtmlPage;
     };
 
@@ -103,7 +107,8 @@ namespace libhtmlpp {
         void addElement(HtmlElement *element);
         const char *printHtml();
     private:
-        HtmlString *_HtmlDocument;
+        HtmlString    *_HtmlDocument;
+        HTMLException  _HTMLException;
     }; 
     
     class HtmlTable : public HtmlElement{

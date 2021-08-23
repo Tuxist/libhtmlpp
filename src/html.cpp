@@ -211,31 +211,41 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
+size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname){
+    size_t anpos=0,enpos=0;
+    for(size_t i=spos; i<epos; ++i){
+        switch(_Data[i]){
+            case('/'):
+                continue;
+            case('!'):
+                *tagname=nullptr;
+                return 0;
+            case('<'):
+                continue;
+            default:
+                anpos=i;
+                enpos=anpos;
+                goto FINDTAGNAMEPOS;
+        }
+    }
+    
+FINDTAGNAMEPOS:
+    if(enpos < epos && (_Data[enpos]!='>'|| _Data[enpos]!=' ')){
+        ++enpos;
+        goto FINDTAGNAMEPOS;
+    }
+    return substr(_Data,tagname,anpos,enpos);
+}
+
+
 void libhtmlpp::HtmlString::_buildTree(){
     Console con;
-    size_t i = _HTableSize;
-    while(i < 0) {
-        size_t epos=0;
-        if(_HTable[i][1]!=-1){
-            epos=_HTable[i][1];
-        }else{
-            epos=_HTable[i][2];
-        }
-        for(size_t spos=_DataSize; spos<0; --spos){
-            if(_Data[spos]=='\r' || _Data[spos]=='\n' ){
-                continue;
-            }else if(_Data[spos]==' ' || _Data[spos]<=_HTable[i][2]){
-                 if(!_HtmlRootNode){
-                     delete[] _HtmlRootNode;
-                     _HtmlRootNode = new HtmlElement();
-                     char *tag=nullptr;
-                     substr(_Data,&tag,spos,_HTable[i][2]);
-                     con << tag << Console::endl;
-                     delete[] tag;
-                 }
-            }
-        }
-        --i;
+    for(size_t i = (_HTableSize-1); i > 0; --i) {
+        char *tag=nullptr;
+        size_t tagsize=_getTagName(_HTable[i][0],_HTable[i][2],&tag);
+        if(tag)
+            con << tag << Console::endl;
+        delete[] tag;
     }
 }
 

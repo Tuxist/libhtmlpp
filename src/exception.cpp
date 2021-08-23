@@ -30,43 +30,83 @@
 #include "utils.h"
 #include "exception.h"
 
-const char * libhtmlpp::HTMLException::endl="\n";
-
-libhtmlpp::HTMLException::HTMLException(){
-    _CType=Note;
+libhtmlpp::HTMLException::Message::Message(){
     _Buffer=nullptr;
     _BufferSize=0;
+    _nextMessage=nullptr;
+}
+
+libhtmlpp::HTMLException::Message::~Message(){
+    delete[] _Buffer;
+    delete   _nextMessage;
+}
+
+libhtmlpp::HTMLException::HTMLException(){
+    _curCType=Note;
+    _firstMessage=nullptr;
+    _lastMessage=nullptr;
+    _printBuffer=nullptr;
 };
 
+libhtmlpp::HTMLException::HTMLException(const HTMLException &exp){
+    _curCType=exp._curCType;
+    _firstMessage=nullptr;
+    _lastMessage=nullptr;
+    _printBuffer=nullptr;
+    for(Message *curmsg=exp._firstMessage; curmsg; curmsg=curmsg->_nextMessage){
+        *this << curmsg->_Buffer;
+    }
+}
+
 libhtmlpp::HTMLException::~HTMLException(){
-    delete[] _Buffer;
+    delete[] _printBuffer;
+    delete _firstMessage;
 }
 
 int libhtmlpp::HTMLException::getErrorType(){
-    return _CType; 
+    return _curCType; 
 }
 
-const char* libhtmlpp::HTMLException::what() const throw(){
-    return _Buffer;
+const char* libhtmlpp::HTMLException::what(){
+    size_t bufsize=0,written=0;
+    for(Message *curmsg=_firstMessage; curmsg; curmsg=curmsg->_nextMessage){
+        bufsize+=curmsg->_BufferSize;
+    }
+    delete[] _printBuffer;
+    _printBuffer = new char[bufsize+1];
+    for(Message *curmsg=_firstMessage; curmsg; curmsg=curmsg->_nextMessage){
+        scopy(curmsg->_Buffer,curmsg->_Buffer+curmsg->_BufferSize,_printBuffer+written);
+        written+=curmsg->_BufferSize;
+    }
+    _printBuffer[bufsize]='\0';
+    
+    return _printBuffer;
+}
+
+const libhtmlpp::HTMLException & libhtmlpp::HTMLException::Exception() throw(){
+    return *this;
 }
 
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
     if(!src)
         return *this;
-    size_t srcsize=getlen(src)+1;
-    size_t nsize=_BufferSize+srcsize;
-    char *buf=new char [nsize];
-    scopy(_Buffer,_Buffer+_BufferSize,buf);
-    scopy(src,src+srcsize,buf+_BufferSize);
-    _BufferSize=(nsize-1);
-    delete[] _Buffer;
-    _Buffer=buf;
+    if(!_firstMessage){
+        _firstMessage=new Message();
+        _lastMessage=_firstMessage;
+    }else{
+        _lastMessage->_nextMessage=new Message();
+        _lastMessage=_lastMessage->_nextMessage;
+    }
+    _lastMessage->_CType=_curCType;
+    _lastMessage->_BufferSize=getlen(src);
+    _lastMessage->_Buffer=new char[_lastMessage->_BufferSize+1];
+    scopy(src,src+_lastMessage->_BufferSize+1,_lastMessage->_Buffer);
     return *this;   
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
-    _CType=errtype;
+    _curCType=errtype;
     return *this;
 }
 

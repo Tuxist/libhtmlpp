@@ -87,8 +87,6 @@ namespace libhtmlpp {
         void              _InitString();
         void              _parseTree();
         void              _buildTree();
-        size_t            _OpenTags;
-        size_t            _CloseTags;
         char             *_Data;
         size_t            _DataSize;
         ssize_t         **_HTable;

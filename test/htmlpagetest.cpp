@@ -41,7 +41,7 @@ int main(int arc,char *argv[]){
         console << page.printHtml() << libhtmlpp::Console::endl; 
         console << Green << "Test Passed!" << NOCOLOR << libhtmlpp::Console::endl;
     }catch(libhtmlpp::HTMLException &exp){
-        console << exp.what() << libhtmlpp::Console::endl;
+        console << exp.what() << libhtmlpp::Console::endl;;
         console << Red << "Test not Passed!" << NOCOLOR << libhtmlpp::Console::endl;
         return -1;
     }

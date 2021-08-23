@@ -51,11 +51,14 @@ namespace libhtmlpp {
     public:
         
         HTMLException();
-        ~HTMLException();
+        HTMLException(const HTMLException &exp);
+        virtual ~HTMLException();
         
         int getErrorType();
         
-        const char* what() const throw();
+        const char* what();
+        
+        const HTMLException& Exception() throw();
         
         enum Type {Note,Warning,Error,Critical};
         
@@ -63,13 +66,21 @@ namespace libhtmlpp {
         HTMLException& operator[](int errtype);
         HTMLException& operator<<(const char *src);
         HTMLException& operator<<(int src);
-        
-        static const char *endl;
-        
     private:
-        char  *_Buffer;
-        size_t _BufferSize;        
-        int    _CType;
+        struct Message {
+            Message();
+            ~Message();
+            char    *_Buffer;
+            size_t   _BufferSize;        
+            int      _CType;
+            Message *_nextMessage;
+        };
+        
+        Message *_firstMessage;
+        Message *_lastMessage;
+        
+        char    *_printBuffer;
+        int      _curCType;
     };
 }
 #endif

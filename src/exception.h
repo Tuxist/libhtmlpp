@@ -63,6 +63,9 @@ namespace libhtmlpp {
         HTMLException& operator[](int errtype);
         HTMLException& operator<<(const char *src);
         HTMLException& operator<<(int src);
+        
+        static const char *endl;
+        
     private:
         char  *_Buffer;
         size_t _BufferSize;        

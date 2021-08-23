@@ -30,6 +30,8 @@
 #include "utils.h"
 #include "exception.h"
 
+const char * libhtmlpp::HTMLException::endl="\n";
+
 libhtmlpp::HTMLException::HTMLException(){
     _CType=Note;
     _Buffer=nullptr;

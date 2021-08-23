@@ -38,11 +38,11 @@ int main(int arc,char *argv[]){
     libhtmlpp::Console console;
     try{
         page.loadFile(argv[1]);
-        console << page.printHtml() << console.endl(); 
-        console << Green << "Test Passed!" << NOCOLOR << console.endl();
+        console << page.printHtml() << libhtmlpp::Console::endl; 
+        console << Green << "Test Passed!" << NOCOLOR << libhtmlpp::Console::endl;
     }catch(libhtmlpp::HTMLException &exp){
-        console << exp.what() << console.endl();
-        console << Red << "Test not Passed!" << NOCOLOR << console.endl();
+        console << exp.what() << libhtmlpp::Console::endl;
+        console << Red << "Test not Passed!" << NOCOLOR << libhtmlpp::Console::endl;
         return -1;
     }
     return 0;

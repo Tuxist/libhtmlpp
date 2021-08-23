@@ -32,6 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utils.h"
 #include "system.h"
 
+const char* libhtmlpp::Console::endl="\n";
+
 libhtmlpp::Console &libhtmlpp::Console::operator<< (const char* out){
     if(!out)
         return *this;
@@ -48,10 +50,6 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (int out){
 
 libhtmlpp::Console & libhtmlpp::Console::operator<<(libhtmlpp::Console& console){
     return console;
-}
-
-libhtmlpp::Console &libhtmlpp::Console::endl(){
-    return (*this << "\n");
 }
 
 

@@ -38,18 +38,18 @@ int main(){
     libhtmlpp::Console console;
     try{
         table.setStyle(":;(),+~'");
-        console << Green << "Test Passed!" << NOCOLOR << console.endl();
+        console << Green << "Test Passed!" << NOCOLOR << libhtmlpp::Console::endl;
     }catch(...){
-        console << Red << "Test not Passed!" << NOCOLOR << console.endl();
+        console << Red << "Test not Passed!" << NOCOLOR << libhtmlpp::Console::endl;
         return -1;
     }
     
     try{
         table.setStyle("\"");
-        console << Red << "Test not Passed!" << NOCOLOR<< console.endl();
+        console << Red << "Test not Passed!" << NOCOLOR<< libhtmlpp::Console::endl;
         return -1;
     }catch(...){
-        console << Green << "Test Passed!" << NOCOLOR << console.endl();
+        console << Green << "Test Passed!" << NOCOLOR << libhtmlpp::Console::endl;
     }
     return 0;
 }

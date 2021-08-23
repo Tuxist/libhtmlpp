@@ -33,10 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class Console {
     public:
+        static const char *endl;
         Console &operator<<(const char *out);
         Console &operator<<(int out);
         Console &operator<<(Console &console);
-        Console &endl();
     };
 };
 

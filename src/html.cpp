@@ -75,7 +75,7 @@ void libhtmlpp::HtmlString::assign(const char* src) {
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
     if(pos < _DataSize){
-        _HTMLException[HTMLException::Critical] << "HtmlString: out of String";
+        _HTMLException[HTMLException::Critical] << "HtmlString: out of String" << HTMLException::endl;
         throw _HTMLException;
     }
     _Data[pos]=src;
@@ -163,7 +163,7 @@ void libhtmlpp::HtmlString::_InitString(){
 
 void libhtmlpp::HtmlString::_parseTree(){
     if(!validate()){
-        _HTMLException[HTMLException::Critical] << "HtmlString:" << "parseTree parse Error html not validate !";
+        _HTMLException[HTMLException::Critical] << "HtmlString:" << "parseTree parse Error html not validate !" << HTMLException::endl;
         throw _HTMLException;
     }
     
@@ -194,7 +194,9 @@ void libhtmlpp::HtmlString::_parseTree(){
                 break;
             case HTMLTAG_CLOSE:
                 if(!open){
-                    _HTMLException[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
+                    _HTMLException[HTMLException::Error] 
+                        << "HtmlString: parseTree parse Error couldn't fid opentag" 
+                        << HTMLException::endl;
                     throw _HTMLException;
                 }
                 _HTable[ip][2]=ii;
@@ -223,13 +225,13 @@ void libhtmlpp::HtmlString::_buildTree(){
                      _HtmlRootNode = new HtmlElement();
                      char *tag=nullptr;
                      substr(_Data,&tag,_HTable[i][0]+1,spos);
-                     con << tag << con.endl();
+                     con << tag << Console::endl;
                      delete[] tag;
                  }else{
                      _HtmlRootNode->_Parent = new HtmlElement();
                      char *tag=nullptr;
                      substr(_Data,&tag,_HTable[i][0]+1,spos);
-                     con << tag << con.endl();
+                     con << tag << Console::endl;
                      delete[] tag;
                  }
             }
@@ -267,7 +269,7 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     int fd=open(path,O_RDONLY);
     if(fd<0){
-        _HTMLException[HTMLException::Critical] << "HtmlPage can't open File: "<<path;
+        _HTMLException[HTMLException::Critical] << "HtmlPage can't open File: "<<path << HTMLException::endl;
         throw _HTMLException;
     }
     char buf[HTML_BLOCKSIZE];
@@ -298,21 +300,21 @@ libhtmlpp::HtmlTable::~HtmlTable(){
 
 void libhtmlpp::HtmlTable::setID(const char *id){
     if(!setter(id,getlen(id),&_ID)){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't id: " << id;
+        _HTMLException[HTMLException::Error] << "HtmlTable can't id: " << id << HTMLException::endl;
         throw _HTMLException;        
     }
 }
 
 void libhtmlpp::HtmlTable::setClass(const char *cname){
     if(!setter(cname,getlen(cname),&_Class)){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't class name: " << cname;
+        _HTMLException[HTMLException::Error] << "HtmlTable can't class name: " << cname << HTMLException::endl;
         throw _HTMLException;          
     }
 }
 
 void libhtmlpp::HtmlTable::setStyle(const char *css){
     if(!setter(css,getlen(css),&_Style,":;(),+~'")){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't set Style: " << css;
+        _HTMLException[HTMLException::Error] << "HtmlTable can't set Style: " << css << HTMLException::endl;
         throw _HTMLException;          
     }
 }

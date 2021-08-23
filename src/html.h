@@ -33,12 +33,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTML_H
 
 namespace libhtmlpp {
+    
     class HtmlElement {
     protected:
         HtmlElement();
         ~HtmlElement();
         char            *_Tag;
         char            *_Text;
+        char            *_Comment;
         HtmlElement     *_Parent;
         
         class HtmlAttributes {
@@ -83,6 +85,7 @@ namespace libhtmlpp {
         size_t      size();
         void        clear();
         bool        validate();
+        void        parse();
      private:
         void              _InitString();
         void              _parseTree();
@@ -93,7 +96,6 @@ namespace libhtmlpp {
         size_t            _HTableSize;
         HtmlElement      *_HtmlRootNode;
         HTMLException     _HTMLException;
-        friend class HtmlPage;
     };
 
     class HtmlPage {

@@ -52,19 +52,12 @@ const char* libhtmlpp::HTMLException::what() const throw(){
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
     if(!src)
         return *this;
-    size_t srcsize=0;
-EXCEPTIONLEN:
-    if(src[srcsize++]!='\0')
-        goto EXCEPTIONLEN;
-    size_t nsize=(srcsize+_BufferSize);
-    char *buf=new char[nsize];
-    size_t i;
-    for(i=0; i<_BufferSize; ++i)
-        buf[i]=_Buffer[i];
-    for(size_t ii = 0; ii<srcsize; ++ii)
-        buf[i++]=src[ii];
-    _BufferSize=nsize;
-    buf[nsize]='\0';
+    size_t srcsize=getlen(src)+1;
+    size_t nsize=_BufferSize+srcsize;
+    char *buf=new char [nsize];
+    scopy(_Buffer,_Buffer+_BufferSize,buf);
+    scopy(src,src+srcsize,buf+_BufferSize);
+    _BufferSize=(nsize-1);
     delete[] _Buffer;
     _Buffer=buf;
     return *this;   
@@ -76,7 +69,7 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
-    return asign(src);       
+    return asign(src);   
 };
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){

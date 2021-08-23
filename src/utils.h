@@ -39,9 +39,8 @@ namespace libhtmlpp {
         if(!str)
             return 0;
         size_t len= 0;
-        while (*(str++) != '\0') {
+        while (*(str++) != '\0')
             ++len;
-        }
         return len;
     }
 
@@ -94,7 +93,7 @@ namespace libhtmlpp {
     inline bool setter(const char *src,int srcsize,char **dest,const char *ssigns=nullptr){
         char *buf = new char[srcsize+1];
         bool nallowd=false;
-        for(int i=0; i<(srcsize-1); ++i){
+        for(int i=0; i<srcsize; ++i){
             if(!isdigit(src[i]) || !isalpha(src[i]) || ssigns){
                 nallowd=true;
                 for(size_t pos=0; pos<getlen(ssigns); ++pos){
@@ -124,6 +123,13 @@ namespace libhtmlpp {
         delete[] *dest;
         buf[srcsize]='\0';
         *dest=buf;       
+    }
+    
+    inline const  char *scopy(const char* first, const char* last, char* des){
+        while (first != last) {
+            *des++ = *first++;
+        }
+        return des;
     }
 };
 

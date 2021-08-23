@@ -47,10 +47,8 @@ void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
     size_t nsize=_DataSize+srcsize;
     char *buf=new char [nsize+1];
     size_t i=0;
-    for(i=0; i<_DataSize; ++i)
-        buf[i]=_Data[i];
-    for(size_t ii = 0; ii<srcsize; ++ii)
-        buf[i++]=src[ii];
+    scopy(_Data,_Data+_DataSize,buf);
+    scopy(src,src+srcsize,buf+_DataSize);
     _DataSize=nsize;
     delete[] _Data;
     buf[nsize]='\0';
@@ -87,7 +85,7 @@ void libhtmlpp::HtmlString::clear(){
     for(size_t i=0; i<_HTableSize; ++i){
         delete[] _HTable[i];
     }
-    delete[] _HTable;
+    delete   _HTable;
     delete   _HtmlRootNode;
     delete[] _Data;
     _InitString();
@@ -165,7 +163,7 @@ void libhtmlpp::HtmlString::_InitString(){
 
 void libhtmlpp::HtmlString::_parseTree(){
     if(!validate()){
-        _HTMLException[HTMLException::Error] << "HtmlString:" << "parseTree parse Error html not validate !";
+        _HTMLException[HTMLException::Critical] << "HtmlString:" << "parseTree parse Error html not validate !";
         throw _HTMLException;
     }
     

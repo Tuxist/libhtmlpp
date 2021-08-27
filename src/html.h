@@ -84,7 +84,7 @@ namespace libhtmlpp {
      private:
         void              _InitString();
         void              _parseTree();
-        void              _buildTree();
+        void              _buildTree(HtmlElement **node,size_t &spos,size_t &tpos);
         size_t            _getTagName(size_t spos,size_t epos,char **tagname);
         char             *_Data;
         size_t            _DataSize;

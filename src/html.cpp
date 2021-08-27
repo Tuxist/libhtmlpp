@@ -170,7 +170,7 @@ void libhtmlpp::HtmlString::parse(){
     _parseTree();
     size_t tpos=(_HTableSize-1),spos=0;
     HtmlElement *node=nullptr;
-    _buildTree();
+    _buildTree(&_HtmlRootNode,spos,tpos);
 }
 
 
@@ -247,11 +247,9 @@ FINDTAGNAMEPOS:
     return substr(_Data,tagname,anpos,enpos);
 }
 
-void libhtmlpp::HtmlString::_buildTree(){
+void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &tpos){
     Console con;
-    size_t spos=0;
-    size_t tpos=(_HTableSize-1);
-    HtmlElement *rootnode=nullptr,*prevnode=nullptr,*prevtree=nullptr;
+    HtmlElement *prevnode=nullptr;
     char *prvname=nullptr;
 NEXTELEMENT:
     if(tpos>0) {
@@ -259,31 +257,31 @@ NEXTELEMENT:
         size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag);
         --tpos;
         if(tagsize>0){
-            HtmlElement *tagel = new HtmlElement();
+            bool havechild=false;
             if(spos<tpos){
                 size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
-                if(((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,ctagsize))){
-                    prevtree=tagel;
-                }else{
-                    rootnode=prevtree;
-                }
                 spos++; tpos--;
+                if(((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,ctagsize))){
+                    _buildTree(&prevnode,spos,tpos);
+                    havechild=true;
+                }
+
             }
+            HtmlElement *tagel = new HtmlElement();
             tagel->_Tag=tag;
-            tagel->_nextElement=prevnode;
-            if(rootnode){
-                rootnode->_prevElement=tagel;
-                rootnode=rootnode->_prevElement;
-            }else{
-                rootnode=tagel;
+            if(!havechild)
+                tagel->_nextElement=prevnode;
+            tagel->_Child=*node;
+            if(prevnode){
+                prevnode->_prevElement=tagel;                
             }
-            rootnode->_Child=prevtree;
-            prevnode=rootnode;
+            if(!*node)
+                *node=tagel;
+            prevnode=tagel;
         }
         if(tpos>0)
             goto NEXTELEMENT;
     }
-    _HtmlRootNode=prevnode;
 }
 
 libhtmlpp::HtmlElement::HtmlElement(){

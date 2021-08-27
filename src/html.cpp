@@ -221,13 +221,11 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname,bool &term){
-    term=false;
+size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname){
     size_t anpos=0,enpos=0;
     for(size_t i=spos; i<epos; ++i){
         switch(_Data[i]){
             case('/'):
-                term=true;
                 continue;
             case('!'):
                 tagname=nullptr;
@@ -257,22 +255,19 @@ void libhtmlpp::HtmlString::_buildTree(){
     char *prvname=nullptr;
 NEXTELEMENT:
     if(tpos>0) {
-        bool term=false;
         char *tag=nullptr;
-        size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag,term);
+        size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag);
         --tpos;
         if(tagsize>0){
             HtmlElement *tagel = new HtmlElement();
             if(spos<tpos){
-                size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname,term);
-                if(term && ((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,ctagsize))){
-                    rootnode->_Child=tagel;
-                    prevtree=rootnode;
-                    rootnode=rootnode->_Child;
+                size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
+                if(((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,ctagsize))){
+                    prevtree=tagel;
                 }else{
                     rootnode=prevtree;
                 }
-                spos++; tpos++;
+                spos++; tpos--;
             }
             tagel->_Tag=tag;
             tagel->_nextElement=prevnode;
@@ -280,9 +275,9 @@ NEXTELEMENT:
                 rootnode->_prevElement=tagel;
                 rootnode=rootnode->_prevElement;
             }else{
-                
                 rootnode=tagel;
             }
+            rootnode->_Child=prevtree;
             prevnode=rootnode;
         }
         if(tpos>0)

@@ -41,7 +41,9 @@ namespace libhtmlpp {
         char            *_Tag;
         char            *_Text;
         char            *_Comment;
-        HtmlElement     *_Parent;
+        HtmlElement     *_Child;
+        HtmlElement     *_prevElement;
+        HtmlElement     *_nextElement;
         
         class HtmlAttributes {
         protected:
@@ -52,13 +54,6 @@ namespace libhtmlpp {
             HtmlAttributes *_nextHtmlAttributes;
         };
 
-        class HtmlChilds{
-        private:
-            HtmlChilds();
-            ~HtmlChilds();
-            HtmlElement *_Child;
-            HtmlElement *_nextChild;
-        };
         friend class HtmlString;
     };
         
@@ -81,16 +76,16 @@ namespace libhtmlpp {
         HtmlString &operator<<(const char *src);
         HtmlString &operator<<(int src);
         
-        const char *c_str();
-        size_t      size();
-        void        clear();
-        bool        validate();
-        void        parse();
+        const char        *c_str();
+        size_t             size();
+        void               clear();
+        bool               validate();
+        void               parse();
      private:
         void              _InitString();
         void              _parseTree();
         void              _buildTree();
-        size_t            _getTagName(size_t spos,size_t epos,char **tagname);
+        size_t            _getTagName(size_t spos,size_t epos,char **tagname,bool &term);
         char             *_Data;
         size_t            _DataSize;
         ssize_t         **_HTable;

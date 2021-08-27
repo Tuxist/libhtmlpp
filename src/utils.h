@@ -180,6 +180,16 @@ namespace libhtmlpp {
         return ssize;
     }
     
+    inline bool ncompare(char *src,size_t ssize,char *comp,size_t csize){
+        if(ssize<csize)
+            return false;
+        for(int i=0; i<csize; ++i){
+            if(src[i]!=comp[i])
+                return false;
+        }
+        return true;
+    }
+    
 };
 
 #endif

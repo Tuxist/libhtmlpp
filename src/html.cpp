@@ -124,6 +124,14 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
+    Console con;
+    HtmlElement *curel=_HtmlRootNode,*nextel=nullptr;
+PRINTELEMENTS:
+    if(curel){
+            con << curel->_Tag << con.endl;
+            curel=curel->_nextElement;
+            goto PRINTELEMENTS;
+    }
     return _Data;
 }
 
@@ -160,6 +168,8 @@ void libhtmlpp::HtmlString::parse(){
         throw _HTMLException;
     }
     _parseTree();
+    size_t tpos=(_HTableSize-1),spos=0;
+    HtmlElement *node=nullptr;
     _buildTree();
 }
 
@@ -169,7 +179,7 @@ void libhtmlpp::HtmlString::_InitString(){
     _DataSize=0;
     _HTable=nullptr;
     _HTableSize=0;
-    _HtmlRootNode=nullptr;   
+    _HtmlRootNode=nullptr;
 }
 
 void libhtmlpp::HtmlString::_parseTree(){   
@@ -211,14 +221,16 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname){
+size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname,bool &term){
+    term=false;
     size_t anpos=0,enpos=0;
     for(size_t i=spos; i<epos; ++i){
         switch(_Data[i]){
             case('/'):
+                term=true;
                 continue;
             case('!'):
-                *tagname=nullptr;
+                tagname=nullptr;
                 return 0;
             case('<'):
                 continue;
@@ -230,35 +242,70 @@ size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagn
     }
     
 FINDTAGNAMEPOS:
-    if(enpos < epos && (_Data[enpos]!='>'|| _Data[enpos]!=' ')){
+    if(enpos < epos && !(_Data[enpos]=='>' || _Data[enpos]==' ')){
         ++enpos;
         goto FINDTAGNAMEPOS;
     }
     return substr(_Data,tagname,anpos,enpos);
 }
 
-
 void libhtmlpp::HtmlString::_buildTree(){
     Console con;
-    for(size_t i = (_HTableSize-1); i > 0; --i) {
+    size_t spos=0;
+    size_t tpos=(_HTableSize-1);
+    HtmlElement *rootnode=nullptr,*prevnode=nullptr,*prevtree=nullptr;
+    char *prvname=nullptr;
+NEXTELEMENT:
+    if(tpos>0) {
+        bool term=false;
         char *tag=nullptr;
-        size_t tagsize=_getTagName(_HTable[i][0],_HTable[i][2],&tag);
-        if(tag)
-            con << tag << Console::endl;
-        delete[] tag;
+        size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag,term);
+        --tpos;
+        if(tagsize>0){
+            HtmlElement *tagel = new HtmlElement();
+            if(spos<tpos){
+                size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname,term);
+                if(term && ((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,ctagsize))){
+                    rootnode->_Child=tagel;
+                    prevtree=rootnode;
+                    rootnode=rootnode->_Child;
+                }else{
+                    rootnode=prevtree;
+                }
+                spos++; tpos++;
+            }
+            tagel->_Tag=tag;
+            tagel->_nextElement=prevnode;
+            if(rootnode){
+                rootnode->_prevElement=tagel;
+                rootnode=rootnode->_prevElement;
+            }else{
+                
+                rootnode=tagel;
+            }
+            prevnode=rootnode;
+        }
+        if(tpos>0)
+            goto NEXTELEMENT;
     }
+    _HtmlRootNode=prevnode;
 }
 
 libhtmlpp::HtmlElement::HtmlElement(){
     _Tag=nullptr;
     _Text=nullptr;
     _Comment=nullptr;
+    _nextElement=nullptr;
+    _prevElement=nullptr;
+    _Child=nullptr;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     delete[] _Tag;
     delete[] _Text;
     delete[] _Comment;
+    delete   _Child;
+    delete   _nextElement;
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){

@@ -58,7 +58,7 @@ namespace libhtmlpp {
     inline void itoa(int n, char s[]){
         int i, sign;
         if ((sign = n) < 0) 
-            n = -n;         
+            n = -n;
         i = 0;
         do {       /* generate digits in reverse order */
             s[i++] = n % 10 + '0';   /* get next digit */

@@ -35,6 +35,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     
     class HtmlElement {
+    public:
+        void setID(const char *id);
+        void setClass(const char *cname);
+        void setStyle(const char *css);
+        const char *printHtmlElement();
     protected:
         HtmlElement();
         ~HtmlElement();
@@ -53,7 +58,11 @@ namespace libhtmlpp {
             char           *_Value;
             HtmlAttributes *_nextHtmlAttributes;
         };
-
+    private:
+        char          *_ID;
+        char          *_Class;
+        char          *_Style;
+        HTMLException  _HTMLException;
         friend class HtmlString;
     };
         
@@ -99,6 +108,11 @@ namespace libhtmlpp {
         HtmlPage();
         ~HtmlPage();
         void loadFile(const char *path);
+        void saveFile(const char *path);
+        
+        void   fromString(const char *src);
+        size_t toString(const char **dest);
+        
         void addElement(HtmlElement *element);
         const char *printHtml();
     private:
@@ -110,14 +124,17 @@ namespace libhtmlpp {
     public:
         HtmlTable();
         ~HtmlTable();
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        const char *printHtmlElement();
+        class Row {
+        public:
+            Row &operator<<(const char *value);
+            Row &operator<<(int value);
+        private:
+            Row();
+            ~Row();
+            Row *_nextRow;
+            friend class HtmlTable;
+        };
     private:
-        char          *_ID;
-        char          *_Class;
-        char          *_Style;
         HTMLException  _HTMLException;
     };
 };

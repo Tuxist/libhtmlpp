@@ -298,12 +298,18 @@ libhtmlpp::HtmlElement::HtmlElement(){
     _nextElement=nullptr;
     _prevElement=nullptr;
     _Child=nullptr;
+    _ID=nullptr;
+    _Class=nullptr;
+    _Style=nullptr;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     delete[] _Tag;
     delete[] _Text;
     delete[] _Comment;
+    delete[] _Style;
+    delete[] _Class;
+    delete[] _ID;
     delete   _Child;
     delete   _nextElement;
 }
@@ -346,39 +352,31 @@ READFILE:
     _HtmlDocument->parse();
 }
 
-libhtmlpp::HtmlTable::HtmlTable() {
-    _ID=nullptr;
-    _Class=nullptr;
-    _Style=nullptr;
-    
-}
-
-
-libhtmlpp::HtmlTable::~HtmlTable(){
-    delete[] _Style;
-    delete[] _Class;
-    delete[] _ID;
-}
-
-void libhtmlpp::HtmlTable::setID(const char *id){
+void libhtmlpp::HtmlElement::setID(const char *id){
     if(!setter(id,getlen(id),&_ID)){
         _HTMLException[HTMLException::Error] << "HtmlTable can't id: " << id;
         throw _HTMLException;        
     }
 }
 
-void libhtmlpp::HtmlTable::setClass(const char *cname){
+void libhtmlpp::HtmlElement::setClass(const char *cname){
     if(!setter(cname,getlen(cname),&_Class)){
         _HTMLException[HTMLException::Error] << "HtmlTable can't class name: " << cname;
         throw _HTMLException;          
     }
 }
 
-void libhtmlpp::HtmlTable::setStyle(const char *css){
+void libhtmlpp::HtmlElement::setStyle(const char *css){
     if(!setter(css,getlen(css),&_Style,":;(),+~'")){
         _HTMLException[HTMLException::Error] << "HtmlTable can't set Style: " << css;
         throw _HTMLException;          
     }
+}
+
+libhtmlpp::HtmlTable::HtmlTable() {
+}
+
+libhtmlpp::HtmlTable::~HtmlTable(){
 }
 
 //     class Row {

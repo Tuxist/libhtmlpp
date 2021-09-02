@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef Windows
 #include <windows.h>
 #else
-typedef HANDLE int;
+typedef int HANDLE;
 #endif
 
 #ifndef SYSTEM_H

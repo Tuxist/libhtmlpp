@@ -36,8 +36,14 @@ namespace libhtmlpp {
         static const char *endl;
         Console &operator<<(const char *out);
         Console &operator<<(int out);
+		Console &operator<<(char out);
         Console &operator<<(Console &console);
     };
+
+	class FileWriter {
+
+	};
+
 };
 
 #endif

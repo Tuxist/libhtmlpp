@@ -82,6 +82,6 @@ namespace libhtmlpp {
         char    *_printBuffer;
         int      _curCType;
     };
-}
+};
 #endif
 

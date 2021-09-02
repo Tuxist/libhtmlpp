@@ -97,6 +97,12 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
     return *this;
 }
 
+libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
+    hstring.assign(this->c_str());
+    return *this;
+}
+
+
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     clear();
     _DataSize=getlen(src);

@@ -75,6 +75,7 @@ namespace libhtmlpp {
         void insert(size_t pos,char src);
         
         HtmlString &operator+=(const char *src);
+        HtmlString &operator+=(HtmlString &hstring);
         HtmlString &operator=(const char *src);
         char &operator[](size_t pos);
         

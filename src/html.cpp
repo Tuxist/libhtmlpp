@@ -261,36 +261,24 @@ FINDTAGNAMEPOS:
 void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &tpos){
     Console con;
     HtmlElement *prevnode=nullptr,*rootnode=nullptr;
-    char *prvname=nullptr;
-    NEXTELEMENT:
+    char *prvname=nullptr,*tag=nullptr;
     if(tpos>0) {
-        char *tag=nullptr;
         size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag);
-        --tpos;
         if(tagsize>0){
             HtmlElement *tagel = new HtmlElement();
-            tagel->_Tag=tag;
-            tagel->_nextElement=prevnode;
-            if(!prevnode)
+            tagel->_Tag = tag;
+            if(!*node)
                 *node=tagel;
             else
-                prevnode->_prevElement=tagel;
-            if(spos<tpos){
-                size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
-                spos++;
-                if((tagsize!=ctagsize) || !ncompare(prvname,ctagsize,tag,tagsize)){
-                    if(!rootnode)
-                        rootnode=tagel;
-                    _buildTree(&rootnode,spos,tpos);
-                }else{
-                    con << rootnode->_Tag << con.endl;
-                    tagel->_Child=rootnode;
-                    rootnode=nullptr;
-                }
+                (*node)->_nextElement=tagel;
+            size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
+            if(ctagsize>0 && ncompare(tag,tagsize,prvname,ctagsize)){
+               _buildTree(&tagel->_Child,++spos,--tpos);
+               con << "test" << tagel->_Tag << con.endl;
+            }else{
+               _buildTree(&tagel->_prevElement,++spos,--tpos); 
             }
-            prevnode=tagel;
         }
-        goto NEXTELEMENT;
     }
 }
 

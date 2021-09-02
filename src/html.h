@@ -33,7 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTML_H
 
 namespace libhtmlpp {
-    
+    class HTMLException;
+
     class HtmlElement {
     public:
         void setID(const char *id);

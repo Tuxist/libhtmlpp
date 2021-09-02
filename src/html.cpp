@@ -74,9 +74,10 @@ void libhtmlpp::HtmlString::assign(const char* src) {
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
+    HTMLException excp;
     if(pos < _DataSize){
-        _HTMLException[HTMLException::Critical] << "HtmlString: out of String";
-        throw _HTMLException;
+        excp[HTMLException::Critical] << "HtmlString: out of String";
+        throw excp;
     }
     _Data[pos]=src;
 }
@@ -172,9 +173,10 @@ bool libhtmlpp::HtmlString::validate(){
 }
 
 void libhtmlpp::HtmlString::parse(){
+    HTMLException excp;
     if(!validate()){
-        _HTMLException[HTMLException::Critical] << "HtmlString: " << "parseTree parse Error html not validate !";
-        throw _HTMLException;
+        excp[HTMLException::Critical] << "HtmlString: " << "parseTree parse Error html not validate !";
+        throw excp;
     }
     _parseTree();
     size_t tpos=(_HTableSize-1),spos=0;
@@ -190,7 +192,8 @@ void libhtmlpp::HtmlString::_InitString(){
     _HtmlRootNode=nullptr;
 }
 
-void libhtmlpp::HtmlString::_parseTree(){   
+void libhtmlpp::HtmlString::_parseTree(){
+    HTMLException excp;
     if(_HTable){
         for(size_t i=0; i<_HTableSize; ++i){
             delete[] _HTable[i];
@@ -219,8 +222,8 @@ void libhtmlpp::HtmlString::_parseTree(){
                 break;
             case HTMLTAG_CLOSE:
                 if(!open){
-                    _HTMLException[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
-                    throw _HTMLException;
+                    excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
+                    throw excp;
                 }
                 _HTable[ip][2]=ii;
                 ++ip;
@@ -339,23 +342,26 @@ READFILE:
 }
 
 void libhtmlpp::HtmlElement::setID(const char *id){
+    HTMLException excp;
     if(!setter(id,getlen(id),&_ID)){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't id: " << id;
-        throw _HTMLException;        
+        excp[HTMLException::Error] << "HtmlTable can't id: " << id;
+        throw excp;        
     }
 }
 
 void libhtmlpp::HtmlElement::setClass(const char *cname){
+    HTMLException excp;
     if(!setter(cname,getlen(cname),&_Class)){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't class name: " << cname;
-        throw _HTMLException;          
+        excp[HTMLException::Error] << "HtmlTable can't class name: " << cname;
+        throw excp;          
     }
 }
 
 void libhtmlpp::HtmlElement::setStyle(const char *css){
+    HTMLException excp;
     if(!setter(css,getlen(css),&_Style,":;(),+~'")){
-        _HTMLException[HTMLException::Error] << "HtmlTable can't set Style: " << css;
-        throw _HTMLException;          
+        excp[HTMLException::Error] << "HtmlTable can't set Style: " << css;
+        throw excp;          
     }
 }
 

@@ -200,7 +200,10 @@ void libhtmlpp::HtmlString::_parseTree(){
     
     _HTable = new ssize_t*[_HTableSize];
     for (size_t is = 0; is < _HTableSize; is++) {
-        _HTable[is] = new ssize_t[3]{-1,-1,-1};
+        _HTable[is] = new ssize_t[3];
+		_HTable[is][0] = -1;
+		_HTable[is][1] = -1;
+		_HTable[is][2] = -1;
     }
     
     bool open=false;

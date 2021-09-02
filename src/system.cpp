@@ -73,6 +73,22 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (char out){
     return *this;
 }
 
+libhtmlpp::FileWriter::FileWriter(const char *path)
+{
+    HTMLException excp;
+}
+
+libhtmlpp::FileWriter::~FileWriter(){
+}
+
+ssize_t libhtmlpp::FileWriter::read(void *buf, size_t bufsize){
+	return 0;
+}
+
+ssize_t libhtmlpp::FileWriter::write(void *buf, size_t bufsize){
+	return 0;
+}
+
 #else
 
 libhtmlpp::Console &libhtmlpp::Console::operator<< (const char* out){
@@ -121,5 +137,3 @@ ssize_t libhtmlpp::FileWriter::write(void *buf, size_t bufsize){
 libhtmlpp::Console & libhtmlpp::Console::operator<<(libhtmlpp::Console& console){
     return console;
 }
-
-

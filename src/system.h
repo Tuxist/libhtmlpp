@@ -40,9 +40,15 @@ namespace libhtmlpp {
         Console &operator<<(Console &console);
     };
 
-	class FileWriter {
-
-	};
+    class FileWriter {
+    public:
+        FileWriter(const char *path);
+        ~FileWriter();
+        ssize_t read(void *buf,size_t bufsize);
+        ssize_t write(void *buf,size_t bufsize);
+    private:
+        int _FD;
+    };
 
 };
 

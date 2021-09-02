@@ -333,14 +333,10 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _HtmlDocument;
     _HtmlDocument= new HtmlString();
-    int fd=open(path,O_RDONLY);
-    if(fd<0){
-        _HTMLException[HTMLException::Critical] << "HtmlPage can't open File: "<< path;
-        throw _HTMLException;
-    }
+    FileWriter fd(path);
     char buf[HTML_BLOCKSIZE];
 READFILE:
-    ssize_t rdd=read(fd,&buf,HTML_BLOCKSIZE);
+    ssize_t rdd=fd.read(buf,HTML_BLOCKSIZE);
     if(rdd>0){
         char *dest;
         size_t cdd=cleannewline(buf,rdd,&dest);
@@ -348,7 +344,6 @@ READFILE:
         delete[] dest;
         goto READFILE;
     }
-    close(fd);
     _HtmlDocument->parse();
 }
 

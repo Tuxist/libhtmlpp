@@ -94,6 +94,28 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (char out){
     return *this;
 }
 
+libhtmlpp::FileWriter::FileWriter(const char *path)
+{
+    HTMLException excp;
+    _FD=open(path,O_RDWR);
+    if(_FD<0){
+        excp[HTMLException::Critical] << "HtmlPage can't open File: "<< path;
+        throw excp;
+    }
+}
+
+libhtmlpp::FileWriter::~FileWriter(){
+    close(_FD);
+}
+
+ssize_t libhtmlpp::FileWriter::read(void *buf, size_t bufsize){
+    return ::read(_FD,buf,bufsize);
+}
+
+ssize_t libhtmlpp::FileWriter::write(void *buf, size_t bufsize){
+    return ::write(_FD,buf,bufsize);
+}
+
 #endif
 
 libhtmlpp::Console & libhtmlpp::Console::operator<<(libhtmlpp::Console& console){

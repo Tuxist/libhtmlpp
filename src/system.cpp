@@ -73,7 +73,7 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (char out){
     return *this;
 }
 
-#elif
+#else
 
 libhtmlpp::Console &libhtmlpp::Console::operator<< (const char* out){
     if(!out)

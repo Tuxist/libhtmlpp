@@ -27,9 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <config.h>
 
-#ifdef Windows
-#include <windows.h>
-#else
+#ifndef Windows
 #include <unistd.h>
 #include <fcntl.h>
 #endif

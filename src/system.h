@@ -28,6 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <config.h>
 #include <stddef.h>
 
+#ifdef Windows
+#include <windows.h>
+#else
+typedef HANDLE int;
+#endif
+
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -48,9 +54,8 @@ namespace libhtmlpp {
         ssize_t read(void *buf,size_t bufsize);
         ssize_t write(void *buf,size_t bufsize);
     private:
-        int _FD;
+		HANDLE _FD;
     };
-
 };
 
 #endif

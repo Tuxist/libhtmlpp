@@ -27,7 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <config.h>
 
-#ifndef Windows
+#ifdef Windows
+#include <stdio.h>
+#include <tchar.h>
+#else
 #include <unistd.h>
 #include <fcntl.h>
 #endif
@@ -74,13 +77,39 @@ libhtmlpp::Console &libhtmlpp::Console::operator<< (char out){
 libhtmlpp::FileWriter::FileWriter(const char *path)
 {
     HTMLException excp;
+	memset(&_OL,0,sizeof(_OL));
+	_FD = CreateFile(path,
+						GENERIC_READ | GENERIC_WRITE,
+						FILE_SHARE_READ | FILE_SHARE_WRITE,
+						NULL,
+						OPEN_EXISTING | CREATE_NEW,    
+						FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+						NULL); 
+	if (_FD == INVALID_HANDLE_VALUE) { 
+		throw excp[HTMLException::Error]<< "Filewriter can't create or open file!";
+    }
 }
 
 libhtmlpp::FileWriter::~FileWriter(){
+	 CloseHandle(_FD);
+}
+
+int g_BytesTransferred;
+
+void CALLBACK FileIOCompletionRoutine(
+  __in  DWORD dwErrorCode,
+  __in  DWORD dwNumberOfBytesTransfered,
+  __in  LPOVERLAPPED lpOverlapped ){
+  g_BytesTransferred = dwNumberOfBytesTransfered;
 }
 
 ssize_t libhtmlpp::FileWriter::read(void *buf, size_t bufsize){
-	return 0;
+	HTMLException excp;
+	g_BytesTransferred=0;
+    if( FALSE == ReadFileEx(_FD,buf,bufsize, &_OL, FileIOCompletionRoutine) ){
+		throw excp[HTMLException::Error]<<"FileWriter::read: Unable to read from file GetLastError=" << GetLastError() << "\r\n";
+    }
+	return g_BytesTransferred;
 }
 
 ssize_t libhtmlpp::FileWriter::write(void *buf, size_t bufsize){

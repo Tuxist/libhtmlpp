@@ -54,7 +54,10 @@ namespace libhtmlpp {
         ssize_t read(void *buf,size_t bufsize);
         ssize_t write(void *buf,size_t bufsize);
     private:
-		HANDLE _FD;
+		HANDLE      _FD;
+#ifdef Windows
+		OVERLAPPED  _OL;
+#endif
     };
 };
 

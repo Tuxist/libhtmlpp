@@ -130,6 +130,19 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
     return *this;
 }
 
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned long src){
+    char *buf=new char[sizeof(int)+1];
+    ultoa(src,buf);
+    assign(buf);
+    delete[] buf;
+    return *this;
+}
+
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
+    push_back(src);
+    return *this;
+}
+
 const char *libhtmlpp::HtmlString::c_str() {
     Console con;
     HtmlElement *curel=_HtmlRootNode,*nextel=nullptr;

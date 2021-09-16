@@ -66,6 +66,16 @@ namespace libhtmlpp {
         reverse(s);
     }
 
+    inline void ultoa(unsigned long n, char s[]){
+        unsigned int i;
+        i = 0;
+        do {       /* generate digits in reverse order */
+            s[i++] = n % 10 + '0';   /* get next digit */
+        } while ((n /= 10) > 0);     /* delete it */
+        s[i] = '\0';
+        reverse(s);
+    }
+    
     inline bool isdigit(const char src){
         const char numbers[10]={0,1,2,3,4,5,6,7,8,9};
         for(int i=0; i<10; ++i){

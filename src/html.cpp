@@ -62,7 +62,7 @@ void libhtmlpp::HtmlString::push_back(const char src){
     for(i = 0; i<_DataSize; ++i){
         buf[i]=_Data[i];
     }
-    buf[++i]=src;
+    buf[i]=src;
     buf[nsize]='\0';
     _DataSize=nsize;
     delete[] _Data;

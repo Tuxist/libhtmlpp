@@ -57,7 +57,7 @@ void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
 
 void libhtmlpp::HtmlString::push_back(const char src){
     size_t nsize=_DataSize+1;
-    char *buf=new char [nsize+1];
+    char *buf=new char [nsize+2];
     size_t i;
     for(i = 0; i<_DataSize; ++i){
         buf[i]=_Data[i];

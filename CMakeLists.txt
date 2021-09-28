@@ -10,7 +10,7 @@ set(Upstream_VERSION 1.0.0)
 if( CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   SET(CMAKE_CXX_FLAGS "-D_SCL_SECURE_NO_WARNINGS  /EHsc")
 else()
-  set(CMAKE_CXX_FLAGS "-nostdinc++ -nolibc")
+  set(CMAKE_CXX_FLAGS "-nostdinc++ -nolibc -nostdlib")
 endif( CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 
 

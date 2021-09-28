@@ -7,7 +7,6 @@ set(libhtmlSrcs
     css.cpp
     html.cpp
     request.cpp
-    system.cpp
     exception.cpp
     request/ajax.cpp
     request/httpform.cpp

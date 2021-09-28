@@ -25,7 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <fcntl.h>
+#include <systempp/file.h>
+#include <systempp/console.h>
 
 #include "utils.h"
 #include "html.h"
@@ -144,20 +145,19 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
-    Console con;
     HtmlElement *curel=_HtmlRootNode,*nextel=nullptr;
 PRINTELEMENTS:
     if(curel){
             if(curel->_Child){
                 curel=curel->_Child;
-                con << "    <" << curel->_Tag << ">" << con.endl;
+                libsystempp::Console[SYSOUT] << "    <" << curel->_Tag << ">" << libsystempp::_Console::endl;
                 goto PRINTELEMENTS;
             }
             
-            con << "<" << curel->_Tag << ">" << con.endl;
+            libsystempp::Console[SYSOUT] << "<" << curel->_Tag << ">" << libsystempp::_Console::endl;
             curel=curel->_nextElement;
             if(curel)
-                con << "</" << curel->_Tag << ">" << con.endl;
+                libsystempp::Console[SYSOUT] << "</" << curel->_Tag << ">" << libsystempp::_Console::endl;
             
             goto PRINTELEMENTS;
     }
@@ -281,7 +281,6 @@ FINDTAGNAMEPOS:
 }
 
 void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &tpos){
-    Console con;
     HtmlElement *prevnode=nullptr,*rootnode=nullptr;
     char *prvname=nullptr,*tag=nullptr;
     if(tpos>0) {
@@ -296,7 +295,6 @@ void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &t
             size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
             if(ctagsize>0 && ncompare(tag,tagsize,prvname,ctagsize)){
                _buildTree(&tagel->_Child,++spos,--tpos);
-               con << "test" << tagel->_Tag << con.endl;
             }else{
                _buildTree(&tagel->_prevElement,++spos,--tpos); 
             }
@@ -346,7 +344,8 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _HtmlDocument;
     _HtmlDocument= new HtmlString();
-    FileWriter fd(path);
+    libsystempp::FileDescriptor fd;
+    fd.open(path,0);
     char buf[HTML_BLOCKSIZE];
 READFILE:
     ssize_t rdd=fd.read(buf,HTML_BLOCKSIZE);

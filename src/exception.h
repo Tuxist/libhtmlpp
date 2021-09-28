@@ -28,7 +28,6 @@
 #include <stddef.h>
 
 #include "config.h"
-#include "system.h"
 
 /*
  * Error Statas

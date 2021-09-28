@@ -25,8 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <systempp/file.h>
-#include <systempp/console.h>
+#include <systempp/sysfile.h>
+#include <systempp/sysconsole.h>
 
 #include "utils.h"
 #include "html.h"

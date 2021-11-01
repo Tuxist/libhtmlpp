@@ -20,10 +20,10 @@ generate_export_header(htmlpp)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_link_libraries(htmlpp systempp wsock32 ws2_32)
-  target_link_libraries(htmlpp-static systempp-static wsock32 ws2_32)
+  target_link_libraries(htmlpp-static systempp wsock32 ws2_32)
 ELSE()
   target_link_libraries(htmlpp systempp)
-  target_link_libraries(htmlpp-static systempp-static)    
+  target_link_libraries(htmlpp-static systempp)    
 ENDIF()
 
 SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")

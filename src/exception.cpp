@@ -75,7 +75,7 @@ const char* libhtmlpp::HTMLException::what(){
     delete[] _printBuffer;
     _printBuffer = new char[bufsize+1];
     for(Message *curmsg=_firstMessage; curmsg; curmsg=curmsg->_nextMessage){
-        scopy(curmsg->_Buffer,curmsg->_Buffer+curmsg->_BufferSize,_printBuffer+written);
+        libsystempp::scopy(curmsg->_Buffer,curmsg->_Buffer+curmsg->_BufferSize,_printBuffer+written);
         written+=curmsg->_BufferSize;
     }
     _printBuffer[bufsize]='\0';
@@ -99,9 +99,9 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
         _lastMessage=_lastMessage->_nextMessage;
     }
     _lastMessage->_CType=_curCType;
-    _lastMessage->_BufferSize=getlen(src);
+    _lastMessage->_BufferSize=libsystempp::getlen(src);
     _lastMessage->_Buffer=new char[_lastMessage->_BufferSize+1];
-    scopy(src,src+_lastMessage->_BufferSize+1,_lastMessage->_Buffer);
+    libsystempp::scopy(src,src+_lastMessage->_BufferSize+1,_lastMessage->_Buffer);
     return *this;   
 }
 
@@ -116,7 +116,7 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){
     char *buf=new char[sizeof(int)+1];
-    itoa(src,buf);
+    libsystempp::itoa(src,buf);
     asign(buf);
     delete[] buf;
     return *this;

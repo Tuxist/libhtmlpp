@@ -48,8 +48,8 @@ void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
     size_t nsize=_DataSize+srcsize;
     char *buf=new char [nsize+1];
     size_t i=0;
-    scopy(_Data,_Data+_DataSize,buf);
-    scopy(src,src+srcsize,buf+_DataSize);
+    libsystempp::scopy(_Data,_Data+_DataSize,buf);
+    libsystempp::scopy(src,src+srcsize,buf+_DataSize);
     _DataSize=nsize;
     delete[] _Data;
     buf[nsize]='\0';
@@ -71,7 +71,7 @@ void libhtmlpp::HtmlString::push_back(const char src){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src) {
-    assign(src,getlen(src));
+    assign(src,libsystempp::getlen(src));
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -106,7 +106,7 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     clear();
-    _DataSize=getlen(src);
+    _DataSize=libsystempp::getlen(src);
     _Data = new char[_DataSize];
     for(size_t i = 0; i<_DataSize; ++i){
         _Data[i]=src[i];
@@ -125,7 +125,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(const char* src){
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
     char *buf=new char[sizeof(int)+1];
-    itoa(src,buf);
+    libsystempp::itoa(src,buf);
     assign(buf);
     delete[] buf;
     return *this;
@@ -133,7 +133,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned long src){
     char *buf=new char[sizeof(int)+1];
-    ultoa(src,buf);
+    libsystempp::ultoa(src,buf);
     assign(buf);
     delete[] buf;
     return *this;
@@ -277,7 +277,7 @@ FINDTAGNAMEPOS:
         ++enpos;
         goto FINDTAGNAMEPOS;
     }
-    return substr(_Data,tagname,anpos,enpos);
+    return libsystempp::substr(_Data,tagname,anpos,enpos);
 }
 
 void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &tpos){
@@ -293,7 +293,7 @@ void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &t
             else
                 (*node)->_nextElement=tagel;
             size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
-            if(ctagsize>0 && ncompare(tag,tagsize,prvname,ctagsize)){
+            if(ctagsize>0 && libsystempp::ncompare(tag,tagsize,prvname,ctagsize)){
                _buildTree(&tagel->_Child,++spos,--tpos);
             }else{
                _buildTree(&tagel->_prevElement,++spos,--tpos); 
@@ -351,7 +351,7 @@ READFILE:
     ssize_t rdd=fd.read(buf,HTML_BLOCKSIZE);
     if(rdd>0){
         char *dest;
-        size_t cdd=cleannewline(buf,rdd,&dest);
+        size_t cdd=libsystempp::cleannewline(buf,rdd,&dest);
         _HtmlDocument->assign(dest,cdd);
         delete[] dest;
         goto READFILE;
@@ -361,7 +361,7 @@ READFILE:
 
 void libhtmlpp::HtmlElement::setID(const char *id){
     HTMLException excp;
-    if(!setter(id,getlen(id),&_ID)){
+    if(!setter(id,libsystempp::getlen(id),&_ID)){
         excp[HTMLException::Error] << "HtmlTable can't id: " << id;
         throw excp;        
     }
@@ -369,7 +369,7 @@ void libhtmlpp::HtmlElement::setID(const char *id){
 
 void libhtmlpp::HtmlElement::setClass(const char *cname){
     HTMLException excp;
-    if(!setter(cname,getlen(cname),&_Class)){
+    if(!setter(cname,libsystempp::getlen(cname),&_Class)){
         excp[HTMLException::Error] << "HtmlTable can't class name: " << cname;
         throw excp;          
     }
@@ -377,7 +377,7 @@ void libhtmlpp::HtmlElement::setClass(const char *cname){
 
 void libhtmlpp::HtmlElement::setStyle(const char *css){
     HTMLException excp;
-    if(!setter(css,getlen(css),&_Style,":;(),+~'")){
+    if(!setter(css,libsystempp::getlen(css),&_Style,":;(),+~'")){
         excp[HTMLException::Error] << "HtmlTable can't set Style: " << css;
         throw excp;          
     }

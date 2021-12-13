@@ -27,8 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sys/types.h>
 
-#ifndef HTML_H
-#define HTML_H
+#pragma once
 
 namespace libhtmlpp {
     class HtmlElement {
@@ -139,5 +138,3 @@ namespace libhtmlpp {
     private:
     };
 };
-
-#endif

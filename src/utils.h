@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ctype.h>
 
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 namespace libhtmlpp {
     inline void reverse(char s[]){
@@ -91,5 +90,3 @@ namespace libhtmlpp {
         return true;
     }  
 };
-
-#endif

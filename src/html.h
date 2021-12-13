@@ -36,6 +36,7 @@ namespace libhtmlpp {
         void setID(const char *id);
         void setClass(const char *cname);
         void setStyle(const char *css);
+        void setComment(const char *comment);
         const char *printHtmlElement();
     protected:
         HtmlElement();
@@ -65,6 +66,7 @@ namespace libhtmlpp {
     class HtmlString {
     public:
         HtmlString();
+        HtmlString(char *header);
         ~HtmlString();
 
         void assign(const char *src,size_t srcsize);
@@ -92,12 +94,15 @@ namespace libhtmlpp {
      private:
         void              _InitString();
         void              _parseTree();
-        void              _buildTree(HtmlElement **node,size_t &spos,size_t &tpos);
-        size_t            _getTagName(size_t spos,size_t epos,char **tagname);
+        HtmlElement      *_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos);
+        HtmlElement      *_serialzeElements(HtmlElement *prevnode,ssize_t &pos);
+        int               _serialzeTags(size_t spos,size_t epos,char **value,size_t &valuesize);
+        void              _printHtml(HtmlElement *node,size_t &level);
         char             *_Data;
         size_t            _DataSize;
         ssize_t         **_HTable;
         size_t            _HTableSize;
+        char             *_HtmlHeader;
         HtmlElement      *_HtmlRootNode;
     };
 

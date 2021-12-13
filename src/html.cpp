@@ -26,7 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
 #include <systempp/sysfile.h>
+#include <systempp/sysutils.h>
 #include <systempp/sysconsole.h>
+#include <systempp/sysexception.h>
 
 #include "utils.h"
 #include "html.h"
@@ -36,12 +38,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLTAG_TERMINATE '/'
 #define HTMLTAG_CLOSE '>'
 
+#define HTMLELEMENT 0
+#define HTMLTERMELEMENT 1
+#define HTMLCOMMENT 2
+#define HTMLHEADER 3
+
 libhtmlpp::HtmlString::HtmlString(){
     _InitString();
+    _HtmlHeader=nullptr;
+}
+
+libhtmlpp::HtmlString::HtmlString(char *header){
+    _InitString();
+    _HtmlHeader=new char[libsystempp::getlen(header)+1];
+    libsystempp::scopy(header,header+libsystempp::getlen(header)+1,_HtmlHeader);
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
    clear();
+   delete[] _HtmlHeader;
 }
 
 void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
@@ -145,24 +160,34 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
-    HtmlElement *curel=_HtmlRootNode,*nextel=nullptr;
-PRINTELEMENTS:
-    if(curel){
-            if(curel->_Child){
-                curel=curel->_Child;
-                libsystempp::Console[SYSOUT] << "    <" << curel->_Tag << ">" << libsystempp::_Console::endl;
-                goto PRINTELEMENTS;
-            }
-            
-            libsystempp::Console[SYSOUT] << "<" << curel->_Tag << ">" << libsystempp::_Console::endl;
-            curel=curel->_nextElement;
-            if(curel)
-                libsystempp::Console[SYSOUT] << "</" << curel->_Tag << ">" << libsystempp::_Console::endl;
-            
-            goto PRINTELEMENTS;
-    }
+    size_t level=0;
+    _printHtml(_HtmlRootNode,level);
     return _Data;
 }
+
+void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &level){
+    if(node){
+            for(size_t i=0; i<level; ++i){
+                libsystempp::Console[SYSOUT] << " ";
+            }
+            libsystempp::Console[SYSOUT] << "<" << node->_Tag << ">"
+                                         << libsystempp::Console[SYSOUT].endl;
+            
+            if(node->_Child){
+                size_t lvl=level+2;
+                _printHtml(node->_Child,lvl);
+            }
+            
+            for(size_t i=0; i<level; ++i){
+                libsystempp::Console[SYSOUT] << " ";
+            }
+            libsystempp::Console[SYSOUT] << "</" << node->_Tag << ">" 
+                                         << libsystempp::Console[SYSOUT].endl;
+            if(node->_nextElement)
+                _printHtml(node->_nextElement,level);
+    }           
+}
+
 
 size_t libhtmlpp::HtmlString::size(){
     return _DataSize;
@@ -197,9 +222,84 @@ void libhtmlpp::HtmlString::parse(){
         excp[HTMLException::Critical] << "HtmlString: " << "parseTree parse Error html not validate !";
         throw excp;
     }
+
     _parseTree();
-    size_t tpos=(_HTableSize-1),spos=0;
-    _buildTree(&_HtmlRootNode,spos,tpos);
+   
+    delete[] _HtmlHeader;
+    _HtmlHeader=nullptr;
+    delete _HtmlRootNode;
+    ssize_t pos = 0;
+    _HtmlRootNode=_serialzeElements(nullptr,pos);
+    HtmlElement *parent=nullptr;
+    _buildTree(_HtmlRootNode,parent,--pos);
+}
+
+libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_serialzeElements(HtmlElement *prevnode,ssize_t &pos){
+    HTMLException excp;
+    char *tag=nullptr;
+    HtmlElement *tagel=nullptr;
+    if(pos<_HTableSize) {
+        size_t tagsize=0;
+        int ret=_serialzeTags(_HTable[pos][0],_HTable[pos][2],&tag,tagsize);
+        if(tagsize<=0)
+            throw excp[HTMLException::Error] << "That shouldn't happend: "<< tag;
+        if(ret==HTMLHEADER){
+            if(_HtmlHeader)
+                throw excp[HTMLException::Error] << "Htmlheader exist too often: "<< tag;
+            _HtmlHeader = new char[tagsize+1];
+            libsystempp::scopy(tag,tag+(tagsize+1),_HtmlHeader);
+            return _serialzeElements(prevnode,++pos);
+        }else if(ret==HTMLELEMENT){
+            if(prevnode){
+                    tagel= new HtmlElement;
+                    tagel->_Tag = tag;
+                    tagel->_prevElement=prevnode;
+                    tagel->_nextElement=_serialzeElements(tagel,++pos);
+                    return tagel;
+            }else{
+                tagel = new HtmlElement;
+                tagel->_Tag = tag;
+                tagel->_nextElement=_serialzeElements(tagel,++pos);
+                return tagel;
+            }
+        }else if(ret==HTMLCOMMENT){
+            if(!prevnode)
+                throw excp[HTMLException::Error] << "Misplaced comment: "<< tag;
+            prevnode->setComment(tag);
+            return _serialzeElements(prevnode,++pos);
+        }
+        return _serialzeElements(prevnode,++pos);
+    }
+    return nullptr;
+}
+
+libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos){
+    char *tag=nullptr;
+    if(pos>0) {
+        size_t tagsize=0;
+        int ret=_serialzeTags(_HTable[pos][0],_HTable[pos][2],&tag,tagsize);
+        if(node){
+            if(ret==HTMLELEMENT){
+                if(libsystempp::ncompare(node->_Tag,libsystempp::getlen(node->_Tag),
+                                         tag,tagsize)==0){
+                    node->_nextElement=parent;
+                }
+            }else if(ret==HTMLTERMELEMENT){
+                if(!node->_Child && libsystempp::ncompare(node->_Tag,libsystempp::getlen(node->_Tag),
+                                                          tag,tagsize)==0){
+                    parent=node->_nextElement;
+                    node->_nextElement=nullptr;
+                    node->_Child=_buildTree(node,parent,--pos);
+                    return node;
+                }else{
+                    return _buildTree(node->_nextElement,parent,pos);
+                }
+            }
+        }
+        delete[] tag;
+        return _buildTree(node,parent,--pos);
+    }
+    return nullptr;
 }
 
 
@@ -223,9 +323,9 @@ void libhtmlpp::HtmlString::_parseTree(){
     _HTable = new ssize_t*[_HTableSize];
     for (size_t is = 0; is < _HTableSize; is++) {
         _HTable[is] = new ssize_t[3];
-		_HTable[is][0] = -1;
-		_HTable[is][1] = -1;
-		_HTable[is][2] = -1;
+        _HTable[is][0] = -1;
+        _HTable[is][1] = -1;
+        _HTable[is][2] = -1;
     }
     
     bool open=false;
@@ -254,52 +354,60 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-size_t libhtmlpp::HtmlString::_getTagName(size_t spos, size_t epos, char ** tagname){
-    size_t anpos=0,enpos=0;
-    for(size_t i=spos; i<epos; ++i){
+int libhtmlpp::HtmlString::_serialzeTags(size_t spos, size_t epos, char **value,size_t &valuesize){
+    size_t anpos=0,enpos=0,i=spos;
+    int term=-1;
+    while(i<epos){
         switch(_Data[i]){
-            case('/'):
-                continue;
             case('!'):
-                tagname=nullptr;
-                return 0;
+                if(_Data[i+1]=='-' && _Data[i+2]=='-'){ 
+                    i+=2;
+                    goto FINDCOMMENTEND;
+                }else if(libsystempp::ncompare(_Data+i,7,"DOCTYPE",7)==0){
+                    ++i;
+                    goto FINDHTMLHEADER;
+                }
+            case('/'):
+                term=i;
+                ++i;
+                anpos=i;
+                continue;
+            case '"':
+                for(; _Data[i]!='"'; ++i);
+                continue;
             case('<'):
+                anpos=++i;
+                enpos=i;
                 continue;
             default:
-                anpos=i;
-                enpos=anpos;
                 goto FINDTAGNAMEPOS;
         }
     }
-    
-FINDTAGNAMEPOS:
-    if(enpos < epos && !(_Data[enpos]=='>' || _Data[enpos]==' ')){
+FINDHTMLHEADER:
+    if(enpos < epos && _Data[++enpos]!='>')
+        goto FINDHTMLHEADER;
+    valuesize=libsystempp::substr(_Data,value,anpos,(enpos-anpos));
+    return HTMLHEADER;
+FINDCOMMENTEND:
+    if(enpos < epos && !(_Data[enpos]=='!' && _Data[++enpos]=='-' &&
+        _Data[++enpos]=='-' && _Data[++enpos]=='>')
+    ){
         ++enpos;
-        goto FINDTAGNAMEPOS;
+        goto FINDCOMMENTEND;
     }
-    return libsystempp::substr(_Data,tagname,anpos,enpos);
-}
-
-void libhtmlpp::HtmlString::_buildTree(HtmlElement **node,size_t &spos,size_t &tpos){
-    HtmlElement *prevnode=nullptr,*rootnode=nullptr;
-    char *prvname=nullptr,*tag=nullptr;
-    if(tpos>0) {
-        size_t tagsize=_getTagName(_HTable[tpos][0],_HTable[tpos][2],&tag);
-        if(tagsize>0){
-            HtmlElement *tagel = new HtmlElement();
-            tagel->_Tag = tag;
-            if(!*node)
-                *node=tagel;
-            else
-                (*node)->_nextElement=tagel;
-            size_t ctagsize=_getTagName(_HTable[spos][0],_HTable[spos][2],&prvname);
-            if(ctagsize>0 && libsystempp::ncompare(tag,tagsize,prvname,ctagsize)){
-               _buildTree(&tagel->_Child,++spos,--tpos);
-            }else{
-               _buildTree(&tagel->_prevElement,++spos,--tpos); 
-            }
+    valuesize=libsystempp::substr(_Data,value,anpos,(enpos-anpos));
+    return HTMLCOMMENT;
+FINDTAGNAMEPOS:
+    if(enpos < epos && !(_Data[enpos]==' ' || _Data[enpos]=='>')){
+        ++enpos;
+        if(enpos > 0 && _Data[enpos]!='/'){
+            goto FINDTAGNAMEPOS;
         }
     }
+    valuesize=libsystempp::substr(_Data,value,anpos,(enpos-anpos));
+    if(term >0 && term<enpos)
+        return HTMLTERMELEMENT;
+    return HTMLELEMENT;
 }
 
 libhtmlpp::HtmlElement::HtmlElement(){
@@ -321,7 +429,6 @@ libhtmlpp::HtmlElement::~HtmlElement(){
     delete[] _Style;
     delete[] _Class;
     delete[] _ID;
-    delete   _Child;
     delete   _nextElement;
 }
 
@@ -345,7 +452,12 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _HtmlDocument;
     _HtmlDocument= new HtmlString();
     libsystempp::FileDescriptor fd;
-    fd.open(path,0);
+    try{
+        fd.open(path,O_RDONLY);
+    }catch(libsystempp::SystemException &e){
+        HTMLException excp;
+        throw excp[HTMLException::Critical] << e.what();
+    }
     char buf[HTML_BLOCKSIZE];
 READFILE:
     ssize_t rdd=fd.read(buf,HTML_BLOCKSIZE);
@@ -362,7 +474,7 @@ READFILE:
 void libhtmlpp::HtmlElement::setID(const char *id){
     HTMLException excp;
     if(!setter(id,libsystempp::getlen(id),&_ID)){
-        excp[HTMLException::Error] << "HtmlTable can't id: " << id;
+        excp[HTMLException::Error] << "HtmlElement can't id: " << id;
         throw excp;        
     }
 }
@@ -370,7 +482,7 @@ void libhtmlpp::HtmlElement::setID(const char *id){
 void libhtmlpp::HtmlElement::setClass(const char *cname){
     HTMLException excp;
     if(!setter(cname,libsystempp::getlen(cname),&_Class)){
-        excp[HTMLException::Error] << "HtmlTable can't class name: " << cname;
+        excp[HTMLException::Error] << "HtmlElement can't class name: " << cname;
         throw excp;          
     }
 }
@@ -378,10 +490,19 @@ void libhtmlpp::HtmlElement::setClass(const char *cname){
 void libhtmlpp::HtmlElement::setStyle(const char *css){
     HTMLException excp;
     if(!setter(css,libsystempp::getlen(css),&_Style,":;(),+~'")){
-        excp[HTMLException::Error] << "HtmlTable can't set Style: " << css;
+        excp[HTMLException::Error] << "HtmlElement can't set Style: " << css;
         throw excp;          
     }
 }
+
+void libhtmlpp::HtmlElement::setComment(const char* comment){
+    HTMLException excp;
+    if(!setter(comment,libsystempp::getlen(comment),&_Style,":;(),+~'")){
+        excp[HTMLException::Error] << "HtmlElement can't set Comment: " << comment;
+        throw excp;          
+    }    
+}
+
 
 libhtmlpp::HtmlTable::HtmlTable() {
 }

@@ -99,7 +99,7 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     _Data.clear();
-    _Data.insert(_Data.begin(),src,src+sys::getlen(src));
+    _Data.insert(_Data.begin(),src,src+(sys::getlen(src)+1));
     return *this;
 }
 

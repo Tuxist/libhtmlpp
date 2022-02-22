@@ -69,7 +69,7 @@ void libhtmlpp::HtmlString::push_back(const char src){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src) {
-    assign(src,sys::getlen(src));
+    assign(src,sys::getlen(src)+1);
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -99,7 +99,7 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     _Data.clear();
-    _Data.insert(_Data.begin(),src,src+(sys::getlen(src)+1));
+    assign(src);
     return *this;
 }
 

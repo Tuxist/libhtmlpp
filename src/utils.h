@@ -38,7 +38,7 @@ namespace libhtmlpp {
         int i, j;
         char c;
         
-        for (i = 0, j = libsystempp::getlen(s)-1; i<j; i++, j--) {
+        for (i = 0, j = sys::getlen(s)-1; i<j; i++, j--) {
             c = s[i];
             s[i] = s[j];
             s[j] = c;
@@ -72,7 +72,7 @@ namespace libhtmlpp {
         for(int i=0; i<srcsize; ++i){
             if(!isdigit(src[i]) || !isalpha(src[i]) || ssigns){
                 nallowd=true;
-                for(size_t pos=0; pos<libsystempp::getlen(ssigns); ++pos){
+                for(size_t pos=0; pos<sys::getlen(ssigns); ++pos){
                     if(ssigns[pos]==src[i]){
                         nallowd=false;
                     }

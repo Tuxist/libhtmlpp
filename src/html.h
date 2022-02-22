@@ -25,6 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
+#include <string>
+
 #include <sys/types.h>
 
 #pragma once
@@ -78,7 +80,7 @@ namespace libhtmlpp {
         HtmlString &operator+=(const char *src);
         HtmlString &operator+=(HtmlString &hstring);
         HtmlString &operator=(const char *src);
-        char &operator[](size_t pos);
+        const char operator[](size_t pos);
         
         HtmlString &operator<<(const char *src);
         HtmlString &operator<<(int src);
@@ -97,12 +99,11 @@ namespace libhtmlpp {
         HtmlElement      *_serialzeElements(HtmlElement *prevnode,ssize_t &pos);
         int               _serialzeTags(size_t spos,size_t epos,char **value,size_t &valuesize);
         void              _printHtml(HtmlElement *node,size_t &level);
-        char             *_Data;
-        size_t            _DataSize;
-        ssize_t         **_HTable;
-        size_t            _HTableSize;
-        char             *_HtmlHeader;
-        HtmlElement      *_HtmlRootNode;
+        std::string             _Data;
+        ssize_t               **_HTable;
+        size_t                  _HTableSize;
+        char                   *_HtmlHeader;
+        HtmlElement            *_HtmlRootNode;
     };
 
     class HtmlPage {

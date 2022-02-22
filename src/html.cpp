@@ -277,7 +277,6 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,Html
 
 
 void libhtmlpp::HtmlString::_InitString(){
-    _Data=nullptr;
     _HTable=nullptr;
     _HTableSize=0;
     _HtmlRootNode=nullptr;

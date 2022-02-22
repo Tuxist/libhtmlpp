@@ -61,7 +61,7 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
-    _Data.assign(src,srcsize);
+    _Data.insert(_Data.end(),src,src+srcsize);
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
@@ -73,7 +73,7 @@ void libhtmlpp::HtmlString::assign(const char* src) {
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
-    _Data.insert(pos,&src);
+    _Data[pos]=src;
 }
 
 void libhtmlpp::HtmlString::clear(){
@@ -98,7 +98,8 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
-    _Data=src;
+    _Data.clear();
+    _Data.insert(_Data.begin(),src,src+sys::getlen(src));
     return *this;
 }
 
@@ -135,7 +136,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 const char *libhtmlpp::HtmlString::c_str() {
     size_t level=0;
     _printHtml(_HtmlRootNode,level);
-    return _Data.c_str();
+    return reinterpret_cast<const char*>(_Data.data());
 }
 
 void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &level){
@@ -301,7 +302,7 @@ void libhtmlpp::HtmlString::_parseTree(){
     
     bool open=false;
     size_t ip=0;
-    for(size_t ii=0; ii<_Data.length(); ++ii){
+    for(size_t ii=0; ii<_Data.size(); ++ii){
         switch(_Data[ii]){
             case HTMLTAG_OPEN:
                 open=true;

@@ -100,6 +100,7 @@ namespace libhtmlpp {
         int               _serialzeTags(size_t spos,size_t epos,char **value,size_t &valuesize);
         void              _printHtml(HtmlElement *node,size_t &level);
         std::vector<char>       _Data;
+        char                   *_cbuffer;
         ssize_t               **_HTable;
         size_t                  _HTableSize;
         char                   *_HtmlHeader;

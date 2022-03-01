@@ -81,6 +81,7 @@ void libhtmlpp::HtmlString::clear(){
     for(size_t i=0; i<_HTableSize; ++i){
         delete[] _HTable[i];
     }
+    delete[]   _cbuffer;
     delete[]   _HTable;
     delete     _HtmlRootNode;
     _InitString();
@@ -136,8 +137,11 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 const char *libhtmlpp::HtmlString::c_str() {
     size_t level=0;
 //     _printHtml(_HtmlRootNode,level);
-    _Data.push_back('\0');
-    return reinterpret_cast<const char*>(_Data.data());
+    delete[] _cbuffer;
+    _cbuffer = new char[_Data.size()+1];
+    sys::scopy(_Data.data(),_Data.data()+_Data.size(),_cbuffer);
+    _cbuffer[_Data.size()]='\0';
+    return _cbuffer;
 }
 
 void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &level){
@@ -280,6 +284,7 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,Html
 
 void libhtmlpp::HtmlString::_InitString(){
     _HTable=nullptr;
+    _cbuffer=nullptr;
     _HTableSize=0;
     _HtmlRootNode=nullptr;
 }

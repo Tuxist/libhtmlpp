@@ -69,7 +69,7 @@ void libhtmlpp::HtmlString::push_back(const char src){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src) {
-    assign(src,sys::getlen(src)+1);
+    assign(src,sys::getlen(src));
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -135,7 +135,8 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 
 const char *libhtmlpp::HtmlString::c_str() {
     size_t level=0;
-    _printHtml(_HtmlRootNode,level);
+//     _printHtml(_HtmlRootNode,level);
+    _Data.push_back('\0');
     return reinterpret_cast<const char*>(_Data.data());
 }
 

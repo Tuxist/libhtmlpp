@@ -171,7 +171,7 @@ void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &leve
 size_t libhtmlpp::HtmlString::size(){
     return _Data.size();
 }
-  
+
 bool libhtmlpp::HtmlString::validate(){
     _HTableSize=0;
     size_t opentag=0,closetag=0;

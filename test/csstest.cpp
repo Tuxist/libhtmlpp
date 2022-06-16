@@ -25,7 +25,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <iostream>
+#include <systempp/sysconsole.h>
 
 #include "../src/html.h"
 
@@ -37,18 +37,18 @@ int main(){
     libhtmlpp::HtmlTable table;
     try{
         table.setStyle(":;(),+~'");
-        std::cout  << Green << "Test Passed!" << NOCOLOR << std::endl;
+        sys::cout  << Green << "Test Passed!" << NOCOLOR << sys::endl;
     }catch(...){
-        std::cout   << Red << "Test not Passed!" << NOCOLOR << std::endl;
+        sys::cout   << Red << "Test not Passed!" << NOCOLOR << sys::endl;
         return -1;
     }
     
     try{
         table.setStyle("\"");
-        std::cout   << Red << "Test not Passed!" << NOCOLOR<< std::endl;
+        sys::cout   << Red << "Test not Passed!" << NOCOLOR<< sys::endl;
         return -1;
     }catch(...){
-        std::cout   << Green << "Test Passed!" << NOCOLOR << std::endl;
+        sys::cout   << Green << "Test Passed!" << NOCOLOR << sys::endl;
     }
     return 0;
 }

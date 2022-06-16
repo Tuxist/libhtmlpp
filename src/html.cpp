@@ -25,9 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <iostream>
-#include <fstream>
-
+#include <systempp/sysconsole.h>
+#include <systempp/sysfile.h>
 #include <systempp/sysutils.h>
 #include <systempp/sysexception.h>
 
@@ -61,7 +60,7 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
-    _Data.insert(_Data.end(),src,src+srcsize);
+    _Data.write(src,srcsize);
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
@@ -135,22 +134,16 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
-    size_t level=0;
-//     _printHtml(_HtmlRootNode,level);
-    delete[] _cbuffer;
-    _cbuffer = new char[_Data.size()+1];
-    sys::scopy(_Data.data(),_Data.data()+_Data.size(),_cbuffer);
-    _cbuffer[_Data.size()]='\0';
-    return _cbuffer;
+    return _Data.c_str();
 }
 
 void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &level){
     if(node){
             for(size_t i=0; i<level; ++i){
-                std::cout << " ";
+                sys::cout << " ";
             }
-            std::cout << "<" << node->_Tag << ">"
-                                         << std::endl;
+            sys::cout << "<" << node->_Tag << ">"
+                                         << sys::endl;
             
             if(node->_Child){
                 size_t lvl=level+2;
@@ -158,10 +151,10 @@ void libhtmlpp::HtmlString::_printHtml(libhtmlpp::HtmlElement* node,size_t &leve
             }
             
             for(size_t i=0; i<level; ++i){
-                std::cout << " ";
+                sys::cout << " ";
             }
-            std::cout << "</" << node->_Tag << ">" 
-                                         << std::endl;
+            sys::cout << "</" << node->_Tag << ">" 
+                                         << sys::endl;
             if(node->_nextElement)
                 _printHtml(node->_nextElement,level);
     }           
@@ -335,7 +328,7 @@ void libhtmlpp::HtmlString::_parseTree(){
 int libhtmlpp::HtmlString::_serialzeTags(size_t spos, size_t epos, char **value,size_t &valuesize){
     size_t anpos=0,enpos=0,i=spos;
     int term=-1;
-    std::string Doctype;
+    sys::array<char> Doctype;
 //     while(i<epos){
 //         switch(_Data[i]){
 //             case('!'):
@@ -430,25 +423,25 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _HtmlDocument;
     _HtmlDocument= new HtmlString();
-    std::fstream fs;
+    sys::file fs;
     try{
-        fs.open(path,std::ios::in);
+        fs.open(path,0);
     }catch(sys::SystemException &e){
         HTMLException excp;
         throw excp[HTMLException::Critical] << e.what();
     }
-    fs.seekg (0, fs.end);
-    int length = fs.tellg();
-    fs.seekg (0, fs.beg);
-    
-    char *buf=new char[length];
-    if(fs.read(buf,HTML_BLOCKSIZE)){
-        char *dest;
-        size_t cdd=sys::cleannewline(buf,length,&dest);
-        _HtmlDocument->assign(dest,cdd);
-        delete[] dest;
-        _HtmlDocument->parse();
-    }
+//     fs.seekg (0, fs.end);
+//     int length = fs.tellg();
+//     fs.seekg (0, fs.beg);
+//     
+//     char *buf=new char[length];
+//     if(fs.read(buf,HTML_BLOCKSIZE)){
+//         char *dest;
+//         size_t cdd=sys::cleannewline(buf,length,&dest);
+//         _HtmlDocument->assign(dest,cdd);
+//         delete[] dest;
+//         _HtmlDocument->parse();
+//     }
     HTMLException excp;
     throw excp[HTMLException::Critical] << "Could not read file";
 }

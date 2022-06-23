@@ -120,6 +120,14 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
     return *this;
 }
 
+libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned int src){
+    char *buf=new char[sizeof(int)+1];
+    sys::ultoa(src,buf);
+    assign(buf);
+    delete[] buf;
+    return *this;
+}
+
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned long src){
     char *buf=new char[sizeof(int)+1];
     sys::ultoa(src,buf);

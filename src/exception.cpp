@@ -25,7 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "utils.h"
 #include "exception.h"
@@ -99,10 +100,10 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
         _lastMessage=_lastMessage->_nextMessage;
     }
     _lastMessage->_CType=_curCType;
-    _lastMessage->_BufferSize=sys::getlen(src);
+    _lastMessage->_BufferSize=strlen(src);
     _lastMessage->_Buffer=new char[_lastMessage->_BufferSize+1];
     sys::scopy(src,src+_lastMessage->_BufferSize+1,_lastMessage->_Buffer);
-    return *this;   
+    return *this;
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
@@ -111,12 +112,12 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
-    return asign(src);   
+    return asign(src);
 };
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){
     char *buf=new char[sizeof(int)+1];
-    sys::itoa(src,buf);
+    itoa(src,buf);
     asign(buf);
     delete[] buf;
     return *this;

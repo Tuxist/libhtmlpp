@@ -11,9 +11,10 @@ set(Upstream_VERSION 1.0.0)
 
 set(CMAKE_CXX_FLAGS 
     "-fPIC\
-    ${CMAKE_CXX_FLAGS} \
     -Wall\
-    -nodefaultlibs"
+    -nodefaultlibs\
+    -nostdlib\
+    "
 )
 
 configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)

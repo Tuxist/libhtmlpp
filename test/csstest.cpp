@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Green   "\033[0;32m"
 #define NOCOLOR "\033[0m"
 
+void *__dso_handle __attribute__((__visibility__("hidden"))) __attribute__((weak)) = nullptr;
+
 int main(){
     libhtmlpp::HtmlTable table;
     try{

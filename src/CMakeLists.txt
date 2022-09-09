@@ -14,6 +14,8 @@ set(libhtmlSrcs
 )
 
 add_library(htmlpp        SHARED ${libhtmlSrcs} )
+target_compile_definitions(htmlpp PUBLIC -DSHARED)
+
 add_library(htmlpp-static STATIC ${libhtmlSrcs} )
 
 generate_export_header(htmlpp)

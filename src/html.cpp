@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <systempp/sysfile.h>
 #include <systempp/sysutils.h>
 #include <systempp/sysexception.h>
+#include <systempp/config.h>
 
 #include "utils.h"
 #include "html.h"
@@ -46,9 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLCOMMENT 2
 #define HTMLHEADER 3
 
-extern "C" {
-    void *__dso_handle=&__dso_handle;
-}
+void *__dso_handle __attribute__((__visibility__("hidden"))) __attribute__((weak)) = &__dso_handle;
 
 libhtmlpp::HtmlString::HtmlString(){
     _InitString();

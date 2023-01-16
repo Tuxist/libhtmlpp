@@ -150,14 +150,14 @@ PRINTELEMENTS:
     if(curel){
             if(curel->_Child){
                 curel=curel->_Child;
-                con << "    <" << curel->_Tag << ">" << con.endl;
+//                con << "    <" << curel->_Tag << ">" << con.endl;
                 goto PRINTELEMENTS;
             }
             
-            con << "<" << curel->_Tag << ">" << con.endl;
+//            con << "<" << curel->_Tag << ">" << con.endl;
             curel=curel->_nextElement;
-            if(curel)
-                con << "</" << curel->_Tag << ">" << con.endl;
+//            if(curel)
+//                con << "</" << curel->_Tag << ">" << con.endl;
             
             goto PRINTELEMENTS;
     }

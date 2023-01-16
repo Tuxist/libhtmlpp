@@ -27,7 +27,6 @@
 
 #include <stddef.h>
 
-#include "config.h"
 #include "system.h"
 
 /*
@@ -38,8 +37,9 @@
  * Critical: Some happend that will shutdown your Apllication
  */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#include <systempp/sysexception.h>
+
+#pragma once
 
 #ifdef DEBUG
 
@@ -47,7 +47,7 @@
 
 namespace libhtmlpp {
     
-    class HTMLException {
+    class HTMLException : public sys::SystemException{
     public:
         
         HTMLException();
@@ -58,30 +58,12 @@ namespace libhtmlpp {
         
         const char* what();
         
-        const HTMLException& Exception() throw();
-        
         enum Type {Note,Warning,Error,Critical};
         
         HTMLException& asign(const char *src);
         HTMLException& operator[](int errtype);
         HTMLException& operator<<(const char *src);
         HTMLException& operator<<(int src);
-    private:
-        struct Message {
-            Message();
-            ~Message();
-            char    *_Buffer;
-            size_t   _BufferSize;        
-            int      _CType;
-            Message *_nextMessage;
-        };
-        
-        Message *_firstMessage;
-        Message *_lastMessage;
-        
-        char    *_printBuffer;
-        int      _curCType;
     };
 };
-#endif
 

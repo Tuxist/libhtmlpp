@@ -25,17 +25,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-#include <config.h>
-#include <stddef.h>
+#include <sys/types.h>
 
-#ifdef Windows
-#include <windows.h>
-#else
-typedef int HANDLE;
-#endif
-
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#pragma once
 
 namespace libhtmlpp {
     class Console {
@@ -54,12 +46,6 @@ namespace libhtmlpp {
         ssize_t read(void *buf,size_t bufsize);
         ssize_t write(void *buf,size_t bufsize);
     private:
-		HANDLE      _FD;
-#ifdef Windows
-		OVERLAPPED  _OL;
-#endif
+        int         _FD;
     };
 };
-
-#endif
-

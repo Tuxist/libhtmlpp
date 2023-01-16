@@ -7,7 +7,6 @@ set(libhtmlSrcs
     css.cpp
     html.cpp
     request.cpp
-    system.cpp
     exception.cpp
     request/ajax.cpp
     request/httpform.cpp
@@ -19,13 +18,10 @@ add_library(htmlpp-static STATIC ${libhtmlSrcs} )
 
 generate_export_header(htmlpp)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  target_link_libraries(htmlpp ${OPENSSL_LIBRARIES} wsock32 ws2_32)
-  target_link_libraries(htmlpp-static ${OPENSSL_LIBRARIES} wsock32 ws2_32)
-ELSE()
-  target_link_libraries(htmlpp ${OPENSSL_LIBRARIES} pthread systempp)
-  target_link_libraries(htmlpp-static ${OPENSSL_LIBRARIES} pthread systempp)    
-ENDIF()
+
+target_link_libraries(htmlpp systempp crt1)
+target_link_libraries(htmlpp-static systempp crt1)    
+
 
 SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
 
@@ -50,7 +46,6 @@ install(FILES
     html.h
     request.h
     utils.h
-    system.h
     exception.h
     "${CMAKE_BINARY_DIR}/config.h"
     "${CMAKE_CURRENT_BINARY_DIR}/htmlpp_export.h"

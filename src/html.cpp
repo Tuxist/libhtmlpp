@@ -25,10 +25,14 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <systempp/sysconsole.h>
 #include <systempp/sysfile.h>
 #include <systempp/sysutils.h>
 #include <systempp/sysexception.h>
+#include <systempp/config.h>
 
 #include "utils.h"
 #include "html.h"
@@ -43,6 +47,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLCOMMENT 2
 #define HTMLHEADER 3
 
+void *__dso_handle __attribute__((__visibility__("hidden"))) __attribute__((weak)) = &__dso_handle;
+
 libhtmlpp::HtmlString::HtmlString(){
     _InitString();
     _HtmlHeader=nullptr;
@@ -50,8 +56,8 @@ libhtmlpp::HtmlString::HtmlString(){
 
 libhtmlpp::HtmlString::HtmlString(char *header){
     _InitString();
-    _HtmlHeader=new char[sys::getlen(header)+1];
-    sys::scopy(header,header+sys::getlen(header)+1,_HtmlHeader);
+    _HtmlHeader=new char[strlen(header)+1];
+    sys::scopy(header,header+strlen(header)+1,_HtmlHeader);
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
@@ -68,7 +74,7 @@ void libhtmlpp::HtmlString::push_back(const char src){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src) {
-    assign(src,sys::getlen(src));
+    assign(src,strlen(src));
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -114,7 +120,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(const char* src){
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
     char *buf=new char[sizeof(int)+1];
-    sys::itoa(src,buf);
+    itoa(src,buf);
     assign(buf);
     delete[] buf;
     return *this;
@@ -122,7 +128,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(int src){
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned int src){
     char *buf=new char[sizeof(int)+1];
-    sys::ultoa(src,buf);
+    ultoa(src,buf);
     assign(buf);
     delete[] buf;
     return *this;
@@ -130,7 +136,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned int src){
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(unsigned long src){
     char *buf=new char[sizeof(int)+1];
-    sys::ultoa(src,buf);
+    ultoa(src,buf);
     assign(buf);
     delete[] buf;
     return *this;
@@ -264,12 +270,12 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,Html
         int ret=_serialzeTags(_HTable[pos][0],_HTable[pos][2],&tag,tagsize);
         if(node){
             if(ret==HTMLELEMENT){
-                if(sys::ncompare(node->_Tag,sys::getlen(node->_Tag),
+                if(sys::ncompare(node->_Tag,strlen(node->_Tag),
                                          tag,tagsize)==0){
                     node->_nextElement=parent;
                 }
             }else if(ret==HTMLTERMELEMENT){
-                if(!node->_Child && sys::ncompare(node->_Tag,sys::getlen(node->_Tag),
+                if(!node->_Child && sys::ncompare(node->_Tag,strlen(node->_Tag),
                                                           tag,tagsize)==0){
                     parent=node->_nextElement;
                     node->_nextElement=nullptr;
@@ -435,9 +441,9 @@ const char *libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _HtmlDocument;
     _HtmlDocument= new HtmlString();
-    sys::file fs;
+//    sys::file fs;
     try{
-        fs.open(path,0);
+//        fs.open(path,0);
     }catch(sys::SystemException &e){
         HTMLException excp;
         throw excp[HTMLException::Critical] << e.what();
@@ -460,7 +466,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
 void libhtmlpp::HtmlElement::setID(const char *id){
     HTMLException excp;
-    if(!setter(id,sys::getlen(id),&_ID)){
+    if(!setter(id,strlen(id),&_ID)){
         excp[HTMLException::Error] << "HtmlElement can't id: " << id;
         throw excp;        
     }
@@ -468,7 +474,7 @@ void libhtmlpp::HtmlElement::setID(const char *id){
 
 void libhtmlpp::HtmlElement::setClass(const char *cname){
     HTMLException excp;
-    if(!setter(cname,sys::getlen(cname),&_Class)){
+    if(!setter(cname,strlen(cname),&_Class)){
         excp[HTMLException::Error] << "HtmlElement can't class name: " << cname;
         throw excp;          
     }
@@ -476,7 +482,7 @@ void libhtmlpp::HtmlElement::setClass(const char *cname){
 
 void libhtmlpp::HtmlElement::setStyle(const char *css){
     HTMLException excp;
-    if(!setter(css,sys::getlen(css),&_Style,":;(),+~'")){
+    if(!setter(css,strlen(css),&_Style,":;(),+~'")){
         excp[HTMLException::Error] << "HtmlElement can't set Style: " << css;
         throw excp;          
     }
@@ -484,7 +490,7 @@ void libhtmlpp::HtmlElement::setStyle(const char *css){
 
 void libhtmlpp::HtmlElement::setComment(const char* comment){
     HTMLException excp;
-    if(!setter(comment,sys::getlen(comment),&_Style,":;(),+~'")){
+    if(!setter(comment,strlen(comment),&_Style,":;(),+~'")){
         excp[HTMLException::Error] << "HtmlElement can't set Comment: " << comment;
         throw excp;          
     }    

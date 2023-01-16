@@ -25,7 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "utils.h"
 #include "exception.h"
@@ -59,7 +60,7 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
-    return asign(src);   
+    return asign(src);
 };
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){

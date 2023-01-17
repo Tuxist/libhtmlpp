@@ -154,6 +154,10 @@ size_t libhtmlpp::HtmlString::size(){
     return _Data.size();
 }
 
+size_t libhtmlpp::HtmlString::length() {
+    return _Data.length();
+}
+
 bool libhtmlpp::HtmlString::validate(){
     _HTableSize=0;
     size_t opentag=0,closetag=0;

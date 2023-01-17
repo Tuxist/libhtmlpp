@@ -42,12 +42,12 @@ namespace libhtmlpp {
     protected:
         HtmlElement();
         ~HtmlElement();
-        char            *_Tag;
-        char            *_Text;
-        char            *_Comment;
-        HtmlElement     *_Child;
-        HtmlElement     *_prevElement;
-        HtmlElement     *_nextElement;
+        sys::array<char>  _Tag;
+        sys::array<char>  _Text;
+        sys::array<char>  _Comment;
+        HtmlElement      *_Child;
+        HtmlElement      *_prevElement;
+        HtmlElement      *_nextElement;
         
         class HtmlAttributes {
         protected:
@@ -98,13 +98,11 @@ namespace libhtmlpp {
         void              _parseTree();
         HtmlElement      *_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos);
         HtmlElement      *_serialzeElements(HtmlElement *prevnode,ssize_t &pos);
-        int               _serialzeTags(size_t spos,size_t epos,char **value,size_t &valuesize);
-        void              _printHtml(HtmlElement *node,size_t &level);
+        int               _serialzeTags(size_t spos,size_t epos,sys::array<char>& value,size_t &valuesize);
         sys::array<char>        _Data;
-        char                   *_cbuffer;
         ssize_t               **_HTable;
         size_t                  _HTableSize;
-        char                   *_HtmlHeader;
+        sys::array<char>        _HtmlHeader;
         HtmlElement            *_HtmlRootNode;
     };
 

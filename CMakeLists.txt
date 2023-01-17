@@ -7,7 +7,7 @@ find_package(systempp REQUIRED)
 set(LIBV "1.0.0")
 set(Upstream_VERSION 1.0.0)
 
-SET(CMAKE_CXX_FLAGS "-fPIC -Wall -nostdlib")
+SET(CMAKE_CXX_FLAGS "-fPIC -Wall")
 
 configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 

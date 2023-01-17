@@ -143,9 +143,9 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 const char *libhtmlpp::HtmlString::c_str() {
     size_t level = 0;
 PRINTELEMENTS:
-    for (HtmlElement* curel = _HtmlRootNode->_Child; curel; curel=curel->_nextElement) {
-        sys::cout << curel->_Tag << sys::endl;
-    }           
+    //for (HtmlElement* curel = _HtmlRootNode->_Child; curel; curel=curel->_nextElement) {
+    //    sys::cout << curel->_Tag << sys::endl;
+    //}           
 }
 
 

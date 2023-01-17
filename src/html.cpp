@@ -145,7 +145,8 @@ const char *libhtmlpp::HtmlString::c_str() {
 PRINTELEMENTS:
     //for (HtmlElement* curel = _HtmlRootNode->_Child; curel; curel=curel->_nextElement) {
     //    sys::cout << curel->_Tag << sys::endl;
-    //}           
+    //}      
+    return _Data.c_str();
 }
 
 

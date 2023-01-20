@@ -91,7 +91,6 @@ namespace libhtmlpp {
         const char        *c_str();
         size_t             size();
         void               clear();
-        bool               validate();
         void               parse();
      private:
         void              _InitString();

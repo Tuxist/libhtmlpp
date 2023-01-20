@@ -141,11 +141,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
-    size_t level = 0;
-PRINTELEMENTS:
-    for (HtmlElement* curel = _HtmlRootNode->_Child; curel; curel=curel->_nextElement) {
-        sys::cout << curel->_Tag << sys::endl;
-    }           
+    return _Data.c_str();
 }
 
 
@@ -153,105 +149,24 @@ size_t libhtmlpp::HtmlString::size(){
     return _Data.size();
 }
 
-bool libhtmlpp::HtmlString::validate(){
-    _HTableSize=0;
-    size_t opentag=0,closetag=0;
-    for(size_t i=0; i<_Data.size(); ++i){
-        switch(_Data[i]){
-            case HTMLTAG_OPEN:
-                ++opentag;
-                break;
-            case HTMLTAG_CLOSE:
-                ++closetag;
-                break;
-            default:
-                break;
-        }
-    }
-    
-    if(opentag==0 || opentag!=closetag)
-        return false;  
-    
-    _HTableSize=closetag;
-    return true;
-}
-
 void libhtmlpp::HtmlString::parse(){
     HTMLException excp;
-    if(!validate()){
-        excp[HTMLException::Critical] << "HtmlString: " << "parseTree parse Error html not validate !";
-        throw excp;
-    }
-
     _parseTree();
     _HtmlHeader.clear();
     delete _HtmlRootNode;
     ssize_t pos = 0;
-    _HtmlRootNode=_serialzeElements(nullptr,pos);
     HtmlElement *parent=nullptr;
     _buildTree(_HtmlRootNode,parent,--pos);
+    _HtmlRootNode = _serialzeElements(nullptr, pos);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_serialzeElements(HtmlElement *prevnode,ssize_t &pos){
-    HTMLException excp;
-    sys::array<char> tag;
-    HtmlElement *tagel=nullptr;
-    if(pos<_HTableSize) {
-        size_t tagsize=0;
-        int ret=_serialzeTags(_HTable[pos][0],_HTable[pos][2],tag,tagsize);
-        if(tagsize<=0)
-            throw excp[HTMLException::Error] << "That shouldn't happend: "<< tag.c_str();
-        if(ret==HTMLHEADER){
-            if(!_HtmlHeader.empty())
-                throw excp[HTMLException::Error] << "Htmlheader exist too often: "<< tag.c_str();
-            _HtmlHeader=tag;
-            return _serialzeElements(prevnode,++pos);
-        }else if(ret==HTMLELEMENT){
-            if(prevnode){
-                    tagel= new HtmlElement;
-                    tagel->_Tag = tag;
-                    tagel->_prevElement=prevnode;
-                    tagel->_nextElement=_serialzeElements(tagel,++pos);
-                    return tagel;
-            }else{
-                tagel = new HtmlElement;
-                tagel->_Tag = tag;
-                tagel->_nextElement=_serialzeElements(tagel,++pos);
-                return tagel;
-            }
-        }else if(ret==HTMLCOMMENT){
-            if(!prevnode)
-                throw excp[HTMLException::Error] << "Misplaced comment: "<< tag.c_str();
-            prevnode->_Comment=tag;
-            return _serialzeElements(prevnode,++pos);
-        }
-        return _serialzeElements(prevnode,++pos);
-    }
     return nullptr;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos){
-    sys::array <char>tag;
-    if(pos>0) {
-        size_t tagsize=0;
-        int ret=_serialzeTags(_HTable[pos][0],_HTable[pos][2],tag,tagsize);
-        if(node){
-            if(ret==HTMLELEMENT){
-                if(node->_Tag==tag){
-                    node->_nextElement=parent;
-                }
-            }else if(ret==HTMLTERMELEMENT){
-                if(node->_Tag!=tag){
-                    parent=node->_nextElement;
-                    node->_nextElement=nullptr;
-                    node->_Child=_buildTree(node,parent,--pos);
-                    return node;
-                }else{
-                    return _buildTree(node->_nextElement,parent,pos);
-                }
-            }
-        }
-        return _buildTree(node,parent,--pos);
+    for (int i = 0; i < _HTableSize; ++i) {
+        sys::cout << _Data.substr(_HTable[i][0], (_HTable[i][1] - _HTable[i][0]));
     }
     return nullptr;
 }
@@ -266,12 +181,34 @@ void libhtmlpp::HtmlString::_InitString(){
 void libhtmlpp::HtmlString::_parseTree(){
     HTMLException excp;
     if(_HTable){
-        for(size_t i=0; i<_HTableSize; ++i){
+        for(size_t i=0; i< _HTableSize; ++i){
             delete[] _HTable[i];
         }
         delete[] _HTable;
     }
-    
+
+    size_t opentag = 0, closetag = 0;
+    for (size_t i = 0; i < _Data.size(); ++i) {
+        switch (_Data[i]) {
+        case HTMLTAG_OPEN:
+            ++opentag;
+            break;
+        case HTMLTAG_CLOSE:
+            ++closetag;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (opentag == 0 || opentag != closetag) {
+        HTMLException excp;
+        throw excp[HTMLException::Critical] << "Wrong formated Document!";
+    }
+
+
+    _HTableSize = closetag;
+
     _HTable = new ssize_t*[_HTableSize];
     for (size_t is = 0; is < _HTableSize; is++) {
         _HTable[is] = new ssize_t[3];

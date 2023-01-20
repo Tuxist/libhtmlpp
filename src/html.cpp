@@ -166,7 +166,24 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_serialzeElements(HtmlElement *pr
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos){
     for (int i = 0; i < _HTableSize; ++i) {
-        sys::cout << _Data.substr(_HTable[i][0], (_HTable[i][1] - _HTable[i][0]));
+        sys::array<char> el = _Data.substr(_HTable[i][0], (_HTable[i][2] - _HTable[i][0]) + 1);
+        int ii;
+
+        for (ii = 0; ii < el.length(); ++ii) {
+            switch (el[ii]) {
+                case ' ':
+                    goto TAGNAMEEND;
+                case '>':
+                    --ii;
+                    goto TAGNAMEEND;
+                default:
+                    break;
+            }
+        }
+TAGNAMEEND:
+        sys::array<char> type = el.substr(1,ii);
+
+        sys::cout << type << sys::endl;
     }
     return nullptr;
 }

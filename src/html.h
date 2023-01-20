@@ -49,18 +49,18 @@ namespace libhtmlpp {
         HtmlElement      *_prevElement;
         HtmlElement      *_nextElement;
         
-        class HtmlAttributes {
-        protected:
+        struct HtmlAttributes {
             HtmlAttributes();
             ~HtmlAttributes();
-            sys::array<char> *_Key;
-            sys::array<char> *_Value;
-            HtmlAttributes   *_nextHtmlAttributes;
+            sys::array<char>  _Key;
+            sys::array<char>  _Value;
+            HtmlAttributes   *_nextAttr;
         };
     private:
-        char          *_ID;
-        char          *_Class;
-        char          *_Style;
+        sys::array<char> _TagName;
+        HtmlAttributes  *_firstAttr;
+        HtmlAttributes  *_lastAttr;
+
         friend class HtmlString;
     };
         
@@ -97,8 +97,6 @@ namespace libhtmlpp {
         void              _InitString();
         void              _parseTree();
         HtmlElement      *_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos);
-        HtmlElement      *_serialzeElements(HtmlElement *prevnode,ssize_t &pos);
-        int               _serialzeTags(size_t spos,size_t epos,sys::array<char>& value,size_t &valuesize);
         sys::array<char>        _Data;
         ssize_t               **_HTable;
         size_t                  _HTableSize;

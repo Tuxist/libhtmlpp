@@ -157,11 +157,6 @@ void libhtmlpp::HtmlString::parse(){
     ssize_t pos = 0;
     HtmlElement *parent=nullptr;
     _buildTree(_HtmlRootNode,parent,--pos);
-    _HtmlRootNode = _serialzeElements(nullptr, pos);
-}
-
-libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_serialzeElements(HtmlElement *prevnode,ssize_t &pos){
-    return nullptr;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos){
@@ -260,80 +255,18 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-int libhtmlpp::HtmlString::_serialzeTags(size_t spos, size_t epos, sys::array<char> &value,size_t &valuesize){
-    size_t anpos=0,enpos=0,i=spos;
-    int term=-1;
-    sys::array<char> Doctype;
-     while(i<epos){
-         switch(_Data[i]){
-             case('!'):
-                 if(_Data[i+1]=='-' && _Data[i+2]=='-'){ 
-                     i+=2;
-                     goto FINDCOMMENTEND;
-                 }else if(_Data.substr(i, 7)=="DOCTYPE") {
-                     ++i;
-                     goto FINDHTMLHEADER;
-                 }
-             case('/'):
-                 term=i;
-                 ++i;
-                 anpos=i;
-                 continue;
-             case '"':
-                 for(; _Data[i]!='"'; ++i);
-                 continue;
-             case('<'):
-                 anpos=++i;
-                 enpos=i;
-                 continue;
-             default:
-                 goto FINDTAGNAMEPOS;
-         }
-     }
- FINDHTMLHEADER:
-     if(enpos < epos && _Data[++enpos]!='>')
-         goto FINDHTMLHEADER;
-     valuesize = (enpos - anpos);
-     value = _Data.substr(anpos,valuesize);
-     return HTMLHEADER;
- FINDCOMMENTEND:
-     if(enpos < epos && !(_Data[enpos]=='!' && _Data[++enpos]=='-' &&
-         _Data[++enpos]=='-' && _Data[++enpos]=='>')
-     ){
-         ++enpos;
-         goto FINDCOMMENTEND;
-     }
-     valuesize = (enpos - anpos);
-     value = _Data.substr(anpos, valuesize);
-     return HTMLCOMMENT;
- FINDTAGNAMEPOS:
-     if(enpos < epos && !(_Data[enpos]==' ' || _Data[enpos]=='>')){
-         ++enpos;
-         if(enpos > 0 && _Data[enpos]!='/'){
-             goto FINDTAGNAMEPOS;
-         }
-     }
-     valuesize = (enpos - anpos);
-     value = _Data.substr(anpos, valuesize);
-     if(term >0 && term<enpos)
-         return HTMLTERMELEMENT;
-     return HTMLELEMENT;
-}
-
 libhtmlpp::HtmlElement::HtmlElement(){
     _nextElement=nullptr;
     _prevElement=nullptr;
     _Child=nullptr;
-    _ID=nullptr;
-    _Class=nullptr;
-    _Style=nullptr;
+    _firstAttr = nullptr;
+    _lastAttr = nullptr;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
-    delete[] _Style;
-    delete[] _Class;
-    delete[] _ID;
+    delete   _firstAttr;
     delete   _nextElement;
+    delete   _Child;
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
@@ -379,38 +312,45 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     _HtmlDocument->parse();
 }
 
-void libhtmlpp::HtmlElement::setID(const char *id){
-    HTMLException excp;
-    if(!setter(id,strlen(id),&_ID)){
-        excp[HTMLException::Error] << "HtmlElement can't id: " << id;
-        throw excp;        
+void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
+    HtmlAttributes* cattr = nullptr;
+    for (HtmlAttributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
+        if (curattr->_Key == name) {
+            cattr = curattr;
+        }
+    }
+    if (!cattr) {
+        if (_lastAttr){
+            _lastAttr->_nextAttr = new HtmlAttributes();
+            _lastAttr = _lastAttr->_nextAttr;
+        }else {
+            _firstAttr = new HtmlAttributes();
+            _lastAttr = _firstAttr;
+        }
+
+        _lastAttr->_Key = name;
+        _lastAttr->_Value = value;
+
+    }else{
+        cattr->_Value = value;
     }
 }
 
-void libhtmlpp::HtmlElement::setClass(const char *cname){
-    HTMLException excp;
-    if(!setter(cname,strlen(cname),&_Class)){
-        excp[HTMLException::Error] << "HtmlElement can't class name: " << cname;
-        throw excp;          
+void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
+
+}
+
+const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
+    for (HtmlAttributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
+        if (curattr->_Key == name) {
+            return curattr->_Value.c_str();
+        }
     }
 }
 
-void libhtmlpp::HtmlElement::setStyle(const char *css){
-    HTMLException excp;
-    if(!setter(css,strlen(css),&_Style,":;(),+~'")){
-        excp[HTMLException::Error] << "HtmlElement can't set Style: " << css;
-        throw excp;          
-    }
-}
+int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 
-void libhtmlpp::HtmlElement::setComment(const char* comment){
-    HTMLException excp;
-    if(!setter(comment,strlen(comment),&_Style,":;(),+~'")){
-        excp[HTMLException::Error] << "HtmlElement can't set Comment: " << comment;
-        throw excp;          
-    }    
 }
-
 
 libhtmlpp::HtmlTable::HtmlTable() {
 }

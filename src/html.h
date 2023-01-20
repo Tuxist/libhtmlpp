@@ -34,17 +34,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class HtmlElement {
     public:
-        void setID(const char *id);
-        void setClass(const char *cname);
-        void setStyle(const char *css);
-        void setComment(const char *comment);
+        void        setAttribute(const char *name,const char *value);
+        void        setIntAttribute(const char* name,int value);
+
+        const char* getAtributte(const char* name);
+        int         getIntAtributte(const char* name);
+
         const char *printHtmlElement();
     protected:
         HtmlElement();
         ~HtmlElement();
-        sys::array<char>  _Tag;
-        sys::array<char>  _Text;
-        sys::array<char>  _Comment;
+
         HtmlElement      *_Child;
         HtmlElement      *_prevElement;
         HtmlElement      *_nextElement;
@@ -53,9 +53,9 @@ namespace libhtmlpp {
         protected:
             HtmlAttributes();
             ~HtmlAttributes();
-            char           *_Key;
-            char           *_Value;
-            HtmlAttributes *_nextHtmlAttributes;
+            sys::array<char> *_Key;
+            sys::array<char> *_Value;
+            HtmlAttributes   *_nextHtmlAttributes;
         };
     private:
         char          *_ID;
@@ -122,6 +122,12 @@ namespace libhtmlpp {
         HtmlString    *_HtmlDocument;
     }; 
     
+    class HtmlDivLayer : public HtmlElement {
+    public:
+    
+    private:
+    };
+
     class HtmlTable : public HtmlElement{
     public:
         HtmlTable();

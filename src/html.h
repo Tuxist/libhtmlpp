@@ -90,6 +90,7 @@ namespace libhtmlpp {
 
         const char        *c_str();
         size_t             size();
+        size_t             length();
         void               clear();
         void               parse();
      private:

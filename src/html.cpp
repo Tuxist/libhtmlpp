@@ -352,7 +352,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     if(size_t rd = fs.read(buf,HTML_BLOCKSIZE)){
          buf[rd] = '\0';
          char *dest;
-         size_t cdd=sys::utils::cleannewline(buf,rd,&dest);
+         size_t cdd=cleannewline(buf,rd,&dest);
          _HtmlDocument->assign(dest,cdd);
          delete[] dest;
     } else {

@@ -141,6 +141,10 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
+    _Cstr.clear();
+    for (HtmlElement* curel = _HtmlRootNode; curel; curel=curel->_nextElement) {
+        _Cstr.append(curel->_TagName.c_str());
+    }
     return _Data.c_str();
 }
 
@@ -155,31 +159,44 @@ void libhtmlpp::HtmlString::parse(){
     _HtmlHeader.clear();
     delete _HtmlRootNode;
     ssize_t pos = 0;
-    HtmlElement *parent=nullptr;
-    _buildTree(_HtmlRootNode,parent,--pos);
+    _HtmlRootNode = _buildTree(pos);
 }
 
-libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos){
-    for (int i = 0; i < _HTableSize; ++i) {
-        sys::array<char> el = _Data.substr(_HTable[i][0], (_HTable[i][2] - _HTable[i][0]) + 1);
-        int ii;
-
-        for (ii = 0; ii < el.length(); ++ii) {
-            switch (el[ii]) {
-                case ' ':
-                    goto TAGNAMEEND;
-                case '>':
-                    --ii;
-                    goto TAGNAMEEND;
-                default:
-                    break;
-            }
-        }
-TAGNAMEEND:
-        sys::array<char> type = el.substr(1,ii);
-
-        sys::cout << type << sys::endl;
-    }
+libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
+//    size_t is=0, ie=(_HTableSize - 1);
+//TAGSTART:
+//    size_t ii = 0;
+//    sys::array<char> el;
+//    for (size_t is = 0; is < (_HTableSize - 1); ++is) {
+//        el = _Data.substr(_HTable[is][0], (_HTable[is][2] - _HTable[is][0]) + 1);
+//        for (ii = 0; ii < el.length(); ++ii) {
+//            switch (el[ii]) {
+//            case ' ':
+//                goto TAGNAMEEND;
+//            case '>':
+//                --ii;
+//                goto TAGNAMEEND;
+//            default:
+//                break;
+//            }
+//        }
+//    }
+//
+//TAGNAMEEND:
+//    sys::array<char> type;
+//
+//    if (el.substr(0,2) == "</")
+//        type = el.substr(2, (ii-1));
+//    else {
+//        if (ie != is)
+//            goto TAGSTART;
+//    }
+//
+//    for (ie; ie < 0; --ie) {
+//
+//    }
+//    
+//    return hel;
     return nullptr;
 }
 
@@ -350,6 +367,14 @@ const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
 
 int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 
+}
+
+libhtmlpp::HtmlElement::HtmlAttributes::HtmlAttributes() {
+    _nextAttr = nullptr;
+}
+
+libhtmlpp::HtmlElement::HtmlAttributes::~HtmlAttributes() {
+    delete _nextAttr;
 }
 
 libhtmlpp::HtmlTable::HtmlTable() {

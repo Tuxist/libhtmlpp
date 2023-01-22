@@ -56,6 +56,7 @@ namespace libhtmlpp {
             sys::array<char>  _Value;
             HtmlAttributes   *_nextAttr;
         };
+
     private:
         sys::array<char> _TagName;
         HtmlAttributes  *_firstAttr;
@@ -96,8 +97,9 @@ namespace libhtmlpp {
      private:
         void              _InitString();
         void              _parseTree();
-        HtmlElement      *_buildTree(HtmlElement *node,HtmlElement *parent,ssize_t &pos);
+        HtmlElement      *_buildTree(ssize_t &pos);
         sys::array<char>        _Data;
+        sys::array<char>        _Cstr;
         ssize_t               **_HTable;
         size_t                  _HTableSize;
         sys::array<char>        _HtmlHeader;

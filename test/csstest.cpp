@@ -38,7 +38,7 @@ void *__dso_handle __attribute__((__visibility__("hidden"))) __attribute__((weak
 int main(){
     libhtmlpp::HtmlTable table;
     try{
-        table.setStyle(":;(),+~'");
+        table.setAttribute("Style",":;(),+~'");
         sys::cout  << Green << "Test Passed!" << NOCOLOR << sys::endl;
     }catch(...){
         sys::cout   << Red << "Test not Passed!" << NOCOLOR << sys::endl;
@@ -46,7 +46,7 @@ int main(){
     }
     
     try{
-        table.setStyle("\"");
+        table.setAttribute("Style", "\"");
         sys::cout   << Red << "Test not Passed!" << NOCOLOR<< sys::endl;
         return -1;
     }catch(...){

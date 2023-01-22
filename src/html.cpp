@@ -153,6 +153,10 @@ size_t libhtmlpp::HtmlString::size(){
     return _Data.size();
 }
 
+size_t libhtmlpp::HtmlString::length() {
+    return _Data.length();
+}
+
 void libhtmlpp::HtmlString::parse(){
     HTMLException excp;
     _parseTree();

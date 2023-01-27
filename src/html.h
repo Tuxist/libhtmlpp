@@ -59,6 +59,7 @@ namespace libhtmlpp {
 
     private:
         sys::array<char> _TagName;
+        sys::array<char> _Text;
         HtmlAttributes  *_firstAttr;
         HtmlAttributes  *_lastAttr;
 
@@ -68,7 +69,6 @@ namespace libhtmlpp {
     class HtmlString {
     public:
         HtmlString();
-        HtmlString(char *header);
         ~HtmlString();
 
         void assign(const char *src,size_t srcsize);
@@ -97,14 +97,13 @@ namespace libhtmlpp {
      private:
         void              _InitString();
         void              _parseTree();
-        void              _printHtml(HtmlElement* child, HtmlElement* Parent);
+        void              _printHtml(HtmlElement* child);
         void              _serialelize(sys::array<char> in,HtmlElement **out);
         HtmlElement      *_buildTree(ssize_t &pos);
         sys::array<char>        _Data;
         sys::array<char>        _Cstr;
         ssize_t               **_HTable;
         size_t                  _HTableSize;
-        sys::array<char>        _HtmlHeader;
         HtmlElement            *_HtmlRootNode;
     };
 

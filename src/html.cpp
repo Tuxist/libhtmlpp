@@ -52,12 +52,6 @@ libhtmlpp::HtmlString::HtmlString(){
     _InitString();
 }
 
-libhtmlpp::HtmlString::HtmlString(char *header){
-    _InitString();
-    _HtmlHeader=header;
-
-}
-
 libhtmlpp::HtmlString::~HtmlString(){
    clear();
 }
@@ -140,22 +134,23 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
     return *this;
 }
 
-void libhtmlpp::HtmlString::_printHtml(HtmlElement* child, HtmlElement* Parent) {
+void libhtmlpp::HtmlString::_printHtml(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
         if (cur->_Child) {
+            _printHtml(cur->_Child);
+            _Cstr.append("</");
             _Cstr.append(cur->_TagName.c_str());
-            _printHtml(nullptr, cur->_Child);
-        } else if(Parent){
-            _Cstr.append(Parent->_TagName.c_str());
-        } else {
-            _Cstr.append(cur->_TagName.c_str());
+            _Cstr.append(">");
         }
+        _Cstr.append("<");
+        _Cstr.append(cur->_TagName.c_str());
+        _Cstr.append(">");
     }
 }
 
 const char *libhtmlpp::HtmlString::c_str() {
     _Cstr.clear();
-    _printHtml(_HtmlRootNode,nullptr);
+    _printHtml(_HtmlRootNode);
     sys::cout << _Cstr << sys::endl;
     return _Data.c_str();
 }
@@ -172,24 +167,31 @@ size_t libhtmlpp::HtmlString::length() {
 void libhtmlpp::HtmlString::parse(){
     HTMLException excp;
     _parseTree();
-    _HtmlHeader.clear();
     delete _HtmlRootNode;
     ssize_t pos = 0;
     _HtmlRootNode = _buildTree(pos);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
-
-    HtmlElement *firsthel=nullptr;
-    HtmlElement *lasthel= nullptr;
-
     struct el {
         sys::array<char> data;
-        struct el*       terminator;
+        HtmlElement*     elhtml;
+        bool             terminator;
         struct el*       nextel;
         struct el*       prevel;
 
-    }*firstEl=nullptr,*lastEl=nullptr;
+        el() {
+            nextel = nullptr;
+            prevel = nullptr;
+            elhtml = nullptr;
+            terminator = false;
+        }
+
+        ~el() {
+            delete nextel;
+        }
+
+    }*firstEl=nullptr,*lastEl=nullptr,*before=nullptr;
 
     int startpos=0;
 
@@ -197,66 +199,65 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
             if (!firstEl) {
                 firstEl = new el;
                 lastEl = firstEl;
-                lastEl->prevel = nullptr;
             }else {
 
                 lastEl->nextel = new el;
                 lastEl->nextel->prevel = lastEl;
                 lastEl = lastEl->nextel;
             }
-            lastEl->data = _Data.substr((_HTable[i][0]+1),((_HTable[i][2]-_HTable[i][0])-1));
-            lastEl->nextel = nullptr;
-            lastEl->terminator = nullptr;
+
+            lastEl->data = _Data.substr((_HTable[i][0]+1),(_HTable[i][2]-(_HTable[i][0]+1)));
+
+            if (lastEl->data[0] == '/')
+                lastEl->terminator = true;
+
+            _serialelize(lastEl->data, &lastEl->elhtml);
     }
 
     int lvl = 0;
-    HtmlElement *end,*cur,*before;
-    for (el* curel = lastEl; curel; curel=curel->prevel) {
-        if (curel->data[0]=='/') {
-            _serialelize(curel->data.substr(1,(curel->data.length()-1)), &end);
+    
+    HtmlElement* firsthel = nullptr, * lasthel = nullptr;
 
-            for (el* fcurel = firstEl; fcurel; fcurel = fcurel->nextel) {
-                
-                _serialelize(fcurel->data,&cur);
-                
-                if (end && end->_TagName == cur->_TagName) {
-                    delete end;
-                    end = nullptr;
-                    cur->_Child = before;
-                } else if(end){
-                    if (lasthel) {
-                        lasthel->_nextElement = cur;
-                        lasthel->_nextElement->_prevElement = lasthel;
-                        lasthel = lasthel->_nextElement;
-                    }else{
-                        firsthel = cur;
-                        firsthel->_nextElement = nullptr;
-                        firsthel->_prevElement = nullptr;
-                        lasthel = firsthel;
-                    }
-                } else {
-                    HTMLException excp;
-                    throw excp[HTMLException::Critical] << "htmltree wrong!";
+    for (el* curel = firstEl; curel; curel = curel->nextel) {
+        if (curel->terminator) {
+            for (el* begin = curel->prevel; begin; begin=begin->prevel) {
+                if (curel && curel!=begin && (curel->elhtml->_TagName == begin->elhtml->_TagName) ) {
+
+                    el* nexel = curel->nextel;
+                    curel->elhtml->_nextElement = nullptr;
+                    curel->nextel = nullptr;
+                    delete curel;
+                    curel = nexel;
+                    begin->elhtml->_Child = curel->elhtml;
+                    break;
                 }
-                before = cur;
             }
         }
+        if (lasthel) {
+            lasthel->_nextElement = curel->elhtml;
+            lasthel = lasthel->_nextElement;
+            lasthel->_prevElement = before->elhtml;
+        } else {
+            firsthel = curel->elhtml;
+            lasthel = firsthel;
+        }
+        before = curel;
     }
-
-    _HtmlRootNode = firsthel;
-
-    return nullptr;
+    return firsthel;
 }
 
 void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out) {
-    int i;
+    int i,s=0;
 
     for (i = 0; i < in.length(); ++i) {
-        if (in[i] == ' ') {
-            *out = new HtmlElement(in.substr(0, i).c_str());
+        if(in[i] == '/'){
+            ++s;
+            continue;
+        }else if (in[i] == ' ') {
+            *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
         }else if (i == (in.length()-1)){
-            *out = new HtmlElement(in.substr(0, i).c_str());
+            *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
         }
     }
@@ -416,18 +417,18 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
         throw excp[HTMLException::Critical] << e.what();
     }
 
-    int length = fs.getsize();
-    
-    char buf[HTML_BLOCKSIZE+1];
-    if(size_t rd = fs.read(buf,HTML_BLOCKSIZE)){
-         buf[rd] = '\0';
-         char *dest;
-         size_t cdd=cleannewline(buf,rd,&dest);
-         _HtmlDocument->assign(dest,cdd);
-         delete[] dest;
-    } else {
-        HTMLException excp;
-        throw excp[HTMLException::Critical] << "Could not read file";
+    size_t readed = 0;
+    while (readed < fs.getsize()) {
+        char buf[HTML_BLOCKSIZE+1];
+        int rd = fs.read(buf,HTML_BLOCKSIZE);
+        readed += rd;
+        if (rd > 0) {
+            buf[rd] = '\0';
+            _HtmlDocument->assign(buf,rd);
+        } else {
+            HTMLException excp;
+            throw excp[HTMLException::Critical] << "Could not read file";
+        }
     }
     _HtmlDocument->parse();
 }

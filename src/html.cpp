@@ -136,14 +136,33 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
 
 void libhtmlpp::HtmlString::_printHtml(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
+
         if (cur->_Child) {
+            _Cstr.append("<");
+            _Cstr.append(cur->_TagName.c_str());
+            _Cstr.append(" ");
+            for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+                _Cstr.append(curattr->_Key.c_str());
+                _Cstr.append("\"=");
+                _Cstr.append(curattr->_Value.c_str());
+                _Cstr.append("\" ");
+            }
+            _Cstr.append(">");
             _printHtml(cur->_Child);
             _Cstr.append("</");
             _Cstr.append(cur->_TagName.c_str());
             _Cstr.append(">");
+            return;
         }
         _Cstr.append("<");
         _Cstr.append(cur->_TagName.c_str());
+        _Cstr.append(" ");
+        for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr=curattr->_nextAttr) {
+            _Cstr.append(curattr->_Key.c_str());
+            _Cstr.append("\"=");
+            _Cstr.append(curattr->_Value.c_str());
+            _Cstr.append("\" ");
+        }        
         _Cstr.append(">");
     }
 }
@@ -188,7 +207,8 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
         }
 
         ~el() {
-            delete nextel;
+            if(nextel)
+                delete nextel;
         }
 
     }*firstEl=nullptr,*lastEl=nullptr,*before=nullptr;
@@ -220,29 +240,25 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
 
     for (el* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator) {
-            for (el* begin = curel->prevel; begin; begin=begin->prevel) {
-                if (curel && curel!=begin && (curel->elhtml->_TagName == begin->elhtml->_TagName) ) {
-
-                    el* nexel = curel->nextel;
-                    curel->elhtml->_nextElement = nullptr;
-                    curel->nextel = nullptr;
-                    delete curel;
-                    curel = nexel;
-                    begin->elhtml->_Child = curel->elhtml;
-                    break;
+            for (el* parent = curel; parent; parent=parent->prevel) {
+                if (parent->elhtml->_TagName == curel->elhtml->_TagName) {
+                    parent->elhtml->_Child = parent->elhtml->_nextElement;
+                    parent->elhtml->_nextElement = nullptr;
                 }
             }
-        }
-        if (lasthel) {
-            lasthel->_nextElement = curel->elhtml;
-            lasthel = lasthel->_nextElement;
-            lasthel->_prevElement = before->elhtml;
         } else {
-            firsthel = curel->elhtml;
-            lasthel = firsthel;
+            if (lasthel) {
+                lasthel->_nextElement = curel->elhtml;
+                lasthel = lasthel->_nextElement;
+            }else {
+                firsthel=curel->elhtml;
+                lasthel = firsthel;
+            }            
         }
-        before = curel;
     }
+
+    delete firstEl;
+
     return firsthel;
 }
 

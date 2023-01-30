@@ -34,6 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class HtmlElement {
     public:
+        HtmlElement(const char* tag);
+        ~HtmlElement();
+
         void        setAttribute(const char *name,const char *value);
         void        setIntAttribute(const char* name,int value);
 
@@ -42,9 +45,8 @@ namespace libhtmlpp {
 
         const char *printHtmlElement();
     protected:
-        HtmlElement(const char *tag);
-        ~HtmlElement();
 
+        void              _print(HtmlElement* child);
         HtmlElement      *_Child;
         HtmlElement      *_prevElement;
         HtmlElement      *_nextElement;
@@ -60,6 +62,8 @@ namespace libhtmlpp {
     private:
         sys::array<char> _TagName;
         sys::array<char> _Text;
+        sys::array<char> _Cstr;
+
         HtmlAttributes  *_firstAttr;
         HtmlAttributes  *_lastAttr;
 
@@ -93,18 +97,17 @@ namespace libhtmlpp {
         size_t             size();
         size_t             length();
         void               clear();
-        void               parse();
+        HtmlElement       *parse();
      private:
         void              _InitString();
         void              _parseTree();
-        void              _printHtml(HtmlElement* child);
         void              _serialelize(sys::array<char> in,HtmlElement **out);
         HtmlElement      *_buildTree(ssize_t &pos);
         sys::array<char>        _Data;
         sys::array<char>        _Cstr;
         ssize_t               **_HTable;
         size_t                  _HTableSize;
-        HtmlElement            *_HtmlRootNode;
+        HtmlElement            *_RootNode;
     };
 
     class HtmlPage {
@@ -120,9 +123,20 @@ namespace libhtmlpp {
         void addElement(HtmlElement *element);
         const char *printHtml();
     private:
-        HtmlString    *_HtmlDocument;
-    }; 
-    
+        sys::array<char>     _DocType;
+        HtmlElement         *_RootNode;
+    };
+
+    class HtmlComment : public HtmlElement {
+    public:
+        HtmlComment(const char *comment);
+        ~HtmlComment();
+        const char* printHtmlElement();
+    private:
+        sys::array<char> _Cstr;
+        sys::array<char> _Comment;
+    };
+
     class HtmlDivLayer : public HtmlElement {
     public:
         HtmlDivLayer();

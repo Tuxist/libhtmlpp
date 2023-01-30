@@ -78,7 +78,6 @@ void libhtmlpp::HtmlString::clear(){
         delete[] _HTable[i];
     }
     delete[]   _HTable;
-    delete     _HtmlRootNode;
     _InitString();
 }
 
@@ -134,44 +133,10 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator<<(char src){
     return *this;
 }
 
-void libhtmlpp::HtmlString::_printHtml(HtmlElement* child) {
-    for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
-
-        if (cur->_Child) {
-            _Cstr.append("<");
-            _Cstr.append(cur->_TagName.c_str());
-            _Cstr.append(" ");
-            for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-                _Cstr.append(curattr->_Key.c_str());
-                _Cstr.append("\"=");
-                _Cstr.append(curattr->_Value.c_str());
-                _Cstr.append("\" ");
-            }
-            _Cstr.append(">");
-            _printHtml(cur->_Child);
-            _Cstr.append("</");
-            _Cstr.append(cur->_TagName.c_str());
-            _Cstr.append(">");
-            return;
-        }
-        _Cstr.append("<");
-        _Cstr.append(cur->_TagName.c_str());
-        _Cstr.append(" ");
-        for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr=curattr->_nextAttr) {
-            _Cstr.append(curattr->_Key.c_str());
-            _Cstr.append("\"=");
-            _Cstr.append(curattr->_Value.c_str());
-            _Cstr.append("\" ");
-        }        
-        _Cstr.append(">");
-    }
-}
-
 const char *libhtmlpp::HtmlString::c_str() {
     _Cstr.clear();
-    _printHtml(_HtmlRootNode);
-    sys::cout << _Cstr << sys::endl;
-    return _Data.c_str();
+    _Cstr = _RootNode->printHtmlElement();
+    return _Cstr.c_str();
 }
 
 
@@ -183,12 +148,13 @@ size_t libhtmlpp::HtmlString::length() {
     return _Data.length();
 }
 
-void libhtmlpp::HtmlString::parse(){
+libhtmlpp::HtmlElement *libhtmlpp::HtmlString::parse(){
     HTMLException excp;
     _parseTree();
-    delete _HtmlRootNode;
     ssize_t pos = 0;
-    _HtmlRootNode = _buildTree(pos);
+    delete[] _RootNode;
+    _RootNode = _buildTree(pos);
+    return _RootNode;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
@@ -275,6 +241,9 @@ void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out)
         }else if (i == (in.length()-1)){
             *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
+        }else if (in.substr(i,(i+3)-i) == "!--") {
+            (*out) = new HtmlComment(in.substr(in.length() - 1).c_str());
+            return;
         }
     }
 
@@ -286,6 +255,7 @@ void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out)
     int startpos = -1;
     sys::array<char> key;
     int vst=-1;
+    bool comment = false;
     while (i <= in.length()) {
         switch (in[i]) {
             case ' ': {
@@ -323,7 +293,7 @@ void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out)
 void libhtmlpp::HtmlString::_InitString(){
     _HTable=nullptr;
     _HTableSize=0;
-    _HtmlRootNode=nullptr;
+    _RootNode=nullptr;
 }
 
 void libhtmlpp::HtmlString::_parseTree(){
@@ -407,11 +377,11 @@ libhtmlpp::HtmlElement::~HtmlElement(){
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
-    _HtmlDocument=nullptr;
+    _RootNode=nullptr;
 }
 
 libhtmlpp::HtmlPage::~HtmlPage(){
-    delete _HtmlDocument;
+    delete _RootNode;
 }
 
 void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
@@ -419,12 +389,12 @@ void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
 }
 
 const char *libhtmlpp::HtmlPage::printHtml(){
-    return _HtmlDocument->c_str();
+    return _RootNode->printHtmlElement();
 }
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
-    delete _HtmlDocument;
-    _HtmlDocument= new HtmlString();
+    delete _RootNode;
+    HtmlString tmp;
     sys::file fs;
     try{
         fs.open(path,0);
@@ -440,13 +410,49 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
         readed += rd;
         if (rd > 0) {
             buf[rd] = '\0';
-            _HtmlDocument->assign(buf,rd);
+            tmp.assign(buf,rd);
         } else {
             HTMLException excp;
             throw excp[HTMLException::Critical] << "Could not read file";
         }
     }
-    _HtmlDocument->parse();
+    _RootNode=tmp.parse();
+}
+
+void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
+    for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
+        if (cur->_Child) {
+            _Cstr.append("<");
+            _Cstr.append(cur->_TagName.c_str());
+            for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+                _Cstr.append(" ");
+                _Cstr.append(curattr->_Key.c_str());
+                _Cstr.append("\"=");
+                _Cstr.append(curattr->_Value.c_str());
+            }
+            _Cstr.append(">");
+            _print(cur->_Child);
+            _Cstr.append("</");
+            _Cstr.append(cur->_TagName.c_str());
+            _Cstr.append(">");
+            return;
+        }
+        _Cstr.append("<");
+        _Cstr.append(cur->_TagName.c_str());
+        for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+            _Cstr.append(" ");
+            _Cstr.append(curattr->_Key.c_str());
+            _Cstr.append("\"=");
+            _Cstr.append(curattr->_Value.c_str());
+        }
+        _Cstr.append(">");
+    }
+}
+
+const char* libhtmlpp::HtmlElement::printHtmlElement() {
+    _Cstr.clear();
+    _print(this);
+    return _Cstr.c_str();
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
@@ -493,6 +499,18 @@ libhtmlpp::HtmlElement::HtmlAttributes::HtmlAttributes() {
 libhtmlpp::HtmlElement::HtmlAttributes::~HtmlAttributes() {
     delete _nextAttr;
 }
+
+libhtmlpp::HtmlComment::HtmlComment(const char* comment) : HtmlElement("!--") {
+
+}
+
+libhtmlpp::HtmlComment::~HtmlComment() {
+
+}
+
+const char* libhtmlpp::HtmlComment::printHtmlElement() {
+    return _Cstr.c_str();
+};
 
 libhtmlpp::HtmlTable::HtmlTable() : HtmlElement("table") {
 }

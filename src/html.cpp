@@ -164,12 +164,14 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
         bool             terminator;
         struct el*       nextel;
         struct el*       prevel;
+        size_t           pos;
 
         el() {
             nextel = nullptr;
             prevel = nullptr;
             elhtml = nullptr;
             terminator = false;
+            pos = 0;
         }
 
         ~el() {
@@ -198,6 +200,9 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
                 lastEl->terminator = true;
 
             _serialelize(lastEl->data, &lastEl->elhtml);
+
+            lastEl->pos = i;
+
     }
 
     int lvl = 0;
@@ -205,14 +210,7 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
     HtmlElement* firsthel = nullptr, * lasthel = nullptr;
 
     for (el* curel = firstEl; curel; curel = curel->nextel) {
-        if (curel->terminator) {
-            for (el* parent = curel; parent; parent=parent->prevel) {
-                if (parent->elhtml->_TagName == curel->elhtml->_TagName) {
-                    parent->elhtml->_Child = parent->elhtml->_nextElement;
-                    parent->elhtml->_nextElement = nullptr;
-                }
-            }
-        } else {
+        if (!curel->terminator) {
             if (lasthel) {
                 lasthel->_nextElement = curel->elhtml;
                 lasthel = lasthel->_nextElement;
@@ -222,6 +220,18 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
             }            
         }
     }
+
+	for (el* curel = firstEl; curel; curel = curel->nextel) {
+        if (curel->terminator) {
+		    for (el* parent = lastEl; parent; parent = parent->prevel) {
+                sys::cout << (int)(curel->pos - parent->pos) << sys::endl;
+                if ((curel->pos-parent->pos)>1 && parent->elhtml->_TagName == curel->elhtml->_TagName){
+                        parent->elhtml->_Child = parent->elhtml->_nextElement;
+                        parent->elhtml->_nextElement = curel->elhtml->_nextElement;
+                }
+		    }
+        }
+	}
 
     delete firstEl;
 

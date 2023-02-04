@@ -213,10 +213,12 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
         if (!curel->terminator) {
             if (lasthel) {
                 lasthel->_nextElement = curel->elhtml;
-                lasthel = lasthel->_nextElement;
+                lasthel->_nextElement->_prevElement = lasthel;
+                lasthel = lasthel->_nextElement;                
             }else {
                 firsthel=curel->elhtml;
                 lasthel = firsthel;
+                lasthel->_prevElement = nullptr;
             }            
         }
     }
@@ -224,10 +226,21 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlString::_buildTree(ssize_t &pos){
 	for (el* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator) {
 		    for (el* parent = lastEl; parent; parent = parent->prevel) {
-                sys::cout << (int)(curel->pos - parent->pos) << sys::endl;
                 if ((curel->pos-parent->pos)>1 && parent->elhtml->_TagName == curel->elhtml->_TagName){
                         parent->elhtml->_Child = parent->elhtml->_nextElement;
-                        parent->elhtml->_nextElement = curel->elhtml->_nextElement;
+                        if (parent->elhtml->_nextElement)
+                            parent->elhtml->_nextElement->_prevElement = nullptr;
+                        parent->elhtml->_nextElement = nullptr;
+                        el* endcur = curel;
+                        while(endcur) {
+                            if (!endcur->terminator) {
+                                parent->elhtml->_nextElement = endcur->elhtml;
+                                if (endcur->elhtml->_prevElement)
+                                    endcur->elhtml->_prevElement->_nextElement =nullptr;
+                                break;
+                            }
+                            endcur = endcur->nextel;
+                        }
                 }
 		    }
         }
@@ -382,8 +395,8 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     delete   _firstAttr;
-    delete   _nextElement;
     delete   _Child;
+    delete   _nextElement;
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
@@ -441,7 +454,8 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
                 _Cstr.append(curattr->_Value.c_str());
             }
             _Cstr.append(">");
-            _print(cur->_Child);
+            if(cur->_Child)
+                _print(cur->_Child);
             _Cstr.append("</");
             _Cstr.append(cur->_TagName.c_str());
             _Cstr.append(">");

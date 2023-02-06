@@ -264,9 +264,6 @@ void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out)
         }else if (i == (in.length()-1)){
             *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
-        }else if (in.substr(i,(i+3)-i) == "!--") {
-            (*out) = new HtmlComment(in.substr(in.length() - 1).c_str());
-            return;
         }
     }
 
@@ -332,10 +329,14 @@ void libhtmlpp::HtmlString::_parseTree(){
     for (size_t i = 0; i < _Data.size(); ++i) {
         switch (_Data[i]) {
         case HTMLTAG_OPEN:
-            ++opentag;
+            if (_Data.substr(i, 4) != "<!--") {
+                ++opentag;
+            }
             break;
         case HTMLTAG_CLOSE:
-            ++closetag;
+            if (_Data.substr(i - 2, 3) != "-->") {
+                ++closetag;
+            }
             break;
         default:
             break;
@@ -363,20 +364,24 @@ void libhtmlpp::HtmlString::_parseTree(){
     for(size_t ii=0; ii<_Data.size(); ++ii){
         switch(_Data[ii]){
             case HTMLTAG_OPEN:
-                open=true;
-                _HTable[ip][0]=ii;
+                if (_Data.substr(ii, 4) != "<!--") {
+                    open = true;
+                    _HTable[ip][0] = ii;
+                }
                 break;
             case HTMLTAG_TERMINATE:
                 _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if(!open){
-                    excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
-                    throw excp;
+                if (_Data.substr(ii - 2, 3) != "-->") {
+                    if (!open) {
+                        excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
+                        throw excp;
+                    }
+                    _HTable[ip][2] = ii;
+                    ++ip;
+                    open = false;
                 }
-                _HTable[ip][2]=ii;
-                ++ip;
-                open=false;
                 break;
             default:
                 break;
@@ -513,17 +518,13 @@ libhtmlpp::HtmlElement::HtmlAttributes::~HtmlAttributes() {
     delete _nextAttr;
 }
 
-libhtmlpp::HtmlComment::HtmlComment(const char* comment) : HtmlElement("!--") {
+libhtmlpp::HtmlText::HtmlText() {
 
 }
 
-libhtmlpp::HtmlComment::~HtmlComment() {
+libhtmlpp::HtmlText::~HtmlText() {
 
 }
-
-const char* libhtmlpp::HtmlComment::printHtmlElement() {
-    return _Cstr.c_str();
-};
 
 libhtmlpp::HtmlTable::HtmlTable() : HtmlElement("table") {
 }

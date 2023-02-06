@@ -127,14 +127,16 @@ namespace libhtmlpp {
         HtmlElement         *_RootNode;
     };
 
-    class HtmlComment : public HtmlElement {
+    class HtmlText{
     public:
-        HtmlComment(const char *comment);
-        ~HtmlComment();
-        const char* printHtmlElement();
+        HtmlText();
+        ~HtmlText();
+        void insertTextBefore();
+        void insertTextAfter();
     private:
-        sys::array<char> _Cstr;
-        sys::array<char> _Comment;
+        sys::array<char>  _Text;
+        bool              _Before;
+        HtmlElement      *_Element;
     };
 
     class HtmlDivLayer : public HtmlElement {

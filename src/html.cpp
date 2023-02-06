@@ -452,8 +452,8 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
             _Cstr.append("\"=");
             _Cstr.append(curattr->_Value.c_str());
         }
+        _Cstr.append(">");
         if (cur->_Child) {
-            _Cstr.append(">");
             _print(cur->_Child);
             _Cstr.append("</");
             _Cstr.append(cur->_TagName.c_str());

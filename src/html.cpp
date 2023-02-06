@@ -444,23 +444,6 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
 void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
-        if (cur->_Child) {
-            _Cstr.append("<");
-            _Cstr.append(cur->_TagName.c_str());
-            for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-                _Cstr.append(" ");
-                _Cstr.append(curattr->_Key.c_str());
-                _Cstr.append("\"=");
-                _Cstr.append(curattr->_Value.c_str());
-            }
-            _Cstr.append(">");
-            if(cur->_Child)
-                _print(cur->_Child);
-            _Cstr.append("</");
-            _Cstr.append(cur->_TagName.c_str());
-            _Cstr.append(">");
-            return;
-        }
         _Cstr.append("<");
         _Cstr.append(cur->_TagName.c_str());
         for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
@@ -469,7 +452,13 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
             _Cstr.append("\"=");
             _Cstr.append(curattr->_Value.c_str());
         }
-        _Cstr.append(">");
+        if (cur->_Child) {
+            _Cstr.append(">");
+            _print(cur->_Child);
+            _Cstr.append("</");
+            _Cstr.append(cur->_TagName.c_str());
+            _Cstr.append(">");
+        }
     }
 }
 

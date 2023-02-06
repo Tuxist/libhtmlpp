@@ -32,111 +32,52 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 namespace libhtmlpp {
+
     class HtmlElement {
     public:
         HtmlElement(const char* tag);
         ~HtmlElement();
 
-        void        setAttribute(const char *name,const char *value);
-        void        setIntAttribute(const char* name,int value);
+        void        setAttribute(const char* name, const char* value);
+        void        setIntAttribute(const char* name, int value);
 
         const char* getAtributte(const char* name);
         int         getIntAtributte(const char* name);
 
-        const char *printHtmlElement();
+        const char* printHtmlElement();
+
+        void insertText(const char* text) {
+
+        }
+
     protected:
 
         void              _print(HtmlElement* child);
-        HtmlElement      *_Child;
-        HtmlElement      *_prevElement;
-        HtmlElement      *_nextElement;
-        
+        HtmlElement* _Child;
+        HtmlElement* _prevElement;
+        HtmlElement* _nextElement;
+
         struct HtmlAttributes {
             HtmlAttributes();
             ~HtmlAttributes();
             sys::array<char>  _Key;
             sys::array<char>  _Value;
-            HtmlAttributes   *_nextAttr;
+            HtmlAttributes* _nextAttr;
         };
 
     private:
         sys::array<char> _TagName;
-        sys::array<char> _Text;
         sys::array<char> _Cstr;
+        sys::array<char> _Text;
 
-        HtmlAttributes  *_firstAttr;
-        HtmlAttributes  *_lastAttr;
+        HtmlAttributes* _firstAttr;
+        HtmlAttributes* _lastAttr;
 
         friend class HtmlString;
     };
-        
-    class HtmlString {
-    public:
-        HtmlString();
-        ~HtmlString();
 
-        void assign(const char *src,size_t srcsize);
-        void assign(const char *src);
-        
-        void push_back(const char  src);
-        
-        void insert(size_t pos,char src);
-        
-        HtmlString &operator+=(const char *src);
-        HtmlString &operator+=(HtmlString &hstring);
-        HtmlString &operator=(const char *src);
-        const char operator[](size_t pos);
-        
-        HtmlString &operator<<(const char *src);
-        HtmlString &operator<<(int src);
-        HtmlString &operator<<(unsigned int src);
-        HtmlString &operator<<(char src);
-        HtmlString &operator<<(unsigned long src);
+    class HtmlText : public HtmlElement {
 
-        const char        *c_str();
-        size_t             size();
-        size_t             length();
-        void               clear();
-        HtmlElement       *parse();
-     private:
-        void              _InitString();
-        void              _parseTree();
-        void              _serialelize(sys::array<char> in,HtmlElement **out);
-        HtmlElement      *_buildTree(ssize_t &pos);
-        sys::array<char>        _Data;
-        sys::array<char>        _Cstr;
-        ssize_t               **_HTable;
-        size_t                  _HTableSize;
-        HtmlElement            *_RootNode;
-    };
-
-    class HtmlPage {
-    public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char *path);
-        void saveFile(const char *path);
-        
-        void   fromString(const char *src);
-        size_t toString(const char **dest);
-        
-        void addElement(HtmlElement *element);
-        const char *printHtml();
-    private:
-        sys::array<char>     _DocType;
-        HtmlElement         *_RootNode;
-    };
-
-    class HtmlText{
-    public:
-        HtmlText();
-        ~HtmlText();
-        void insertTextBefore();
-        void insertTextAfter();
-    private:
-        sys::array<char>  _Text;
-        bool              _Before;
-        HtmlElement      *_Element;
     };
 
     class HtmlDivLayer : public HtmlElement {
@@ -146,20 +87,77 @@ namespace libhtmlpp {
     private:
     };
 
-    class HtmlTable : public HtmlElement{
+    class HtmlTable : public HtmlElement {
     public:
         HtmlTable();
         ~HtmlTable();
         class Row {
         public:
-            Row &operator<<(const char *value);
-            Row &operator<<(int value);
+            Row& operator<<(const char* value);
+            Row& operator<<(int value);
         private:
             Row();
             ~Row();
-            Row *_nextRow;
+            Row* _nextRow;
             friend class HtmlTable;
         };
     private:
+    };
+
+    class HtmlPage {
+    public:
+        HtmlPage();
+        ~HtmlPage();
+        void loadFile(const char* path);
+        void saveFile(const char* path);
+
+        void   fromString(const char* src);
+        size_t toString(const char** dest);
+
+        void addElement(HtmlElement* element);
+        const char* printHtml();
+    private:
+        sys::array<char>     _DocType;
+        HtmlElement* _RootNode;
+    };
+
+    class HtmlString {
+    public:
+        HtmlString();
+        ~HtmlString();
+
+        void assign(const char* src, size_t srcsize);
+        void assign(const char* src);
+
+        void push_back(const char  src);
+
+        void insert(size_t pos, char src);
+
+        HtmlString& operator+=(const char* src);
+        HtmlString& operator+=(HtmlString& hstring);
+        HtmlString& operator=(const char* src);
+        const char operator[](size_t pos);
+
+        HtmlString& operator<<(const char* src);
+        HtmlString& operator<<(int src);
+        HtmlString& operator<<(unsigned int src);
+        HtmlString& operator<<(char src);
+        HtmlString& operator<<(unsigned long src);
+
+        const char*        c_str();
+        size_t             size();
+        size_t             length();
+        void               clear();
+        HtmlElement*       parse();
+    private:
+        void              _InitString();
+        void              _parseTree();
+        void              _serialelize(sys::array<char> in, HtmlElement** out);
+        HtmlElement*      _buildTree(ssize_t& pos);
+        sys::array<char>        _Data;
+        sys::array<char>        _Cstr;
+        ssize_t**               _HTable;
+        size_t                  _HTableSize;
+        HtmlElement* _RootNode;
     };
 };

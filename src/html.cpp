@@ -454,8 +454,9 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
         for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
             _Cstr.append(" ");
             _Cstr.append(curattr->_Key.c_str());
-            _Cstr.append("\"=");
+            _Cstr.append("=\"");
             _Cstr.append(curattr->_Value.c_str());
+            _Cstr.append("\"");
         }
         _Cstr.append(">");
         if (cur->_Child) {

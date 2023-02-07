@@ -228,21 +228,20 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         if (curel->terminator) {
 		    for (el* parent = lastEl; parent; parent = parent->prevel) {
                 if (parent->elhtml->_TagName == curel->elhtml->_TagName){
-                    HtmlElement::Elements* cel = parent->elhtml->_addElement();
-                    cel->_Child = parent->elhtml->_nextElement;
-                        if (parent->elhtml->_nextElement)
-                            parent->elhtml->_nextElement->_prevElement = nullptr;
-                        parent->elhtml->_nextElement = nullptr;
-                        el* endcur = curel;
-                        while(endcur) {
-                            if (!endcur->terminator) {
-                                parent->elhtml->_nextElement = endcur->elhtml;
-                                if (endcur->elhtml->_prevElement)
-                                    endcur->elhtml->_prevElement->_nextElement =nullptr;
-                                break;
-                            }
-                            endcur = endcur->nextel;                            
+                    parent->elhtml->_childElement = parent->elhtml->_nextElement;
+                    if (parent->elhtml->_nextElement)
+                        parent->elhtml->_nextElement->_prevElement = nullptr;
+                    parent->elhtml->_nextElement = nullptr;
+                    el* endcur = curel;
+                    while(endcur) {
+                        if (!endcur->terminator) {
+                            parent->elhtml->_nextElement = endcur->elhtml;
+                            if (endcur->elhtml->_prevElement)
+                                endcur->elhtml->_prevElement->_nextElement =nullptr;
+                            break;
                         }
+                        endcur = endcur->nextel;                            
+                    }
                 }
 		    }
         }
@@ -395,16 +394,16 @@ void libhtmlpp::HtmlString::_parseTree(){
 libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
     _nextElement=nullptr;
     _prevElement=nullptr;
+    _childElement = nullptr;
     _firstAttr = nullptr;
     _lastAttr = nullptr;
     _TagName = tagname;
-    _firstElement = nullptr;
-    _lastElement = nullptr;
+    
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     delete   _firstAttr;
-    delete   _firstElement;
+    delete   _childElement;
     delete   _nextElement;
 }
 
@@ -463,13 +462,19 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
             _Cstr.append("\"");
         }
         _Cstr.append(">");
-        for (HtmlElement::Elements* cel = cur->_firstElement; cel; cel=cel->_nextElement) {
-            if (cel->_Child) {
-                _print(cel->_Child);
-            } else if (!cel->_Text.empty()) {
-                _Cstr.append(cel->_Text.c_str());
-            }
+
+        if (!_beforeText.empty()) {
+            _Cstr.append(_beforeText.c_str());
         }
+
+        if (cur->_childElement) {
+            _print(cur->_childElement);
+        }
+
+        if (!_afterText.empty()) {
+            _Cstr.append(_afterText.c_str());
+        }
+
         _Cstr.append("</");
         _Cstr.append(cur->_TagName.c_str());
         _Cstr.append(">");
@@ -526,27 +531,6 @@ libhtmlpp::HtmlElement::Attributes::Attributes() {
 
 libhtmlpp::HtmlElement::Attributes::~Attributes() {
     delete _nextAttr;
-}
-
-libhtmlpp::HtmlElement::Elements* libhtmlpp::HtmlElement::_addElement() {
-    if (_firstElement) {
-        _lastElement->_nextElement = new HtmlElement::Elements();
-        _lastElement = _lastElement->_nextElement;
-    }
-    else {
-        _firstElement = new HtmlElement::Elements();
-        _lastElement = _firstElement;
-    }
-    return _lastElement;
-}
-
-libhtmlpp::HtmlElement::Elements::Elements() {
-    _nextElement = nullptr;
-}
-
-libhtmlpp::HtmlElement::Elements::~Elements() {
-    delete _Child;
-    delete _nextElement;
 }
 
 libhtmlpp::HtmlTable::HtmlTable() : HtmlElement("table") {

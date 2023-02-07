@@ -55,6 +55,7 @@ namespace libhtmlpp {
         void              _print(HtmlElement* child);
         HtmlElement*      _prevElement;
         HtmlElement*      _nextElement;
+        HtmlElement*      _childElement;
 
         struct Attributes {
             Attributes();
@@ -64,26 +65,16 @@ namespace libhtmlpp {
             Attributes*       _nextAttr;
         };
 
-        struct Elements {
-            Elements();
-            ~Elements();
-            HtmlElement     *_Child;
-            sys::array<char> _Text;
-            Elements        *_nextElement;
-        };
-
     private:
         sys::array<char> _TagName;
         sys::array<char> _Cstr;
         sys::array<char> _Text;
 
+        sys::array<char> _beforeText;
+        sys::array<char> _afterText;
+
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
-
-        Elements       *_addElement();
-
-        Elements       *_firstElement;
-        Elements       *_lastElement;
 
         friend class HtmlString;
     };

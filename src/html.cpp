@@ -455,7 +455,7 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
         _Cstr.append("<");
         _Cstr.append(cur->_TagName.c_str());
-        for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+        for (HtmlElement::Attributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
             _Cstr.append(" ");
             _Cstr.append(curattr->_Key.c_str());
             _Cstr.append("=\"");
@@ -484,18 +484,18 @@ const char* libhtmlpp::HtmlElement::printHtmlElement() {
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
-    HtmlAttributes* cattr = nullptr;
-    for (HtmlAttributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
+    Attributes* cattr = nullptr;
+    for (Attributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
         if (curattr->_Key == name) {
             cattr = curattr;
         }
     }
     if (!cattr) {
         if (_lastAttr){
-            _lastAttr->_nextAttr = new HtmlAttributes();
+            _lastAttr->_nextAttr = new Attributes();
             _lastAttr = _lastAttr->_nextAttr;
         }else {
-            _firstAttr = new HtmlAttributes();
+            _firstAttr = new Attributes();
             _lastAttr = _firstAttr;
         }
         cattr = _lastAttr;
@@ -509,7 +509,7 @@ void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
 }
 
 const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
-    for (HtmlAttributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
+    for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
         if (curattr->_Key == name) {
             return curattr->_Value.c_str();
         }
@@ -520,11 +520,11 @@ int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 
 }
 
-libhtmlpp::HtmlElement::HtmlAttributes::HtmlAttributes() {
+libhtmlpp::HtmlElement::Attributes::Attributes() {
     _nextAttr = nullptr;
 }
 
-libhtmlpp::HtmlElement::HtmlAttributes::~HtmlAttributes() {
+libhtmlpp::HtmlElement::Attributes::~Attributes() {
     delete _nextAttr;
 }
 

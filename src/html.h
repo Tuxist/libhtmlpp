@@ -56,12 +56,12 @@ namespace libhtmlpp {
         HtmlElement*      _prevElement;
         HtmlElement*      _nextElement;
 
-        struct HtmlAttributes {
-            HtmlAttributes();
-            ~HtmlAttributes();
+        struct Attributes {
+            Attributes();
+            ~Attributes();
             sys::array<char>  _Key;
             sys::array<char>  _Value;
-            HtmlAttributes* _nextAttr;
+            Attributes*       _nextAttr;
         };
 
         struct Elements {
@@ -77,8 +77,8 @@ namespace libhtmlpp {
         sys::array<char> _Cstr;
         sys::array<char> _Text;
 
-        HtmlAttributes* _firstAttr;
-        HtmlAttributes* _lastAttr;
+        Attributes*    _firstAttr;
+        Attributes*    _lastAttr;
 
         Elements       *_addElement();
 

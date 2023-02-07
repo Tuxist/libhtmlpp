@@ -183,8 +183,6 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     }*firstEl = nullptr, * lastEl = nullptr, * before = nullptr;
 
-    int startpos = 0;
-
 	for (int i = 0; i < _HTableSize; ++i) {
 		if (!firstEl) {
 			firstEl = new el;
@@ -230,7 +228,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         if (curel->terminator) {
 		    for (el* parent = lastEl; parent; parent = parent->prevel) {
                 if (parent->elhtml->_TagName == curel->elhtml->_TagName){
-                        parent->elhtml->_Child = parent->elhtml->_nextElement;
+                    HtmlElement::Elements* cel = parent->elhtml->_addElement();
+                    cel->_Child = parent->elhtml->_nextElement;
                         if (parent->elhtml->_nextElement)
                             parent->elhtml->_nextElement->_prevElement = nullptr;
                         parent->elhtml->_nextElement = nullptr;
@@ -242,9 +241,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                                     endcur->elhtml->_prevElement->_nextElement =nullptr;
                                 break;
                             }
-                            endcur = endcur->nextel;
+                            endcur = endcur->nextel;                            
                         }
-
                 }
 		    }
         }
@@ -397,15 +395,16 @@ void libhtmlpp::HtmlString::_parseTree(){
 libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
     _nextElement=nullptr;
     _prevElement=nullptr;
-    _Child=nullptr;
     _firstAttr = nullptr;
     _lastAttr = nullptr;
     _TagName = tagname;
+    _firstElement = nullptr;
+    _lastElement = nullptr;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     delete   _firstAttr;
-    delete   _Child;
+    delete   _firstElement;
     delete   _nextElement;
 }
 
@@ -454,27 +453,29 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
 void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
-        if (!cur->_TagName.empty() && _Text.empty()) {
-            _Cstr.append("<");
-            _Cstr.append(cur->_TagName.c_str());
-            for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-                _Cstr.append(" ");
-                _Cstr.append(curattr->_Key.c_str());
-                _Cstr.append("=\"");
-                _Cstr.append(curattr->_Value.c_str());
-                _Cstr.append("\"");
-            }
-            _Cstr.append(">");
-            if (cur->_Child)
-                _print(cur->_Child);
-            _Cstr.append("</");
-            _Cstr.append(cur->_TagName.c_str());
-            _Cstr.append(">");
-        } else {
-            _Cstr.append(_Text.c_str());
+        _Cstr.append("<");
+        _Cstr.append(cur->_TagName.c_str());
+        for (HtmlElement::HtmlAttributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+            _Cstr.append(" ");
+            _Cstr.append(curattr->_Key.c_str());
+            _Cstr.append("=\"");
+            _Cstr.append(curattr->_Value.c_str());
+            _Cstr.append("\"");
         }
+        _Cstr.append(">");
+        for (HtmlElement::Elements* cel = cur->_firstElement; cel; cel=cel->_nextElement) {
+            if (cel->_Child) {
+                _print(cel->_Child);
+            } else if (!cel->_Text.empty()) {
+                _Cstr.append(cel->_Text.c_str());
+            }
+        }
+        _Cstr.append("</");
+        _Cstr.append(cur->_TagName.c_str());
+        _Cstr.append(">");
     }
 }
+
 
 const char* libhtmlpp::HtmlElement::printHtmlElement() {
     _Cstr.clear();
@@ -525,6 +526,27 @@ libhtmlpp::HtmlElement::HtmlAttributes::HtmlAttributes() {
 
 libhtmlpp::HtmlElement::HtmlAttributes::~HtmlAttributes() {
     delete _nextAttr;
+}
+
+libhtmlpp::HtmlElement::Elements* libhtmlpp::HtmlElement::_addElement() {
+    if (_firstElement) {
+        _lastElement->_nextElement = new HtmlElement::Elements();
+        _lastElement = _lastElement->_nextElement;
+    }
+    else {
+        _firstElement = new HtmlElement::Elements();
+        _lastElement = _firstElement;
+    }
+    return _lastElement;
+}
+
+libhtmlpp::HtmlElement::Elements::Elements() {
+    _nextElement = nullptr;
+}
+
+libhtmlpp::HtmlElement::Elements::~Elements() {
+    delete _Child;
+    delete _nextElement;
 }
 
 libhtmlpp::HtmlTable::HtmlTable() : HtmlElement("table") {

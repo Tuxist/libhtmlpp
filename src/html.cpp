@@ -210,7 +210,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     
     HtmlElement* firsthel = nullptr, * lasthel = nullptr;
 
-    for (el* curel = firstEl; curel; curel = curel->nextel) {
+    for (el* curel = firstEl->nextel; curel; curel = curel->nextel) {
         if (!curel->terminator) {
             if (lasthel) {
                 lasthel->_nextElement = curel->elhtml;
@@ -227,7 +227,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 	for (el* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator) {
 		    for (el* parent = lastEl; parent; parent = parent->prevel) {
-                if (parent->elhtml->_TagName == curel->elhtml->_TagName){
+                if (parent->elhtml->_TagName == curel->elhtml->_TagName ){
                     parent->elhtml->_childElement = parent->elhtml->_nextElement;
                     if (parent->elhtml->_nextElement)
                         parent->elhtml->_nextElement->_prevElement = nullptr;
@@ -419,8 +419,11 @@ void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
     return;
 }
 
-const char *libhtmlpp::HtmlPage::printHtml(){
-    return _RootNode->printHtmlElement();
+const char* libhtmlpp::HtmlPage::printHtml(){
+    _C_str.clear();
+    _C_str.append("<!DOCTYPE html>");
+    _C_str.append(_RootNode->printHtmlElement());
+    return _C_str.c_str();
 }
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
@@ -447,11 +450,53 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
             throw excp[HTMLException::Critical] << "Could not read file";
         }
     }
+
+    const char type[] = { '!','D','O','C','T','Y','P','E' };
+    int i = 0;
+
+    while (i < 8) {
+        if (tmp[i+1] != type[i]) {
+            HTMLException excp;
+            excp[HTMLException::Critical] << "No Doctype found arborting";
+            throw excp;
+        }
+        ++i;
+    }
+
+    do{
+        ++i;
+    } while (tmp[i] == ' ');
+
+    const char typevalue[] = { 'h','t','m','l' };
+    int tpvl = 4;
+
+    if ((i + tpvl) > tmp.length()) {
+        HTMLException excp;
+        excp[HTMLException::Critical] << "Doctype header broken or wrong type";
+        throw excp;
+    }
+
+    int ii = 0,ie=i+tpvl;
+
+    while (i < ie) {
+        if (tmp[i] != typevalue[ii]) {
+            HTMLException excp;
+            excp[HTMLException::Critical] << "wrong Doctype";
+            throw excp;
+        }
+        ++i;
+        ++ii;
+    }
+
     _RootNode=tmp.parse();
 }
 
 void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
+        if (!_beforeText.empty()) {
+            _Cstr.append(_beforeText.c_str());
+        }
+
         _Cstr.append("<");
         _Cstr.append(cur->_TagName.c_str());
         for (HtmlElement::Attributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
@@ -463,16 +508,12 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
         }
         _Cstr.append(">");
 
-        if (!_beforeText.empty()) {
-            _Cstr.append(_beforeText.c_str());
+        if (!_afterText.empty()) {
+            _Cstr.append(_afterText.c_str());
         }
 
         if (cur->_childElement) {
             _print(cur->_childElement);
-        }
-
-        if (!_afterText.empty()) {
-            _Cstr.append(_afterText.c_str());
         }
 
         _Cstr.append("</");

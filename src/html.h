@@ -116,8 +116,8 @@ namespace libhtmlpp {
         void addElement(HtmlElement* element);
         const char* printHtml();
     private:
-        sys::array<char>     _DocType;
-        HtmlElement* _RootNode;
+        sys::array<char>     _C_str;
+        HtmlElement*         _RootNode;
     };
 
     class HtmlString {

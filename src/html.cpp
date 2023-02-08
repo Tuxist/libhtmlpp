@@ -164,8 +164,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         bool             terminator;
         struct el*       nextel;
         struct el*       prevel;
-        size_t           spos;
-        size_t           epos;
+        int              spos;
+        int              epos;
 
         el() {
             nextel = nullptr;
@@ -204,7 +204,25 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         lastEl->epos = _HTable[i][2];
 
 		_serialelize(lastEl->data, &lastEl->elhtml);
+
+        if (i + 1 < _HTableSize && _HTable[i + 1][0] - _HTable[i][2] > 0) {
+
+            lastEl->nextel = new el;
+            lastEl->nextel->prevel = lastEl;
+            lastEl = lastEl->nextel;
+
+            lastEl->terminator = false;
+
+            lastEl->spos = _HTable[i][2]+1;
+            lastEl->epos = _HTable[i+1][0]-1;
+
+            lastEl->elhtml = new HtmlElement(nullptr);
+            lastEl->elhtml->_Text = _Data.substr(lastEl->spos, (lastEl->epos-lastEl->spos)+1);
+        }
+
     }
+
+
 
     int lvl = 0;
     
@@ -240,7 +258,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                                 endcur->elhtml->_prevElement->_nextElement =nullptr;
                             break;
                         }
-                        endcur = endcur->nextel;                            
+                        endcur = endcur->prevel;                            
                     }
                 }
 		    }
@@ -398,7 +416,6 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
     _firstAttr = nullptr;
     _lastAttr = nullptr;
     _TagName = tagname;
-    
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
@@ -493,32 +510,30 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
 void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
     for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
-        if (!_beforeText.empty()) {
-            _Cstr.append(_beforeText.c_str());
-        }
+        if (!cur->_TagName.empty()) {
+            _Cstr.append("<");
+            _Cstr.append(cur->_TagName.c_str());
+            for (HtmlElement::Attributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+                _Cstr.append(" ");
+                _Cstr.append(curattr->_Key.c_str());
+                _Cstr.append("=\"");
+                _Cstr.append(curattr->_Value.c_str());
+                _Cstr.append("\"");
+            }
+            _Cstr.append(">");
 
-        _Cstr.append("<");
-        _Cstr.append(cur->_TagName.c_str());
-        for (HtmlElement::Attributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-            _Cstr.append(" ");
-            _Cstr.append(curattr->_Key.c_str());
-            _Cstr.append("=\"");
-            _Cstr.append(curattr->_Value.c_str());
-            _Cstr.append("\"");
-        }
-        _Cstr.append(">");
+            if (cur->_childElement) {
+                _print(cur->_childElement);
+            }
 
-        if (!_afterText.empty()) {
-            _Cstr.append(_afterText.c_str());
+            if (cur->_childElement) {
+                _Cstr.append("</");
+                _Cstr.append(cur->_TagName.c_str());
+                _Cstr.append(">");
+            }
+        } else if (!cur->_Text.empty()) {
+            _Cstr.append(cur->_Text.c_str());
         }
-
-        if (cur->_childElement) {
-            _print(cur->_childElement);
-        }
-
-        _Cstr.append("</");
-        _Cstr.append(cur->_TagName.c_str());
-        _Cstr.append(">");
     }
 }
 

@@ -66,13 +66,14 @@ namespace libhtmlpp {
         };
 
     private:
+        //if text tagname must be zero
         sys::array<char> _TagName;
         sys::array<char> _Cstr;
+
+        //for text and comment fields
         sys::array<char> _Text;
 
-        sys::array<char> _beforeText;
-        sys::array<char> _afterText;
-
+        //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
 

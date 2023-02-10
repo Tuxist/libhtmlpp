@@ -94,7 +94,7 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     _Data.clear();
-assign(src);
+    assign(src);
 return *this;
 }
 
@@ -508,39 +508,39 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     _RootNode=tmp.parse();
 }
 
-void libhtmlpp::HtmlElement::_print(HtmlElement* child) {
-    for (HtmlElement* cur = child; cur; cur = cur->_nextElement) {
-        if (!cur->_TagName.empty()) {
-            _Cstr.append("<");
-            _Cstr.append(cur->_TagName.c_str());
-            for (HtmlElement::Attributes* curattr = cur->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-                _Cstr.append(" ");
-                _Cstr.append(curattr->_Key.c_str());
-                _Cstr.append("=\"");
-                _Cstr.append(curattr->_Value.c_str());
-                _Cstr.append("\"");
-            }
-            _Cstr.append(">");
+void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,sys::array<char>& output) {
+    if (!el->_TagName.empty()) {
+        output.append("<");
+        output.append(el->_TagName.c_str());
+		for (HtmlElement::Attributes* curattr = el->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+            output.append(" ");
+            output.append(curattr->_Key.c_str());
+            output.append("=\"");
+            output.append(curattr->_Value.c_str());
+            output.append("\"");
+		}
+        output.append(">");
 
-            if (cur->_childElement) {
-                _print(cur->_childElement);
-            }
+		if (el->_childElement) {
+			_print(el->_childElement, el, output);
+		}
+	} else if (!el->_Text.empty()) {
+        output.append(el->_Text.c_str());
+	}
 
-            if (cur->_childElement) {
-                _Cstr.append("</");
-                _Cstr.append(cur->_TagName.c_str());
-                _Cstr.append(">");
-            }
-        } else if (!cur->_Text.empty()) {
-            _Cstr.append(cur->_Text.c_str());
-        }
+	if (el->_nextElement) {
+        _print(el->_nextElement,parent,output);
+    }else if(parent){
+        output.append("</");
+        output.append(parent->_TagName.c_str());
+        output.append(">");
     }
 }
 
 
 const char* libhtmlpp::HtmlElement::printHtmlElement() {
     _Cstr.clear();
-    _print(this);
+    _print(this,nullptr,_Cstr);
     return _Cstr.c_str();
 }
 

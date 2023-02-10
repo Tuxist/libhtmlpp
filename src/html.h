@@ -52,7 +52,7 @@ namespace libhtmlpp {
 
     protected:
 
-        void              _print(HtmlElement* child);
+        static void       _print(HtmlElement* el, HtmlElement* parent,sys::array<char> &output);
         HtmlElement*      _prevElement;
         HtmlElement*      _nextElement;
         HtmlElement*      _childElement;

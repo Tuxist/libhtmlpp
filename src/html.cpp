@@ -48,6 +48,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLCOMMENT 2
 #define HTMLHEADER 3
 
+namespace libhtmlpp {
+    struct DocElements {
+        sys::array<char>        data;
+        libhtmlpp::HtmlElement* elhtml;
+        bool                    terminator;
+        struct DocElements* nextel;
+        struct DocElements* prevel;
+        int                     spos;
+        int                     epos;
+
+        DocElements() {
+            nextel = nullptr;
+            prevel = nullptr;
+            elhtml = nullptr;
+            terminator = false;
+            spos = 0;
+            epos = 0;
+        }
+
+        ~DocElements() {
+            if (nextel)
+                delete nextel;
+        }
+    };
+};
+
 libhtmlpp::HtmlString::HtmlString(){
     _InitString();
 }
@@ -158,39 +184,16 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
 }
 
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
-    struct el {
-        sys::array<char> data;
-        HtmlElement*     elhtml;
-        bool             terminator;
-        struct el*       nextel;
-        struct el*       prevel;
-        int              spos;
-        int              epos;
-
-        el() {
-            nextel = nullptr;
-            prevel = nullptr;
-            elhtml = nullptr;
-            terminator = false;
-            spos = 0;
-            epos = 0;
-        }
-
-        ~el() {
-            if (nextel)
-                delete nextel;
-        }
-
-    }*firstEl = nullptr, * lastEl = nullptr, * before = nullptr;
+    DocElements *firstEl = nullptr, *lastEl = nullptr, *before = nullptr;
 
 	for (int i = 0; i < _HTableSize; ++i) {
 		if (!firstEl) {
-			firstEl = new el;
+			firstEl = new DocElements;
 			lastEl = firstEl;
 		}
 		else {
 
-			lastEl->nextel = new el;
+			lastEl->nextel = new DocElements;
 			lastEl->nextel->prevel = lastEl;
 			lastEl = lastEl->nextel;
 		}
@@ -205,9 +208,9 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
 		_serialelize(lastEl->data, &lastEl->elhtml);
 
-        if (i + 1 < _HTableSize && _HTable[i + 1][0] - _HTable[i][2] > 0) {
+        if ((i + 1) < _HTableSize && _HTable[i + 1][0] - _HTable[i][2] > 0) {
 
-            lastEl->nextel = new el;
+            lastEl->nextel = new DocElements;
             lastEl->nextel->prevel = lastEl;
             lastEl = lastEl->nextel;
 
@@ -228,7 +231,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     
     HtmlElement* firsthel = nullptr, * lasthel = nullptr;
 
-    for (el* curel = firstEl->nextel; curel; curel = curel->nextel) {
+    for (DocElements* curel = firstEl->nextel; curel; curel = curel->nextel) {
         if (!curel->terminator) {
             if (lasthel) {
                 lasthel->_nextElement = curel->elhtml;
@@ -242,36 +245,51 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         }
     }
 
-	for (el* curel = firstEl; curel; curel = curel->nextel) {
+	for (DocElements* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator) {
-		    for (el* parent = lastEl; parent; parent = parent->prevel) {
-                if (parent->elhtml->_TagName == curel->elhtml->_TagName ){
-                    parent->elhtml->_childElement = parent->elhtml->_nextElement;
+		    for (DocElements* parent = curel->prevel; parent; parent = parent->prevel) {
+                if (parent->elhtml->_TagName == curel->elhtml->_TagName) {
                     if (parent->elhtml->_nextElement)
                         parent->elhtml->_nextElement->_prevElement = nullptr;
-                    parent->elhtml->_nextElement = nullptr;
-                    el* endcur = curel;
-                    while(endcur) {
-                        if (!endcur->terminator) {
-                            parent->elhtml->_nextElement = endcur->elhtml;
-                            if (endcur->elhtml->_prevElement)
-                                endcur->elhtml->_prevElement->_nextElement =nullptr;
-                            break;
+
+                    parent->elhtml->_childElement = parent->elhtml->_nextElement;
+                    
+                    DocElements* endcurel = nullptr;
+
+                    while (endcurel) {
+                        if (!curel->terminator) {
+                            endcurel = curel;
                         }
-                        endcur = endcur->prevel;                            
+                        curel = curel->nextel;
                     }
+
+                    if (endcurel)
+                        parent->elhtml->_nextElement = endcurel->elhtml;
+                    break;
                 }
 		    }
         }
 	}
+
+    _buildTreeElement(firstEl,firstEl->nextel,firsthel);
 
     delete firstEl;
 
     return firsthel;
 }
 
+libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocElements* curel,
+                                                                 libhtmlpp::DocElements* nexel,
+                                                                 libhtmlpp::HtmlElement* parent) {
+    if (curel->elhtml && !curel->elhtml->_TagName.empty()) {
+        if (!parent) {
+            parent=curel->elhtml;
+        }
+    }
+    
+}
 
-void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, HtmlElement **out) {
+void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, libhtmlpp::HtmlElement **out) {
     int i,s=0;
 
     for (i = 0; i < in.length(); ++i) {

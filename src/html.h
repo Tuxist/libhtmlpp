@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 namespace libhtmlpp {
+    class DocElements;
 
     class HtmlElement {
     public:
@@ -45,10 +46,6 @@ namespace libhtmlpp {
         int         getIntAtributte(const char* name);
 
         const char* printHtmlElement();
-
-        void insertText(const char* text) {
-
-        }
 
     protected:
 
@@ -68,7 +65,6 @@ namespace libhtmlpp {
     private:
         //if text tagname must be zero
         sys::array<char> _TagName;
-        sys::array<char> _Cstr;
 
         //for text and comment fields
         sys::array<char> _Text;
@@ -76,6 +72,9 @@ namespace libhtmlpp {
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
+
+        //buffer for c_str() function
+        sys::array<char> _Cstr;
 
         friend class HtmlString;
     };
@@ -154,10 +153,13 @@ namespace libhtmlpp {
         void              _parseTree();
         void              _serialelize(sys::array<char> in, HtmlElement** out);
         HtmlElement*      _buildTree(ssize_t& pos);
+
+        HtmlElement*      _buildTreeElement(libhtmlpp::DocElements* curel, libhtmlpp::DocElements* nexel, 
+                                            HtmlElement* parent);
         sys::array<char>        _Data;
         sys::array<char>        _Cstr;
         ssize_t**               _HTable;
         size_t                  _HTableSize;
-        HtmlElement* _RootNode;
+        HtmlElement*            _RootNode;
     };
 };

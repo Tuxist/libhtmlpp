@@ -89,4 +89,27 @@ namespace libhtmlpp {
         *dest=buf;
         return true;
     }  
+
+    inline bool setter(const char* src, int srcsize, sys::array<char> &dest, const char* ssigns = nullptr) {
+        char* buf = new char[srcsize + 1];
+        bool nallowd = false;
+        for (int i = 0; i < srcsize; ++i) {
+            if (!isdigit(src[i]) || !isalpha(src[i]) || ssigns) {
+                nallowd = true;
+                for (size_t pos = 0; pos < strlen(ssigns); ++pos) {
+                    if (ssigns[pos] == src[i]) {
+                        nallowd = false;
+                    }
+                }
+                if (nallowd) {
+                    delete[] buf;
+                    return false;
+                }
+            }
+            buf[i] = src[i];
+        }
+        buf[srcsize] = '\0';
+        dest.write(buf,srcsize);
+        return true;
+    }
 };

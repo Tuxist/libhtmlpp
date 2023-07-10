@@ -459,28 +459,16 @@ const char* libhtmlpp::HtmlPage::printHtml(){
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _RootNode;
-    HtmlString tmp;
-    std::fstream fs;
+    std::string tmp;
+    std::ifstream fs;
     try{
-        fs.open(path,std::fstream::in);
+        fs.open(path);
     }catch(std::exception &e){
         HTMLException excp;
         throw excp[HTMLException::Critical] << e.what();
     }
-
-    fs.seekg (0, fs.end);
-    int fsisze = fs.tellg();
-    fs.seekg (0, fs.beg);
-
-    while (!fs.eof()) {
-        char buf[HTML_BLOCKSIZE];
-        fs.read(buf,HTML_BLOCKSIZE);
-        if (fs) {
-            tmp.assign(buf,HTML_BLOCKSIZE);
-        } else {
-            HTMLException excp;
-            throw excp[HTMLException::Critical] << "Could not read file";
-        }
+    while (fs) {
+        fs >> tmp;
     }
 
     fs.close();
@@ -522,7 +510,10 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
         ++ii;
     }
 
-    _RootNode=tmp.parse();
+    HtmlString node;
+    node << tmp.c_str();
+
+    _RootNode=node.parse();
 }
 
 void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::string& output) {

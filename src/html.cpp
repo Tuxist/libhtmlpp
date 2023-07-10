@@ -28,12 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <systempp/sysconsole.h>
-#include <systempp/sysfile.h>
-#include <systempp/sysutils.h>
-#include <systempp/sysexception.h>
-#include <systempp/config.h>
+#include <fstream>
 
 #include "utils.h"
 #include "html.h"
@@ -49,12 +44,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLHEADER 3
 
 namespace libhtmlpp {
-    struct DocElements {
-        sys::array<char>        data;
+    class DocElements {
+    public:
+        std::string             data;
         libhtmlpp::HtmlElement* elhtml;
         bool                    terminator;
-        struct DocElements* nextel;
-        struct DocElements* prevel;
+        class DocElements*      nextel;
+        class DocElements*      prevel;
         int                     spos;
         int                     epos;
 
@@ -83,7 +79,7 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
-    _Data.write(src,srcsize);
+    _Data.assign(src,srcsize);
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
@@ -149,7 +145,7 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(unsigned int src) {
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(unsigned long src) {
     char buf[255];
-    snprintf(buf, 255, "%u", src);
+    snprintf(buf, 255, "%zu", src);
     assign(buf);
     return *this;
 }
@@ -289,7 +285,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocE
     
 }
 
-void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, libhtmlpp::HtmlElement **out) {
+void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement **out) {
     int i,s=0;
 
     for (i = 0; i < in.length(); ++i) {
@@ -311,7 +307,7 @@ void libhtmlpp::HtmlString::_serialelize(sys::array<char> in, libhtmlpp::HtmlEle
     }
 
     int startpos = -1;
-    sys::array<char> key;
+    std::string key;
     int vst=-1;
     bool comment = false;
     while (i <= in.length()) {
@@ -464,27 +460,30 @@ const char* libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _RootNode;
     HtmlString tmp;
-    sys::file fs;
+    std::fstream fs;
     try{
-        fs.open(path,0);
-    }catch(sys::SystemException &e){
+        fs.open(path,std::fstream::in);
+    }catch(std::exception &e){
         HTMLException excp;
         throw excp[HTMLException::Critical] << e.what();
     }
 
-    size_t readed = 0;
-    while (readed < fs.getsize()) {
-        char buf[HTML_BLOCKSIZE+1];
-        int rd = fs.read(buf,HTML_BLOCKSIZE);
-        readed += rd;
-        if (rd > 0) {
-            buf[rd] = '\0';
-            tmp.assign(buf,rd);
+    fs.seekg (0, fs.end);
+    int fsisze = fs.tellg();
+    fs.seekg (0, fs.beg);
+
+    while (!fs.eof()) {
+        char buf[HTML_BLOCKSIZE];
+        fs.read(buf,HTML_BLOCKSIZE);
+        if (fs) {
+            tmp.assign(buf,HTML_BLOCKSIZE);
         } else {
             HTMLException excp;
             throw excp[HTMLException::Critical] << "Could not read file";
         }
     }
+
+    fs.close();
 
     const char type[] = { '!','D','O','C','T','Y','P','E' };
     int i = 0;
@@ -526,7 +525,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     _RootNode=tmp.parse();
 }
 
-void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,sys::array<char>& output) {
+void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::string& output) {
     if (!el->_TagName.empty()) {
         output.append("<");
         output.append(el->_TagName.c_str());

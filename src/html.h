@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sys/types.h>
 
-#include <systempp/sysarray.h>
+#include <string>
 
 #pragma once
 
@@ -49,7 +49,7 @@ namespace libhtmlpp {
 
     protected:
 
-        static void       _print(HtmlElement* el, HtmlElement* parent,sys::array<char> &output);
+        static void       _print(HtmlElement* el, HtmlElement* parent,std::string &output);
         HtmlElement*      _prevElement;
         HtmlElement*      _nextElement;
         HtmlElement*      _childElement;
@@ -57,24 +57,24 @@ namespace libhtmlpp {
         struct Attributes {
             Attributes();
             ~Attributes();
-            sys::array<char>  _Key;
-            sys::array<char>  _Value;
+            std::string _Key;
+            std::string _Value;
             Attributes*       _nextAttr;
         };
 
     private:
         //if text tagname must be zero
-        sys::array<char> _TagName;
+        std::string  _TagName;
 
         //for text and comment fields
-        sys::array<char> _Text;
+        std::string  _Text;
 
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
 
         //buffer for c_str() function
-        sys::array<char> _Cstr;
+        std::string    _Cstr;
 
         friend class HtmlString;
     };
@@ -116,8 +116,8 @@ namespace libhtmlpp {
         void addElement(HtmlElement* element);
         const char* printHtml();
     private:
-        sys::array<char>     _C_str;
-        HtmlElement*         _RootNode;
+        std::string   _C_str;
+        HtmlElement*  _RootNode;
     };
 
     class HtmlString {
@@ -151,13 +151,13 @@ namespace libhtmlpp {
     private:
         void              _InitString();
         void              _parseTree();
-        void              _serialelize(sys::array<char> in, HtmlElement** out);
+        void              _serialelize(std::string  in, HtmlElement** out);
         HtmlElement*      _buildTree(ssize_t& pos);
 
         HtmlElement*      _buildTreeElement(libhtmlpp::DocElements* curel, libhtmlpp::DocElements* nexel, 
                                             HtmlElement* parent);
-        sys::array<char>        _Data;
-        sys::array<char>        _Cstr;
+        std::string             _Data;
+        std::string             _Cstr;
         ssize_t**               _HTable;
         size_t                  _HTableSize;
         HtmlElement*            _RootNode;

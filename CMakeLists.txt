@@ -2,8 +2,6 @@ project(libhtmlpp)
 cmake_minimum_required(VERSION 3.0)
 enable_testing ()
 
-find_package(systempp REQUIRED)
-
 set(LIBV "1.0.0")
 set(Upstream_VERSION 1.0.0)
 

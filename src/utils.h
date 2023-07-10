@@ -27,8 +27,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string.h>
 
-#include <systempp/sysutils.h>
-
 #include "exception.h"
 
 #pragma once
@@ -90,7 +88,7 @@ namespace libhtmlpp {
         return true;
     }  
 
-    inline bool setter(const char* src, int srcsize, sys::array<char> &dest, const char* ssigns = nullptr) {
+    inline bool setter(const char* src, int srcsize, std::string &dest, const char* ssigns = nullptr) {
         char* buf = new char[srcsize + 1];
         bool nallowd = false;
         for (int i = 0; i < srcsize; ++i) {
@@ -109,7 +107,7 @@ namespace libhtmlpp {
             buf[i] = src[i];
         }
         buf[srcsize] = '\0';
-        dest.write(buf,srcsize);
+        dest.assign(buf,srcsize);
         return true;
     }
 };

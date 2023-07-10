@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <string>
 #include <stddef.h>
 
 /*
@@ -35,8 +36,6 @@
  * Critical: Some happend that will shutdown your Apllication
  */
 
-#include <systempp/sysexception.h>
-
 #pragma once
 
 #ifdef DEBUG
@@ -45,7 +44,7 @@
 
 namespace libhtmlpp {
     
-    class HTMLException : public sys::SystemException{
+    class HTMLException {
     public:
         
         HTMLException();
@@ -62,6 +61,9 @@ namespace libhtmlpp {
         HTMLException& operator[](int errtype);
         HTMLException& operator<<(const char *src);
         HTMLException& operator<<(int src);
+    private:
+        int curCType;
+        std::string msg;
     };
 };
 

@@ -32,10 +32,11 @@
 #include "exception.h"
 
 
-libhtmlpp::HTMLException::HTMLException() : sys::SystemException(){
+libhtmlpp::HTMLException::HTMLException() {
+    curCType=Note;
 };
 
-libhtmlpp::HTMLException::HTMLException(const HTMLException &exp) : sys::SystemException(exp){
+libhtmlpp::HTMLException::HTMLException(const HTMLException &exp){
 }
 
 libhtmlpp::HTMLException::~HTMLException(){
@@ -46,11 +47,11 @@ int libhtmlpp::HTMLException::getErrorType(){
 }
 
 const char* libhtmlpp::HTMLException::what(){
-    return sys::SystemException::what();
+    return msg.c_str();
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
-    sys::SystemException::asign(src);
+    msg.assign(src);
     return *this;   
 }
 
@@ -64,6 +65,8 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
 };
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){
-    sys::SystemException::operator<<(src);
+    char buffer[255];
+    snprintf(buffer,255,"%d",src);
+    msg.assign(buffer);
     return *this;
 }

@@ -125,8 +125,8 @@ namespace libhtmlpp {
         HtmlString();
         ~HtmlString();
 
-        void assign(const char* src, size_t srcsize);
-        void assign(const char* src);
+        void append(const char* src, size_t srcsize);
+        void append(const char* src);
 
         void push_back(const char  src);
 
@@ -138,6 +138,7 @@ namespace libhtmlpp {
         const char operator[](size_t pos);
 
         HtmlString& operator<<(const char* src);
+        HtmlString& operator<<(std::string src);
         HtmlString& operator<<(int src);
         HtmlString& operator<<(unsigned int src);
         HtmlString& operator<<(char src);

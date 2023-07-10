@@ -78,16 +78,16 @@ libhtmlpp::HtmlString::~HtmlString(){
    clear();
 }
 
-void libhtmlpp::HtmlString::assign(const char* src, size_t srcsize){
-    _Data.assign(src,srcsize);
+void libhtmlpp::HtmlString::append(const char* src, size_t srcsize){
+    _Data.append(src,srcsize);
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
     _Data.push_back(src);
 }
 
-void libhtmlpp::HtmlString::assign(const char* src) {
-    assign(src,strlen(src));
+void libhtmlpp::HtmlString::append(const char* src) {
+    append(src,strlen(src));
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -104,20 +104,19 @@ void libhtmlpp::HtmlString::clear(){
 }
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
-    assign(src);
+    append(src);
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
-    this->assign(hstring.c_str());
+    this->append(hstring.c_str());
     return *this;
 }
 
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
-    _Data.clear();
-    assign(src);
-return *this;
+    _Data=src;
+    return *this;
 }
 
 const char libhtmlpp::HtmlString::operator[](size_t pos) {
@@ -125,28 +124,33 @@ const char libhtmlpp::HtmlString::operator[](size_t pos) {
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(const char* src) {
-    assign(src);
+    append(src);
+    return *this;
+}
+
+libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(std::string src) {
+    _Data.append(src);
     return *this;
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(int src) {
     char buf[255];
     snprintf(buf, 255, "%d", src);
-    assign(buf);
+    append(buf);
     return *this;
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(unsigned int src) {
     char buf[255];
     snprintf(buf, 255, "%ul", src);
-    assign(buf);
+    append(buf);
     return *this;
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(unsigned long src) {
     char buf[255];
     snprintf(buf, 255, "%zu", src);
-    assign(buf);
+    append(buf);
     return *this;
 }
 
@@ -429,7 +433,8 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
     _childElement = nullptr;
     _firstAttr = nullptr;
     _lastAttr = nullptr;
-    _TagName = tagname;
+    if(tagname)
+        _TagName = tagname;
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
@@ -459,6 +464,7 @@ const char* libhtmlpp::HtmlPage::printHtml(){
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _RootNode;
+    HtmlString node;
     std::string tmp;
     std::ifstream fs;
     try{
@@ -467,8 +473,10 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
         HTMLException excp;
         throw excp[HTMLException::Critical] << e.what();
     }
-    while (fs) {
+
+    while (fs.good()) {
         fs >> tmp;
+        node << tmp;
     }
 
     fs.close();
@@ -477,7 +485,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     int i = 0;
 
     while (i < 8) {
-        if (tmp[i+1] != type[i]) {
+        if (node[i+1] != type[i]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "No Doctype found arborting";
             throw excp;
@@ -487,12 +495,12 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
     do{
         ++i;
-    } while (tmp[i] == ' ');
+    } while (node[i] == ' ');
 
     const char typevalue[] = { 'h','t','m','l' };
     int tpvl = 4;
 
-    if ((i + tpvl) > tmp.length()) {
+    if ((i + tpvl) > node.length()) {
         HTMLException excp;
         excp[HTMLException::Critical] << "Doctype header broken or wrong type";
         throw excp;
@@ -501,7 +509,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     int ii = 0,ie=i+tpvl;
 
     while (i < ie) {
-        if (tmp[i] != typevalue[ii]) {
+        if (node[i] != typevalue[ii]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "wrong Doctype";
             throw excp;
@@ -509,10 +517,6 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
         ++i;
         ++ii;
     }
-
-    HtmlString node;
-    node << tmp.c_str();
-
     _RootNode=node.parse();
 }
 

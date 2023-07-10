@@ -40,7 +40,7 @@ int main(int arc,char *argv[]){
         page.loadFile(argv[1]);
         std::cout << page.printHtml() << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
-    }catch(std::exception &exp){
+    }catch(libhtmlpp::HTMLException &exp){
         std::cout << exp.what() << std::endl;
         std::cout << Red << "Test not Passed!" << NOCOLOR << std::endl;
         return -1;

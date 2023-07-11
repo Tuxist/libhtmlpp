@@ -182,11 +182,11 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     _RootNode = _buildTree(pos);
     return _RootNode;
 }
-
+#include <iostream>
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
-    DocElements *firstEl = nullptr, *lastEl = nullptr, *before = nullptr;
+    DocElements *firstEl = nullptr, *lastEl = nullptr;
 
-	for (int i = 0; i < _HTableSize; ++i) {
+	for (size_t i = 0; i < _HTableSize; ++i) {
 		if (!firstEl) {
 			firstEl = new DocElements;
 			lastEl = firstEl;
@@ -198,13 +198,13 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 			lastEl = lastEl->nextel;
 		}
 
-    	lastEl->data = _Data.substr((_HTable[i][0] + 1), (_HTable[i][2] - (_HTable[i][0] + 1)));
+    	lastEl->data = _Data.substr(_HTable[i][0]+1,(_HTable[i][2] - _HTable[i][0])-1);
 
 		if (lastEl->data[0] == '/')
 			lastEl->terminator = true;
 
-        lastEl->spos = _HTable[i][0];
-        lastEl->epos = _HTable[i][2];
+        lastEl->spos = _HTable[i][0]+1;
+        lastEl->epos = _HTable[i][2]-1;
 
 		_serialelize(lastEl->data, &lastEl->elhtml);
 
@@ -220,14 +220,10 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             lastEl->epos = _HTable[i+1][0]-1;
 
             lastEl->elhtml = new HtmlElement(nullptr);
-            lastEl->elhtml->_Text = _Data.substr(lastEl->spos, (lastEl->epos-lastEl->spos)+1);
+            lastEl->elhtml->_Text = _Data.substr(lastEl->spos, lastEl->epos-lastEl->spos);
         }
 
     }
-
-
-
-    int lvl = 0;
     
     HtmlElement* firsthel = nullptr, * lasthel = nullptr;
 
@@ -286,11 +282,11 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocE
             parent=curel->elhtml;
         }
     }
-    
+    return nullptr;
 }
 
 void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement **out) {
-    int i,s=0;
+    size_t i,s=0;
 
     for (i = 0; i < in.length(); ++i) {
         if(in[i] == '/'){
@@ -313,7 +309,6 @@ void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement 
     int startpos = -1;
     std::string key;
     int vst=-1;
-    bool comment = false;
     while (i <= in.length()) {
         switch (in[i]) {
             case ' ': {
@@ -465,7 +460,7 @@ const char* libhtmlpp::HtmlPage::printHtml(){
 void libhtmlpp::HtmlPage::loadFile(const char* path){
     delete _RootNode;
     HtmlString node;
-    std::string tmp;
+    char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
     try{
         fs.open(path);
@@ -475,7 +470,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     }
 
     while (fs.good()) {
-        fs >> tmp;
+        fs.read(tmp,HTML_BLOCKSIZE);
         node << tmp;
     }
 
@@ -498,7 +493,7 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
     } while (node[i] == ' ');
 
     const char typevalue[] = { 'h','t','m','l' };
-    int tpvl = 4;
+    size_t tpvl = 4;
 
     if ((i + tpvl) > node.length()) {
         HTMLException excp;
@@ -523,12 +518,12 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::string& output) {
     if (!el->_TagName.empty()) {
         output.append("<");
-        output.append(el->_TagName.c_str());
+        output.append(el->_TagName);
 		for (HtmlElement::Attributes* curattr = el->_firstAttr; curattr; curattr = curattr->_nextAttr) {
             output.append(" ");
-            output.append(curattr->_Key.c_str());
+            output.append(curattr->_Key);
             output.append("=\"");
-            output.append(curattr->_Value.c_str());
+            output.append(curattr->_Value);
             output.append("\"");
 		}
         output.append(">");
@@ -537,14 +532,14 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::st
 			_print(el->_childElement, el, output);
 		}
 	} else if (!el->_Text.empty()) {
-        output.append(el->_Text.c_str());
+        output.append(el->_Text);
 	}
 
 	if (el->_nextElement) {
         _print(el->_nextElement,parent,output);
     }else if(parent){
         output.append("</");
-        output.append(parent->_TagName.c_str());
+        output.append(parent->_TagName);
         output.append(">");
     }
 }
@@ -587,10 +582,11 @@ const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
             return curattr->_Value.c_str();
         }
     }
+    return nullptr;
 }
 
 int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
-
+    return atoi(getAtributte(name));
 }
 
 libhtmlpp::HtmlElement::Attributes::Attributes() {

@@ -57,7 +57,7 @@ namespace libhtmlpp {
         
         enum Type {Note,Warning,Error,Critical};
         
-        HTMLException& asign(const char *src);
+        HTMLException& append(const char *src);
         HTMLException& operator[](int errtype);
         HTMLException& operator<<(const char *src);
         HTMLException& operator<<(int src);

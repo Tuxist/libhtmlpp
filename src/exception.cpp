@@ -37,6 +37,8 @@ libhtmlpp::HTMLException::HTMLException() {
 };
 
 libhtmlpp::HTMLException::HTMLException(const HTMLException &exp){
+    msg=exp.msg;
+    curCType = exp.curCType;
 }
 
 libhtmlpp::HTMLException::~HTMLException(){
@@ -50,8 +52,8 @@ const char* libhtmlpp::HTMLException::what(){
     return msg.c_str();
 }
 
-libhtmlpp::HTMLException& libhtmlpp::HTMLException::asign(const char *src){
-    msg.assign(src);
+libhtmlpp::HTMLException& libhtmlpp::HTMLException::append(const char *src){
+    msg.append(src);
     return *this;   
 }
 
@@ -61,12 +63,12 @@ libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator[](int errtype){
 }
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(const char *src){
-    return asign(src);
+    return append(src);
 };
 
 libhtmlpp::HTMLException& libhtmlpp::HTMLException::operator<<(int src){
     char buffer[255];
     snprintf(buffer,255,"%d",src);
-    msg.assign(buffer);
+    msg.append(buffer);
     return *this;
 }

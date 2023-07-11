@@ -182,7 +182,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     _RootNode = _buildTree(pos);
     return _RootNode;
 }
-#include <iostream>
+
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     DocElements *firstEl = nullptr, *lastEl = nullptr;
 
@@ -253,7 +253,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                     DocElements* endcurel = nullptr;
 
                     while (endcurel) {
-                        if (!curel->terminator) {
+                        if (!curel->terminator &&
+                            curel->data.substr(1,curel->data.length()-1) == parent->data) {
                             endcurel = curel;
                         }
                         curel = curel->nextel;
@@ -261,6 +262,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
                     if (endcurel)
                         parent->elhtml->_nextElement = endcurel->elhtml;
+                    else if(curel->nextel)
+                        parent->elhtml->_nextElement = curel->nextel->elhtml;
                     break;
                 }
 		    }
@@ -288,14 +291,14 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocE
 void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement **out) {
     size_t i,s=0;
 
-    for (i = 0; i < in.length(); ++i) {
+    for (i = 0; i <= in.length(); ++i) {
         if(in[i] == '/'){
             ++s;
             continue;
         }else if (in[i] == ' ') {
             *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
-        }else if (i == (in.length()-1)){
+        }else if (i == in.length()){
             *out = new HtmlElement(in.substr(s, i-s).c_str());
             break;
         }

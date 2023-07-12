@@ -198,30 +198,15 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 			lastEl = lastEl->nextel;
 		}
 
-    	lastEl->data = _Data.substr(_HTable[i][0]+1,(_HTable[i][2] - _HTable[i][0])-1);
-
-		if (lastEl->data[0] == '/')
-			lastEl->terminator = true;
-
         lastEl->spos = _HTable[i][0]+1;
         lastEl->epos = _HTable[i][2]-1;
 
-		_serialelize(lastEl->data, &lastEl->elhtml);
+    	lastEl->data = _Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1);
 
-        if ((i + 1) < _HTableSize && _HTable[i + 1][0] - _HTable[i][2] > 0) {
+		if (_HTable[i][1] != -1)
+			lastEl->terminator = true;
 
-            lastEl->nextel = new DocElements;
-            lastEl->nextel->prevel = lastEl;
-            lastEl = lastEl->nextel;
-
-            lastEl->terminator = false;
-
-            lastEl->spos = _HTable[i][2]+1;
-            lastEl->epos = _HTable[i+1][0]-1;
-
-            lastEl->elhtml = new HtmlElement(nullptr);
-            lastEl->elhtml->_Text = _Data.substr(lastEl->spos, lastEl->epos-lastEl->spos);
-        }
+        _serialelize(lastEl->data, &lastEl->elhtml);
 
     }
     
@@ -242,19 +227,18 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     }
 
 	for (DocElements* curel = firstEl; curel; curel = curel->nextel) {
-        if (curel->terminator) {
+        if (curel->terminator ) {
 		    for (DocElements* parent = curel->prevel; parent; parent = parent->prevel) {
                 if (parent->elhtml->_TagName == curel->elhtml->_TagName) {
                     if (parent->elhtml->_nextElement)
                         parent->elhtml->_nextElement->_prevElement = nullptr;
 
                     parent->elhtml->_childElement = parent->elhtml->_nextElement;
-                    
+
                     DocElements* endcurel = nullptr;
 
                     while (endcurel) {
-                        if (!curel->terminator &&
-                            curel->data.substr(1,curel->data.length()-1) == parent->data) {
+                        if (!curel->terminator) {
                             endcurel = curel;
                         }
                         curel = curel->nextel;
@@ -262,8 +246,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
                     if (endcurel)
                         parent->elhtml->_nextElement = endcurel->elhtml;
-                    else if(curel->nextel)
-                        parent->elhtml->_nextElement = curel->nextel->elhtml;
+                    parent->elhtml->_nextElement = nullptr;
                     break;
                 }
 		    }
@@ -312,7 +295,7 @@ void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement 
     int startpos = -1;
     std::string key;
     int vst=-1;
-    while (i <= in.length()) {
+    while (i < in.length()) {
         switch (in[i]) {
             case ' ': {
                 break;
@@ -397,12 +380,14 @@ void libhtmlpp::HtmlString::_parseTree(){
     
     bool open=false;
     size_t ip=0;
-    for(size_t ii=0; ii<_Data.size(); ++ii){
+    for(size_t ii=0; ii<_Data.length(); ++ii){
         switch(_Data[ii]){
             case HTMLTAG_OPEN:
                 if (_Data.substr(ii, 4) != "<!--") {
                     open = true;
                     _HTable[ip][0] = ii;
+                }else{
+                    ii+=4;
                 }
                 break;
             case HTMLTAG_TERMINATE:
@@ -549,7 +534,6 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::st
 
 
 const char* libhtmlpp::HtmlElement::printHtmlElement() {
-    _Cstr.clear();
     _print(this,nullptr,_Cstr);
     return _Cstr.c_str();
 }

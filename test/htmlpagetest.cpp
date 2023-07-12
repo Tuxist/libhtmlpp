@@ -38,7 +38,9 @@ int main(int arc,char *argv[]){
     libhtmlpp::HtmlPage page;
     try{
         page.loadFile(argv[1]);
-        std::cout << page.printHtml() << std::endl;
+        std::string html;
+        page.printHtml(html);
+        std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
     }catch(libhtmlpp::HTMLException &exp){
         std::cout << exp.what() << std::endl;

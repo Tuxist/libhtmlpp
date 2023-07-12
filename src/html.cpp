@@ -109,7 +109,8 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
-    this->append(hstring.c_str());
+    HtmlElement *tmp=hstring.parse();
+    tmp->printHtmlElement(_Data);
     return *this;
 }
 
@@ -158,13 +159,6 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(char src) {
     push_back(src);
     return *this;
 }
-
-const char* libhtmlpp::HtmlString::c_str() {
-    _Cstr.clear();
-    _Cstr = _RootNode->printHtmlElement();
-    return _Cstr.c_str();
-}
-
 
 size_t libhtmlpp::HtmlString::size() {
     return _Data.size();
@@ -438,11 +432,9 @@ void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
     return;
 }
 
-const char* libhtmlpp::HtmlPage::printHtml(){
-    _C_str.clear();
-    _C_str.append("<!DOCTYPE html>");
-    _C_str.append(_RootNode->printHtmlElement());
-    return _C_str.c_str();
+void libhtmlpp::HtmlPage::printHtml(std::string &html){
+    html.append("<!DOCTYPE html>");
+    _RootNode->printHtmlElement(html);
 }
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
@@ -533,9 +525,8 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::st
 }
 
 
-const char* libhtmlpp::HtmlElement::printHtmlElement() {
-    _print(this,nullptr,_Cstr);
-    return _Cstr.c_str();
+void libhtmlpp::HtmlElement::printHtmlElement(std::string &html) {
+    _print(this,nullptr,html);
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {

@@ -45,7 +45,7 @@ namespace libhtmlpp {
         const char* getAtributte(const char* name);
         int         getIntAtributte(const char* name);
 
-        const char* printHtmlElement();
+        void printHtmlElement(std::string &html);
 
     protected:
 
@@ -72,9 +72,6 @@ namespace libhtmlpp {
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
-
-        //buffer for c_str() function
-        std::string    _Cstr;
 
         friend class HtmlString;
     };
@@ -114,9 +111,8 @@ namespace libhtmlpp {
         size_t toString(const char** dest);
 
         void addElement(HtmlElement* element);
-        const char* printHtml();
+        void printHtml(std::string &html);
     private:
-        std::string   _C_str;
         HtmlElement*  _RootNode;
     };
 
@@ -144,7 +140,6 @@ namespace libhtmlpp {
         HtmlString& operator<<(char src);
         HtmlString& operator<<(unsigned long src);
 
-        const char*        c_str();
         size_t             size();
         size_t             length();
         void               clear();
@@ -158,7 +153,6 @@ namespace libhtmlpp {
         HtmlElement*      _buildTreeElement(libhtmlpp::DocElements* curel, libhtmlpp::DocElements* nexel, 
                                             HtmlElement* parent);
         std::string             _Data;
-        std::string             _Cstr;
         ssize_t**               _HTable;
         size_t                  _HTableSize;
         HtmlElement*            _RootNode;

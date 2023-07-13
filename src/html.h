@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 
 #include <string>
+#include <cstring>
 
 #pragma once
 
@@ -100,22 +101,6 @@ namespace libhtmlpp {
     private:
     };
 
-    class HtmlPage {
-    public:
-        HtmlPage();
-        ~HtmlPage();
-        void loadFile(const char* path);
-        void saveFile(const char* path);
-
-        void   fromString(const char* src);
-        size_t toString(const char** dest);
-
-        void addElement(HtmlElement* element);
-        void printHtml(std::string &html);
-    private:
-        HtmlElement*  _RootNode;
-    };
-
     class HtmlString {
     public:
         HtmlString();
@@ -140,8 +125,8 @@ namespace libhtmlpp {
         HtmlString& operator<<(char src);
         HtmlString& operator<<(unsigned long src);
 
-        size_t             size();
-        size_t             length();
+        const size_t       size();
+        const size_t       length();
         void               clear();
         HtmlElement*       parse();
     private:
@@ -156,5 +141,19 @@ namespace libhtmlpp {
         ssize_t**               _HTable;
         size_t                  _HTableSize;
         HtmlElement*            _RootNode;
+    };
+
+    class HtmlPage {
+    public:
+        HtmlPage();
+        ~HtmlPage();
+        void loadFile(const char* path);
+        void saveFile(const char* path);
+        void loadString(const std::string src);
+        void loadString(HtmlString node);
+
+        void printHtml(std::string &html);
+    private:
+        HtmlElement*  _RootNode;
     };
 };

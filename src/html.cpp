@@ -160,11 +160,11 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(char src) {
     return *this;
 }
 
-size_t libhtmlpp::HtmlString::size() {
+const size_t libhtmlpp::HtmlString::size() {
     return _Data.size();
 }
 
-size_t libhtmlpp::HtmlString::length() {
+const size_t libhtmlpp::HtmlString::length() {
     return _Data.length();
 }
 
@@ -428,21 +428,17 @@ libhtmlpp::HtmlPage::~HtmlPage(){
     delete _RootNode;
 }
 
-void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
-    return;
-}
-
 void libhtmlpp::HtmlPage::printHtml(std::string &html){
     html.clear();
     html.append("<!DOCTYPE html>");
-    _RootNode->printHtmlElement(html);
+    if(_RootNode)
+        _RootNode->printHtmlElement(html);
 }
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
-    delete _RootNode;
-    HtmlString node;
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
+    std::string fscontent;
     try{
         fs.open(path);
     }catch(std::exception &e){
@@ -452,10 +448,20 @@ void libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        node << tmp;
+        fscontent.append(tmp);
     }
-
     fs.close();
+    loadString(fscontent);
+}
+
+void libhtmlpp::HtmlPage::loadString(const std::string src){
+    HtmlString buf;
+    buf << src;
+    loadString(buf);
+}
+
+void libhtmlpp::HtmlPage::loadString(HtmlString node){
+    delete _RootNode;
 
     const char type[] = { '!','D','O','C','T','Y','P','E' };
     int i = 0;

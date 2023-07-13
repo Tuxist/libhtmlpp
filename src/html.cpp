@@ -433,6 +433,7 @@ void libhtmlpp::HtmlPage::addElement(HtmlElement *element){
 }
 
 void libhtmlpp::HtmlPage::printHtml(std::string &html){
+    html.clear();
     html.append("<!DOCTYPE html>");
     _RootNode->printHtmlElement(html);
 }

@@ -59,7 +59,6 @@ namespace libhtmlpp {
         DocElements() {
             nextel = nullptr;
             prevel = nullptr;
-            element.eltext = nullptr;
             terminator = false;
             spos = 0;
             epos = 0;
@@ -203,7 +202,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                      (HtmlElement**) &lastEl->element.elhtml);
 
         if(i+1 < _HTableSize){
-            if(_HTable[i][2]-_HTable[i+1][1]<1){
+            if(_HTable[i+1][1]-_HTable[i][2]<0){
                 lastEl->nextel = new DocElements;
                 lastEl->nextel->prevel = lastEl;
                 lastEl = lastEl->nextel;
@@ -222,7 +221,6 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lasthel->_nextElement = curel->element.elhtml;
                 lasthel->_nextElement->_prevElement = lasthel;
                 lasthel = (HtmlElement*) lasthel->_nextElement;
-                lasthel->_Type=HtmlEl;
             }else {
                 firsthel=(HtmlElement*)curel->element.elhtml;
                 lasthel = firsthel;
@@ -427,9 +425,10 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
-    delete   _firstAttr;
-    delete   _childElement;
-    delete   _nextElement;
+    if(_Type==HtmlEl){
+        delete   _firstAttr;
+        delete   _childElement;
+    }
 }
 
 libhtmlpp::HtmlPage::HtmlPage(){
@@ -535,7 +534,7 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             }
 
             if (el->_nextElement) {
-                print((HtmlElement*)el->_nextElement,parent,output);
+                print(el->_nextElement,parent,output);
             }else if(parent){
                 output.append("</");
                 output.append(parent->_TagName);
@@ -547,7 +546,7 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             output.append(((TextElement*)el)->_Text);
 
             if (el->_nextElement) {
-                print((HtmlElement*)el->_nextElement,parent,output);
+                print(el->_nextElement,parent,output);
             }
 
         }break;
@@ -620,4 +619,6 @@ libhtmlpp::HtmlDivLayer::~HtmlDivLayer(){
 
 libhtmlpp::TextElement::TextElement(){
     _Type=TextEl;
+    _nextElement=nullptr;
+    _prevElement=nullptr;
 }

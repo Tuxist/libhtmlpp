@@ -47,6 +47,10 @@ namespace libhtmlpp {
         Element*      _nextElement;
         int           _Type;
 
+        virtual ~Element(){
+            delete _nextElement;
+        };
+
         friend class HtmlString;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
     };

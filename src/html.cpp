@@ -46,8 +46,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class DocElements {
     public:
-        std::string             data;
-        libhtmlpp::Element*     elhtml;
+        union {
+            libhtmlpp::HtmlElement* elhtml;
+            libhtmlpp::TextElement* eltext;
+        } element;
         bool                    terminator;
         class DocElements*      nextel;
         class DocElements*      prevel;
@@ -57,7 +59,7 @@ namespace libhtmlpp {
         DocElements() {
             nextel = nullptr;
             prevel = nullptr;
-            elhtml = nullptr;
+            element.eltext = nullptr;
             terminator = false;
             spos = 0;
             epos = 0;
@@ -109,8 +111,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
-    HtmlElement *tmp=hstring.parse();
-    tmp->printHtmlElement(_Data);
+    _Data.append(hstring._Data);
     return *this;
 }
 
@@ -195,12 +196,21 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         lastEl->spos = _HTable[i][0]+1;
         lastEl->epos = _HTable[i][2]-1;
 
-    	lastEl->data = _Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1);
-
 		if (_HTable[i][1] != -1)
 			lastEl->terminator = true;
 
-        _serialelize(lastEl->data,(HtmlElement**) &lastEl->elhtml);
+        _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
+                     (HtmlElement**) &lastEl->element.elhtml);
+
+        if(i+1 < _HTableSize){
+            if(_HTable[i][2]-_HTable[i+1][1]<1){
+                lastEl->nextel = new DocElements;
+                lastEl->nextel->prevel = lastEl;
+                lastEl = lastEl->nextel;
+                lastEl->element.eltext=new TextElement();
+                lastEl->element.eltext->_Text=_Data.substr(_HTable[i][2]+1,_HTable[i][1+1]-(_HTable[i][2]+1));
+            }
+        }
 
     }
     
@@ -209,12 +219,12 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     for (DocElements* curel = firstEl->nextel; curel; curel = curel->nextel) {
         if (!curel->terminator) {
             if (lasthel) {
-                lasthel->_nextElement = curel->elhtml;
+                lasthel->_nextElement = curel->element.elhtml;
                 lasthel->_nextElement->_prevElement = lasthel;
                 lasthel = (HtmlElement*) lasthel->_nextElement;
                 lasthel->_Type=HtmlEl;
             }else {
-                firsthel=(HtmlElement*)curel->elhtml;
+                firsthel=(HtmlElement*)curel->element.elhtml;
                 lasthel = firsthel;
                 lasthel->_prevElement = nullptr;
             }            
@@ -224,11 +234,11 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 	for (DocElements* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator ) {
 		    for (DocElements* parent = curel->prevel; parent; parent = parent->prevel) {
-                if (((HtmlElement*)parent->elhtml)->_TagName == ((HtmlElement*)curel->elhtml)->_TagName) {
-                    if (parent->elhtml->_nextElement)
-                        parent->elhtml->_nextElement->_prevElement = nullptr;
+                if (((HtmlElement*)parent->element.elhtml)->_TagName == ((HtmlElement*)curel->element.elhtml)->_TagName) {
+                    if (parent->element.elhtml->_nextElement)
+                        parent->element.elhtml->_nextElement->_prevElement = nullptr;
 
-                    ((HtmlElement*)parent->elhtml)->_childElement = (HtmlElement*)parent->elhtml->_nextElement;
+                    ((HtmlElement*)parent->element.elhtml)->_childElement = (HtmlElement*)parent->element.elhtml->_nextElement;
 
                     DocElements* endcurel = nullptr;
 
@@ -240,8 +250,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                     }
 
                     if (endcurel)
-                        parent->elhtml->_nextElement = endcurel->elhtml;
-                    parent->elhtml->_nextElement = nullptr;
+                        parent->element.elhtml->_nextElement = endcurel->element.elhtml;
+                    parent->element.elhtml->_nextElement = nullptr;
                     break;
                 }
 		    }
@@ -258,9 +268,9 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocElements* curel,
                                                                  libhtmlpp::DocElements* nexel,
                                                                  libhtmlpp::HtmlElement* parent) {
-    if (curel->elhtml && !((HtmlElement*)curel->elhtml)->_TagName.empty()) {
+    if (curel->element.elhtml && !((HtmlElement*)curel->element.elhtml)->_TagName.empty()) {
         if (!parent) {
-            parent=(HtmlElement*)curel->elhtml;
+            parent=(HtmlElement*)curel->element.elhtml;
         }
     }
     return nullptr;
@@ -434,7 +444,7 @@ void libhtmlpp::HtmlPage::printHtml(std::string &html){
     html.clear();
     html.append("<!DOCTYPE html>");
     if(_RootNode)
-        _RootNode->printHtmlElement(html);
+        print(_RootNode,nullptr,html);
 }
 
 void libhtmlpp::HtmlPage::loadFile(const char* path){
@@ -504,39 +514,49 @@ void libhtmlpp::HtmlPage::loadString(HtmlString node){
     _RootNode=node.parse();
 }
 
-void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::string& output) {
-    if (!el->_TagName.empty()) {
-        output.append("<");
-        output.append(el->_TagName);
-		for (HtmlElement::Attributes* curattr = el->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-            output.append(" ");
-            output.append(curattr->_Key);
-            output.append("=\"");
-            output.append(curattr->_Value);
-            output.append("\"");
-		}
-        output.append(">");
+void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
+    switch(el->_Type){
+        case HtmlEl:{
+            if (!((HtmlElement*) el)->_TagName.empty()) {
+                output.append("<");
+                output.append(((HtmlElement*) el)->_TagName);
+                for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
+                    output.append(" ");
+                    output.append(curattr->_Key);
+                    output.append("=\"");
+                    output.append(curattr->_Value);
+                    output.append("\"");
+                }
+                output.append(">");
 
-		if (el->_childElement) {
-			_print(el->_childElement, el, output);
-		}
-	} else if (!el->_Text.empty()) {
-        output.append(el->_Text);
-	}
+                if (((HtmlElement*) el)->_childElement) {
+                    print((Element*)((HtmlElement*) el)->_childElement, (HtmlElement*)el, output);
+                }
+            }
 
-	if (el->_nextElement) {
-        _print((HtmlElement*)el->_nextElement,parent,output);
-    }else if(parent){
-        output.append("</");
-        output.append(parent->_TagName);
-        output.append(">");
+            if (el->_nextElement) {
+                print((HtmlElement*)el->_nextElement,parent,output);
+            }else if(parent){
+                output.append("</");
+                output.append(parent->_TagName);
+                output.append(">");
+            }
+        }break;
+
+        case TextEl :{
+            output.append(((TextElement*)el)->_Text);
+
+            if (el->_nextElement) {
+                print((HtmlElement*)el->_nextElement,parent,output);
+            }
+
+        }break;
+
+        default:
+            break;
     }
 }
 
-
-void libhtmlpp::HtmlElement::printHtmlElement(std::string &html) {
-    _print(this,nullptr,html);
-}
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
     Attributes* cattr = nullptr;
@@ -596,4 +616,8 @@ libhtmlpp::HtmlDivLayer::HtmlDivLayer() : HtmlElement("div") {
 
 libhtmlpp::HtmlDivLayer::~HtmlDivLayer(){
 
+}
+
+libhtmlpp::TextElement::TextElement(){
+    _Type=TextEl;
 }

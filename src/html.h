@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace libhtmlpp {
     class DocElements;
+    class HtmlElement;
 
     enum ElementType{
         TextEl=0,
@@ -47,12 +48,7 @@ namespace libhtmlpp {
         int           _Type;
 
         friend class HtmlString;
-    };
-
-    class TextElement : public Element{
-    protected:
-        char         _Text;
-        friend class HtmlString;
+        friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
 
     class HtmlElement :public Element{
@@ -66,11 +62,8 @@ namespace libhtmlpp {
         const char* getAtributte(const char* name);
         int         getIntAtributte(const char* name);
 
-        void printHtmlElement(std::string &html);
-
     protected:
 
-        static void       _print(HtmlElement* el, HtmlElement* parent,std::string &output);
         HtmlElement*      _childElement;
 
         struct Attributes {
@@ -85,14 +78,23 @@ namespace libhtmlpp {
         //if text tagname must be zero
         std::string  _TagName;
 
-        //for text and comment fields
-        std::string  _Text;
-
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
         friend class HtmlString;
+        friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
+
+    class TextElement : public Element{
+    public:
+        TextElement();
+    protected:
+        std::string   _Text;
+        friend class HtmlString;
+        friend void print(Element* el, HtmlElement* parent,std::string &output);
+    };
+
+    void print(Element* el, HtmlElement* parent,std::string &output);
 
     class HtmlDivLayer : public HtmlElement {
     public:

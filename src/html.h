@@ -35,7 +35,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class DocElements;
 
-    class HtmlElement {
+    enum ElementType{
+        TextEl=0,
+        HtmlEl=1
+    };
+
+    class Element {
+    protected:
+        Element*      _prevElement;
+        Element*      _nextElement;
+        int           _Type;
+
+        friend class HtmlString;
+    };
+
+    class TextElement : public Element{
+    protected:
+        char         _Text;
+        friend class HtmlString;
+    };
+
+    class HtmlElement :public Element{
     public:
         HtmlElement(const char* tag);
         ~HtmlElement();
@@ -51,8 +71,6 @@ namespace libhtmlpp {
     protected:
 
         static void       _print(HtmlElement* el, HtmlElement* parent,std::string &output);
-        HtmlElement*      _prevElement;
-        HtmlElement*      _nextElement;
         HtmlElement*      _childElement;
 
         struct Attributes {
@@ -73,7 +91,6 @@ namespace libhtmlpp {
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
-
         friend class HtmlString;
     };
 

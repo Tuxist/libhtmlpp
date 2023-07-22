@@ -47,7 +47,7 @@ namespace libhtmlpp {
     class DocElements {
     public:
         std::string             data;
-        libhtmlpp::HtmlElement* elhtml;
+        libhtmlpp::Element*     elhtml;
         bool                    terminator;
         class DocElements*      nextel;
         class DocElements*      prevel;
@@ -200,7 +200,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 		if (_HTable[i][1] != -1)
 			lastEl->terminator = true;
 
-        _serialelize(lastEl->data, &lastEl->elhtml);
+        _serialelize(lastEl->data,(HtmlElement**) &lastEl->elhtml);
 
     }
     
@@ -211,9 +211,10 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             if (lasthel) {
                 lasthel->_nextElement = curel->elhtml;
                 lasthel->_nextElement->_prevElement = lasthel;
-                lasthel = lasthel->_nextElement;                
+                lasthel = (HtmlElement*) lasthel->_nextElement;
+                lasthel->_Type=HtmlEl;
             }else {
-                firsthel=curel->elhtml;
+                firsthel=(HtmlElement*)curel->elhtml;
                 lasthel = firsthel;
                 lasthel->_prevElement = nullptr;
             }            
@@ -223,11 +224,11 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 	for (DocElements* curel = firstEl; curel; curel = curel->nextel) {
         if (curel->terminator ) {
 		    for (DocElements* parent = curel->prevel; parent; parent = parent->prevel) {
-                if (parent->elhtml->_TagName == curel->elhtml->_TagName) {
+                if (((HtmlElement*)parent->elhtml)->_TagName == ((HtmlElement*)curel->elhtml)->_TagName) {
                     if (parent->elhtml->_nextElement)
                         parent->elhtml->_nextElement->_prevElement = nullptr;
 
-                    parent->elhtml->_childElement = parent->elhtml->_nextElement;
+                    ((HtmlElement*)parent->elhtml)->_childElement = (HtmlElement*)parent->elhtml->_nextElement;
 
                     DocElements* endcurel = nullptr;
 
@@ -257,9 +258,9 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::_buildTreeElement(libhtmlpp::DocElements* curel,
                                                                  libhtmlpp::DocElements* nexel,
                                                                  libhtmlpp::HtmlElement* parent) {
-    if (curel->elhtml && !curel->elhtml->_TagName.empty()) {
+    if (curel->elhtml && !((HtmlElement*)curel->elhtml)->_TagName.empty()) {
         if (!parent) {
-            parent=curel->elhtml;
+            parent=(HtmlElement*)curel->elhtml;
         }
     }
     return nullptr;
@@ -410,6 +411,7 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
     _childElement = nullptr;
     _firstAttr = nullptr;
     _lastAttr = nullptr;
+    _Type=HtmlEl;
     if(tagname)
         _TagName = tagname;
 }
@@ -523,7 +525,7 @@ void libhtmlpp::HtmlElement::_print(HtmlElement* el, HtmlElement* parent,std::st
 	}
 
 	if (el->_nextElement) {
-        _print(el->_nextElement,parent,output);
+        _print((HtmlElement*)el->_nextElement,parent,output);
     }else if(parent){
         output.append("</");
         output.append(parent->_TagName);

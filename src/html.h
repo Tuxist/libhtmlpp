@@ -41,21 +41,26 @@ namespace libhtmlpp {
         HtmlEl=1
     };
 
-    class Element {
+    struct Element {
+    public:
+        Element(){
+            _prevElement=nullptr;
+            _nextElement=nullptr;
+        }
+
+        virtual ~Element(){
+            // delete _nextElement;
+        };
     protected:
         Element*      _prevElement;
         Element*      _nextElement;
         int           _Type;
 
-        virtual ~Element(){
-            delete _nextElement;
-        };
-
         friend class HtmlString;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
 
-    class HtmlElement :public Element{
+    class HtmlElement : public Element {
     public:
         HtmlElement(const char* tag);
         ~HtmlElement();
@@ -68,7 +73,7 @@ namespace libhtmlpp {
 
     protected:
 
-        HtmlElement*      _childElement;
+        Element*    _childElement;
 
         struct Attributes {
             Attributes();
@@ -92,6 +97,7 @@ namespace libhtmlpp {
     class TextElement : public Element{
     public:
         TextElement();
+        ~TextElement();
     protected:
         std::string   _Text;
         friend class HtmlString;
@@ -156,10 +162,8 @@ namespace libhtmlpp {
         void              _InitString();
         void              _parseTree();
         void              _serialelize(std::string  in, HtmlElement** out);
-        HtmlElement*      _buildTree(ssize_t& pos);
-
-        HtmlElement*      _buildTreeElement(libhtmlpp::DocElements* curel, libhtmlpp::DocElements* nexel, 
-                                            HtmlElement* parent);
+        Element*          _buildTree(ssize_t& pos);
+        DocElements*      _buildtreenode(DocElements* prev,DocElements *start,DocElements *end);
         std::string             _Data;
         ssize_t**               _HTable;
         size_t                  _HTableSize;

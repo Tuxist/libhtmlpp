@@ -91,6 +91,7 @@ namespace libhtmlpp {
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
         friend class HtmlString;
+        friend class HtmlTable;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
 
@@ -106,16 +107,9 @@ namespace libhtmlpp {
 
     void print(Element* el, HtmlElement* parent,std::string &output);
 
-    class HtmlDivLayer : public HtmlElement {
+    class HtmlTable {
     public:
-        HtmlDivLayer();
-        ~HtmlDivLayer();
-    private:
-    };
-
-    class HtmlTable : public HtmlElement {
-    public:
-        HtmlTable();
+        HtmlTable(HtmlElement *element);
         ~HtmlTable();
         class Row {
         public:
@@ -125,9 +119,9 @@ namespace libhtmlpp {
             Row();
             ~Row();
             Row* _nextRow;
-            friend class HtmlTable;
         };
     private:
+        HtmlElement *_Element;
     };
 
     class HtmlString {
@@ -163,7 +157,7 @@ namespace libhtmlpp {
         void              _parseTree();
         void              _serialelize(std::string  in, HtmlElement** out);
         Element*          _buildTree(ssize_t& pos);
-        DocElements*      _buildtreenode(DocElements* prev,DocElements *start,DocElements *end);
+        DocElements      *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
         std::string             _Data;
         ssize_t**               _HTable;
         size_t                  _HTableSize;

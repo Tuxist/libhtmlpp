@@ -187,7 +187,12 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
         return ret;
     };
 
-
+    if(!start->terminator){
+        if(prev){
+            start->element->_prevElement=prev->element;
+            prev=start;
+        }
+    }
 
     if(start==end)
         return end;
@@ -197,25 +202,18 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
         if(parent){
             ((HtmlElement*)start->element)->_childElement =next->element;
             std::cout << ((HtmlElement*)parent->element)->_TagName <<std::endl;
-            start=_buildtreenode(nullptr,next->nextel,next,parent);
+            _buildtreenode(nullptr,next->nextel,next,parent);
+            next=parent;
         }
     };
 
-    if(!start->terminator){
-        if(start->element && prev)
-            start->element->_prevElement=prev->element;
 
-        if(start->element && !next->terminator ){
+    while(next!=end){
+        if(!next->terminator){
             start->element->_nextElement=next->element;
-            return _buildtreenode(start,next->nextel,next,end);
+            break;
         }
-
-        start->element->_nextElement=nullptr;
-
-        if(next==end)
-            return end;
-
-        return _buildtreenode(prev,next->nextel,start,end);
+        next=next->nextel;
     }
 
     return _buildtreenode(prev,next->nextel,next,end);
@@ -303,49 +301,41 @@ GETTAGEND:
         throw excp[HTMLException::Critical] << "no tag in element found!";
     }
 
-    int startpos = -1;
+    int startpos =-1,vst=-1,hvst=-1;
     std::string key;
-    int vst=-1,hvst=-1;
-    size_t i;
 
-    for(i=et; i<in.length(); ++i){
-        if(in[i]!=' '){
-            break;
-        }
-    }
-
-    while(i < in.length()) {
-        switch (in[i]) {
-            case ' ': {
-                if (startpos >= 0 ){
-                    key = in.substr(startpos, i - startpos);
-                    (*out)->setAttribute(key.c_str(), nullptr);
+    while(et < in.length()) {
+        switch (in[et]) {
+            case ' ' | '>': {
+                if(startpos!=-1 && hvst==-1){
+                    key=in.substr(startpos,et-startpos);
+                    (*out)->setAttribute(key.c_str(),nullptr);
+                    startpos=-1;
                 }
-                break;
-            }
+            }break;
             case '=': {
-                hvst=i;
-            }
+                if(!key.empty())
+                    hvst=et;
+            }break;
             case '\"': {
-                if(!key.empty() && vst < 0){
-                    vst=i;
-                }else if(!key.empty() && vst > 0 && hvst > 0) {
-                    (*out)->setAttribute(key.c_str(), in.substr(vst+2,((i-vst)+1)).c_str());
-                    key.clear();
-                    vst = -1;
-                    startpos = -1;
-                    hvst=-1;
+                if(hvst!=-1){
+                    if( vst==-1 ){
+                        vst=et;
+                    }else if(!key.empty()){
+                        (*out)->setAttribute(key.c_str(),in.substr(vst,et-vst).c_str());
+                        key.clear();
+                        vst=-1;
+                        hvst=-1;
+                    }
                 }
-                break;
-            }
+            }break;
             default: {
-                if (startpos == -1 && key.empty()) {
-                    startpos = i;
+                if(startpos==-1){
+                    startpos=et;
                 }
-                break;
-           }
+           }break;
         }
-        ++i;
+        ++et;
     }
 }
 

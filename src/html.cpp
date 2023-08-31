@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include <fstream>
+#include <iostream>
 
 #include "utils.h"
 #include "html.h"
@@ -292,7 +293,7 @@ void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement 
         }
     }
 
-GETTAGEND:
+    GETTAGEND:
     for(et=st; et<in.length(); ++et){
         if(in[et]==' ' || in[et]=='/' || in[et]=='>' ){
             break;
@@ -306,40 +307,35 @@ GETTAGEND:
         throw excp[HTMLException::Critical] << "no tag in element found!";
     }
 
-    int startpos =-1,vst=-1,hvst=-1;
+    int startpos =-1,vst=-1;
+    bool value=false;
     std::string key;
 
     while(et < in.length()) {
-        switch (in[et]) {
-            case ' ' | '>': {
-                if(startpos!=-1 && hvst==-1){
-                    key=in.substr(startpos,et-startpos);
-                    (*out)->setAttribute(key.c_str(),nullptr);
-                    startpos=-1;
-                }
-            }break;
-            case '=': {
-                if(!key.empty())
-                    hvst=et;
-            }break;
-            case '\"': {
-                if(hvst!=-1){
-                    if( vst==-1 ){
-                        vst=et;
-                    }else if(!key.empty()){
-                        (*out)->setAttribute(key.c_str(),in.substr(vst,et-vst).c_str());
-                        key.clear();
-                        vst=-1;
-                        hvst=-1;
-                    }
-                }
-            }break;
-            default: {
-                if(startpos==-1){
-                    startpos=et;
-                }
-           }break;
-        }
+        if(in[et]==' ' || in[et]=='>' || in[et]=='=') {
+            if(startpos!=-1 && !value){
+                key=in.substr(startpos,et-startpos);
+                (*out)->setAttribute(key.c_str(),nullptr);
+                startpos=-1;
+            }
+            if(in[et]=='='){
+                value=true;
+            }
+        }else if(in[et]=='\"') {
+            if( vst==-1 ){
+                vst=et;
+            }else if(!key.empty()){
+                std::cerr << key << std::endl;
+                (*out)->setAttribute(key.c_str(),in.substr(vst+1,(et-vst)-1).c_str());
+                key.clear();
+                vst=-1;
+                value=false;
+            }
+        }else{
+            if(startpos==-1 && !value){
+                startpos=et;
+            }
+        };
         ++et;
     }
 }
@@ -691,6 +687,7 @@ void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
 
 const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
     for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
+        std::cerr << curattr->_Key << std::endl;
         if (curattr->_Key == name) {
             return curattr->_Value.c_str();
         }

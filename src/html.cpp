@@ -177,14 +177,13 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
 
 libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,libhtmlpp::DocElements* next,libhtmlpp::DocElements* start,libhtmlpp::DocElements* end){
     auto checkterminator = [end](DocElements *termel){
-        DocElements *ret=nullptr;
         for (DocElements* curcel=end; curcel!=termel; curcel=curcel->prevel) {
             if (curcel->element->_Type==HtmlEl && curcel->terminator &&
                 ((HtmlElement*)curcel->element)->_TagName == ((HtmlElement*)termel->element)->_TagName) {
-                ret=curcel;
+                return curcel;
             }
         }
-        return ret;
+        return (DocElements*)nullptr;
     };
 
     if(!start->terminator){
@@ -206,7 +205,6 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
             next=parent;
         }
     };
-
 
     while(next!=end){
         if(!next->terminator){

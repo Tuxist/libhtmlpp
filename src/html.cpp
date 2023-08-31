@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include <fstream>
-#include <iostream>
 
 #include "utils.h"
 #include "html.h"
@@ -325,7 +324,6 @@ void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement 
             if( vst==-1 ){
                 vst=et;
             }else if(!key.empty()){
-                std::cerr << key << std::endl;
                 (*out)->setAttribute(key.c_str(),in.substr(vst+1,(et-vst)-1).c_str());
                 key.clear();
                 vst=-1;
@@ -452,8 +450,8 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
 
 void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     if(_childElement){
-        Element *curel=_childElement->nextElement();
-        while(curel){
+        Element *curel=_childElement;
+        while(curel->_nextElement){
             curel=curel->nextElement();
         }
         curel->_nextElement=el;
@@ -687,7 +685,6 @@ void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
 
 const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
     for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
-        std::cerr << curattr->_Key << std::endl;
         if (curattr->_Key == name) {
             return curattr->_Value.c_str();
         }

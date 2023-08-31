@@ -173,7 +173,6 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     _RootNode = (HtmlElement*)_buildTree(pos);
     return _RootNode;
 }
-#include <iostream>
 
 libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,libhtmlpp::DocElements* next,libhtmlpp::DocElements* start,libhtmlpp::DocElements* end){
     auto checkterminator = [end](DocElements *termel){
@@ -210,7 +209,6 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
         DocElements *parent=checkterminator(start);
         if(parent){
             ((HtmlElement*)start->element)->_childElement =next->element;
-            std::cout << ((HtmlElement*)parent->element)->_TagName <<std::endl;
             _buildtreenode(nullptr,next->nextel,next,parent);
             next=parent;
         }

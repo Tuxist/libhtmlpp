@@ -4,24 +4,21 @@
 - HtmlString Datatype
 - Exception Class
 - File Class
+- Html parser
 
 ## On Work
-- Html parser
+- HtmlTable class
 - Css parser
 
 ## Todo:
-- js validator
-- Ajax/Websocket Forms
+- javascript support
 
 ## Download:
-https://github.com/Tuxist/libhtmlpp
+https://tuxist.de/git/-/ide/project/jan.koester/libhtmlpp
 
 ### Requirements
-- kernel 4.19 (lowest that i have testing)
 - gcc/clang
 - cmake
-## Future planned
-- libsystempp
 
 ## Optional
 - doxygen (for docu not much at the moment)

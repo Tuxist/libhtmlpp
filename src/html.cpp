@@ -648,7 +648,7 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
     for(Element *curel=this; curel; curel=curel->nextElement()){
         if(curel->getType()==HtmlEl){
             if(((HtmlElement*)curel)->_childElement){
-                HtmlElement *find=((HtmlElement*)curel)->getElementbyID(id);
+                HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyID(id);
                 if(find)
                     return find;
             }

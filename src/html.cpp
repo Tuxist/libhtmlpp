@@ -494,7 +494,7 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        _Page<<tmp;
+        _Page.append(tmp,fs.gcount());
     }
     fs.close();
     _CheckHeader();

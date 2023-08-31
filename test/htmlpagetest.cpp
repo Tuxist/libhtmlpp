@@ -37,9 +37,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main(int arc,char *argv[]){
     libhtmlpp::HtmlPage page;
     try{
-        page.loadFile(argv[1]);
+        libhtmlpp::Element *index=page.loadFile(argv[1])->parse();
         std::string html;
-        page.printHtml(html);
+        libhtmlpp::print(index,nullptr,html);
         std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
     }catch(libhtmlpp::HTMLException &exp){

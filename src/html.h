@@ -83,6 +83,8 @@ namespace libhtmlpp {
         void         insertChild(Element* el);
         void         appendChild(Element* el);
 
+        const char  *getTagname();
+
         HtmlElement *getElementbyID(const char *id);
     protected:
 
@@ -119,6 +121,8 @@ namespace libhtmlpp {
     };
 
     void print(Element* el, HtmlElement* parent,std::string &output);
+
+    HtmlElement *getRootNode(Element* el);
 
     class HtmlTable {
     public:

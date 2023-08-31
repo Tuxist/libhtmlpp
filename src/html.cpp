@@ -627,7 +627,23 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             break;
     }
 }
-#include <iostream>
+
+libhtmlpp::HtmlElement * libhtmlpp::getRootNode(libhtmlpp::Element* el){
+    for(Element *curel=el; curel; curel=curel->nextElement()){
+        if(curel->getType()==HtmlEl){
+            if(strcmp(((libhtmlpp::HtmlElement*)curel)->getTagname(),"html")==0){
+                return (libhtmlpp::HtmlElement*)curel;
+            }
+        }
+    }
+    return nullptr;
+}
+
+const char * libhtmlpp::HtmlElement::getTagname(){
+    return _TagName.c_str();
+}
+
+
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
     for(Element *curel=this; curel; curel=curel->nextElement()){
         if(curel->getType()==HtmlEl){
@@ -638,7 +654,6 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
             }
             const char *key=((HtmlElement*)curel)->getAtributte("id");
             if(key && strcmp(key,id)==0){
-                std::cout << "hurray" << std::endl;
                 return (HtmlElement*)curel;
             }
         }

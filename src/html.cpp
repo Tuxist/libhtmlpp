@@ -447,6 +447,34 @@ libhtmlpp::HtmlElement::~HtmlElement(){
     }
 }
 
+void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
+    if(_childElement){
+        delete _childElement;
+    }
+    _childElement=el;
+}
+
+
+void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
+    _prevElement->_nextElement=el;
+    Element *nexel;
+    do{
+        nexel=el->_nextElement;
+    }while(nexel!=nullptr);
+
+    nexel->_nextElement=_nextElement;
+}
+
+void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
+    _nextElement=el;
+    Element *prevel;
+    do{
+        prevel=el->_prevElement;
+    }while(prevel!=nullptr);
+    el->_nextElement=_nextElement;
+    _nextElement=el;
+}
+
 libhtmlpp::HtmlPage::HtmlPage(){
     _RootNode=nullptr;
 }

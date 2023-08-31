@@ -51,6 +51,10 @@ namespace libhtmlpp {
         virtual ~Element(){
             // delete _nextElement;
         };
+
+        void insertAfter(Element* el);
+        void insertBefore(Element* el);
+
     protected:
         Element*      _prevElement;
         Element*      _nextElement;
@@ -71,6 +75,7 @@ namespace libhtmlpp {
         const char* getAtributte(const char* name);
         int         getIntAtributte(const char* name);
 
+        void        insertChild(Element* el);
     protected:
 
         Element*    _childElement;

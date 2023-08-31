@@ -173,13 +173,13 @@ namespace libhtmlpp {
     public:
         HtmlPage();
         ~HtmlPage();
-        void loadFile(const char* path);
-        void saveFile(const char* path);
-        void loadString(const std::string src);
-        void loadString(HtmlString node);
+        HtmlString *loadFile(const char* path);
+        void        saveFile(const char* path);
+        HtmlString *loadString(const std::string src);
+        HtmlString *loadString(HtmlString node);
 
         void printHtml(std::string &html);
     private:
-        HtmlElement*  _RootNode;
+        HtmlString _Page;
     };
 };

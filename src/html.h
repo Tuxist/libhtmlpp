@@ -178,6 +178,7 @@ namespace libhtmlpp {
         HtmlString *loadString(const std::string src);
         HtmlString *loadString(HtmlString node);
     private:
+        void       _CheckHeader();
         HtmlString _Page;
     };
 };

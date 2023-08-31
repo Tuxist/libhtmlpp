@@ -40,6 +40,7 @@ int main(int arc,char *argv[]){
         libhtmlpp::Element *index=page.loadFile(argv[1])->parse();
         std::string html;
         libhtmlpp::print(index,nullptr,html);
+        delete index;
         std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
     }catch(libhtmlpp::HTMLException &exp){

@@ -482,9 +482,9 @@ libhtmlpp::HtmlPage::~HtmlPage(){
 }
 
 libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
+    _Page.clear();
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
-    std::string fscontent;
     try{
         fs.open(path);
     }catch(std::exception &e){
@@ -494,25 +494,36 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        fscontent.append(tmp);
+        _Page<<tmp;
     }
     fs.close();
-    loadString(fscontent);
+    _CheckHeader();
     return &_Page;
 }
 
 libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(const std::string src){
+    _Page.clear();
     _Page << src;
-    loadString(_Page);
+    _CheckHeader();
     return &_Page;
 }
 
 libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(HtmlString node){
+    _Page.clear();
+    _Page=node;
+    _CheckHeader();
+    return &_Page;
+}
+
+void libhtmlpp::HtmlPage::saveFile(const char* path){
+}
+
+void libhtmlpp::HtmlPage::_CheckHeader(){
     const char type[] = { '!','D','O','C','T','Y','P','E' };
     int i = 0;
 
     while (i < 8) {
-        if (node[i+1] != type[i]) {
+        if (_Page[i+1] != type[i]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "No Doctype found arborting";
             throw excp;
@@ -522,12 +533,12 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(HtmlString node){
 
     do{
         ++i;
-    } while (node[i] == ' ');
+    } while (_Page[i] == ' ');
 
     const char typevalue[] = { 'h','t','m','l' };
     size_t tpvl = 4;
 
-    if ((i + tpvl) > node.length()) {
+    if ((i + tpvl) > _Page.length()) {
         HTMLException excp;
         excp[HTMLException::Critical] << "Doctype header broken or wrong type";
         throw excp;
@@ -536,7 +547,7 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(HtmlString node){
     int ii = 0,ie=i+tpvl;
 
     while (i < ie) {
-        if (node[i] != typevalue[ii]) {
+        if (_Page[i] != typevalue[ii]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "wrong Doctype";
             throw excp;
@@ -544,11 +555,6 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(HtmlString node){
         ++i;
         ++ii;
     }
-    _Page=node;
-    return &_Page;
-}
-
-void libhtmlpp::HtmlPage::saveFile(const char* path){
 }
 
 

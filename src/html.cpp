@@ -481,14 +481,6 @@ libhtmlpp::HtmlPage::HtmlPage(){
 libhtmlpp::HtmlPage::~HtmlPage(){
 }
 
-void libhtmlpp::HtmlPage::printHtml(std::string &html){
-    html.clear();
-    Element *root;
-    root=_Page.parse();
-    print(root,nullptr,html);
-    delete root;
-}
-
 libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;

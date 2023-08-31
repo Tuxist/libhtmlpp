@@ -177,8 +177,6 @@ namespace libhtmlpp {
         void        saveFile(const char* path);
         HtmlString *loadString(const std::string src);
         HtmlString *loadString(HtmlString node);
-
-        void printHtml(std::string &html);
     private:
         HtmlString _Page;
     };

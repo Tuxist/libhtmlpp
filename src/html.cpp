@@ -454,6 +454,18 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
     _childElement=el;
 }
 
+void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
+    if(_childElement){
+        Element *curel=_childElement->nextElement();
+        while(curel){
+            curel=curel->nextElement();
+        }
+        curel->_nextElement=el;
+    }else{
+        _childElement=el;
+    }
+}
+
 
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
     _prevElement->_nextElement=el;
@@ -466,14 +478,22 @@ void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
 }
 
 void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
-    _nextElement=el;
-    Element *prevel;
-    do{
-        prevel=el->_prevElement;
-    }while(prevel!=nullptr);
     el->_nextElement=_nextElement;
     _nextElement=el;
 }
+
+libhtmlpp::Element *libhtmlpp::Element::nextElement(){
+    return _nextElement;
+}
+
+libhtmlpp::Element *libhtmlpp::Element::prevElement(){
+    return _prevElement;
+}
+
+int libhtmlpp::Element::getType(){
+    return _Type;
+}
+
 
 libhtmlpp::HtmlPage::HtmlPage(){
 }
@@ -607,7 +627,24 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             break;
     }
 }
-
+#include <iostream>
+libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
+    for(Element *curel=this; curel; curel=curel->nextElement()){
+        if(curel->getType()==HtmlEl){
+            if(((HtmlElement*)curel)->_childElement){
+                HtmlElement *find=((HtmlElement*)curel)->getElementbyID(id);
+                if(find)
+                    return find;
+            }
+            const char *key=((HtmlElement*)curel)->getAtributte("id");
+            if(key && strcmp(key,id)==0){
+                std::cout << "hurray" << std::endl;
+                return (HtmlElement*)curel;
+            }
+        }
+    }
+    return nullptr;
+}
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
     Attributes* cattr = nullptr;

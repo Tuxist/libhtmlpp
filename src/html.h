@@ -41,7 +41,7 @@ namespace libhtmlpp {
         HtmlEl=1
     };
 
-    struct Element {
+    class Element {
     public:
         Element(){
             _prevElement=nullptr;
@@ -49,17 +49,22 @@ namespace libhtmlpp {
         }
 
         virtual ~Element(){
-            // delete _nextElement;
+            delete _nextElement;
         };
 
         void insertAfter(Element* el);
         void insertBefore(Element* el);
 
+        Element*       nextElement();
+        Element*       prevElement();
+
+        int            getType();
     protected:
         Element*      _prevElement;
         Element*      _nextElement;
         int           _Type;
 
+        friend class HtmlElement;
         friend class HtmlString;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
@@ -69,13 +74,16 @@ namespace libhtmlpp {
         HtmlElement(const char* tag);
         ~HtmlElement();
 
-        void        setAttribute(const char* name, const char* value);
-        void        setIntAttribute(const char* name, int value);
+        void         setAttribute(const char* name, const char* value);
+        void         setIntAttribute(const char* name, int value);
 
-        const char* getAtributte(const char* name);
-        int         getIntAtributte(const char* name);
+        const char*  getAtributte(const char* name);
+        int          getIntAtributte(const char* name);
 
-        void        insertChild(Element* el);
+        void         insertChild(Element* el);
+        void         appendChild(Element* el);
+
+        HtmlElement *getElementbyID(const char *id);
     protected:
 
         Element*    _childElement;

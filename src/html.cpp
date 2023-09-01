@@ -106,6 +106,7 @@ void libhtmlpp::HtmlString::clear(){
         delete[] _HTable[i];
     }
     delete[]   _HTable;
+    delete     _RootNode;
     _InitString();
 }
 
@@ -541,15 +542,13 @@ int libhtmlpp::Element::getType(){
 
 
 libhtmlpp::HtmlPage::HtmlPage(){
-    _RootNode=nullptr;
 }
 
 libhtmlpp::HtmlPage::~HtmlPage(){
-    delete _RootNode;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
-    HtmlString page;
+    std::string data;
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
     try{
@@ -561,24 +560,20 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        page.append(tmp,fs.gcount());
+        data.append(tmp,fs.gcount());
     }
     fs.close();
-    _RootNode=loadString(page);
-    return _RootNode;
+    return loadString(data);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string src){
-    HtmlString page;
-    page << src;
-    _RootNode=loadString(page);
-    return _RootNode;
+    _Page=src.c_str();
+    return loadString(_Page);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(HtmlString node){
-    _RootNode=node.parse();
     _CheckHeader(node);
-    return _RootNode;
+    return _Page.parse();
 }
 
 void libhtmlpp::HtmlPage::saveFile(const char* path){

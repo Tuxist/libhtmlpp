@@ -448,6 +448,14 @@ libhtmlpp::HtmlElement::~HtmlElement(){
     }
 }
 
+void libhtmlpp::HtmlElement::setTagname(const char* name){
+    _TagName=name;
+}
+
+const char* libhtmlpp::HtmlElement::getTagname(){
+    return _TagName.c_str();
+}
+
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
     if(_childElement){
         delete _childElement;
@@ -640,11 +648,6 @@ libhtmlpp::HtmlElement * libhtmlpp::getRootNode(libhtmlpp::Element* el){
     return nullptr;
 }
 
-const char * libhtmlpp::HtmlElement::getTagname(){
-    return _TagName.c_str();
-}
-
-
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
     for(Element *curel=this; curel; curel=curel->nextElement()){
         if(curel->getType()==HtmlEl){
@@ -754,10 +757,22 @@ libhtmlpp::HtmlTable::Row & libhtmlpp::HtmlTable::operator[](size_t pos){
     return *curel;
 }
 
-void libhtmlpp::HtmlTable::insert(libhtmlpp::Element* element){
+void libhtmlpp::HtmlTable::insert(libhtmlpp::HtmlElement* element){
+    element->setTagname("table");
+    for(Row *crow=_firstRow; crow; crow=crow->_nextRow){
+        HtmlElement *hrow= new HtmlElement("tr");
+
+        for(Column *ccol=crow->_firstColumn; ccol; ccol=ccol->_nextColumn ){
+            HtmlElement *hcol= new HtmlElement("td");
+            hcol->appendChild(ccol->Data.parse());
+            hrow->appendChild(hcol);
+        }
+
+        element->appendChild(hrow);
+    }
 }
 
-void libhtmlpp::HtmlTable::parse(libhtmlpp::Element* element){
+void libhtmlpp::HtmlTable::parse(libhtmlpp::HtmlElement* element){
 }
 
 void libhtmlpp::HtmlTable::setHeader(int count,...){

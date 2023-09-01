@@ -83,6 +83,7 @@ namespace libhtmlpp {
         void         insertChild(Element* el);
         void         appendChild(Element* el);
 
+        void         setTagname(const char *name);
         const char  *getTagname();
 
         HtmlElement *getElementbyID(const char *id);
@@ -220,8 +221,8 @@ namespace libhtmlpp {
         Row& operator<<(const Row row);
         Row& operator[](size_t pos);
 
-        void insert(Element *element);
-        void parse(Element *element);
+        void insert(HtmlElement *element);
+        void parse(HtmlElement *element);
 
         void setHeader(int count,...);
         void deleteRow(size_t pos);

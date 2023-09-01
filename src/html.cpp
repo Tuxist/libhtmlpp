@@ -125,7 +125,12 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     return *this;
 }
 
-const char libhtmlpp::HtmlString::operator[](size_t pos) {
+const char libhtmlpp::HtmlString::operator[](size_t pos) const{
+    if(_Data.length()<pos){
+        HTMLException exp;
+        exp[HTMLException::Error] << "HtmlString[] out of range !";
+        throw exp;
+    }
     return _Data[pos];
 }
 
@@ -169,7 +174,7 @@ const size_t libhtmlpp::HtmlString::size() {
     return _Data.size();
 }
 
-const size_t libhtmlpp::HtmlString::length() {
+const size_t libhtmlpp::HtmlString::length() const{
     return _Data.length();
 }
 
@@ -442,6 +447,13 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
         _TagName = tagname;
 }
 
+libhtmlpp::HtmlElement::HtmlElement(){
+    _firstAttr=nullptr;
+    _lastAttr=nullptr;
+    _childElement=nullptr;
+    _Type=HtmlEl;
+}
+
 libhtmlpp::HtmlElement::~HtmlElement(){
     if(_Type==HtmlEl){
         delete   _firstAttr;
@@ -476,6 +488,29 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     }
 }
 
+libhtmlpp::Element& libhtmlpp::HtmlElement::operator=(const Element &hel){
+    Element *dest=nullptr,*prev=nullptr;
+    for(Element *curel=(Element*)&hel; curel; curel=curel->nextElement()){
+        if(curel->_Type==HtmlEl){
+            dest=new HtmlElement(((HtmlElement*)curel)->_TagName.c_str());
+            for(Attributes *cattr=((HtmlElement*)curel)->_firstAttr; cattr; cattr=cattr->_nextAttr){
+                ((HtmlElement*)dest)->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
+            }
+            if(((HtmlElement*)curel)->_childElement){
+                ((HtmlElement*)dest)->_childElement=((HtmlElement*)curel)->_childElement;
+            }
+        }else if(curel->_Type==TextEl){
+            dest=new TextElement();
+            ((TextElement*)dest)->_Text=((TextElement*)curel)->_Text;
+        }
+        dest->_Type=curel->_Type;
+        dest->_prevElement=prev;
+        prev=dest;
+        dest=dest->_nextElement;
+    }
+    return *dest;
+}
+
 
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
     _prevElement->_nextElement=el;
@@ -506,13 +541,15 @@ int libhtmlpp::Element::getType(){
 
 
 libhtmlpp::HtmlPage::HtmlPage(){
+    _RootNode=nullptr;
 }
 
 libhtmlpp::HtmlPage::~HtmlPage(){
+    delete _RootNode;
 }
 
-libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
-    _Page.clear();
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
+    HtmlString page;
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
     try{
@@ -524,36 +561,35 @@ libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        _Page.append(tmp,fs.gcount());
+        page.append(tmp,fs.gcount());
     }
     fs.close();
-    _CheckHeader();
-    return &_Page;
+    _RootNode=loadString(page);
+    return _RootNode;
 }
 
-libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(const std::string src){
-    _Page.clear();
-    _Page << src;
-    _CheckHeader();
-    return &_Page;
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string src){
+    HtmlString page;
+    page << src;
+    _RootNode=loadString(page);
+    return _RootNode;
 }
 
-libhtmlpp::HtmlString *libhtmlpp::HtmlPage::loadString(HtmlString node){
-    _Page.clear();
-    _Page=node;
-    _CheckHeader();
-    return &_Page;
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(HtmlString node){
+    _RootNode=node.parse();
+    _CheckHeader(node);
+    return _RootNode;
 }
 
 void libhtmlpp::HtmlPage::saveFile(const char* path){
 }
 
-void libhtmlpp::HtmlPage::_CheckHeader(){
+void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
     const char type[] = { '!','D','O','C','T','Y','P','E' };
     int i = 0;
 
     while (i < 8) {
-        if (_Page[i+1] != type[i]) {
+        if (page[i+1] != type[i]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "No Doctype found arborting";
             throw excp;
@@ -563,12 +599,12 @@ void libhtmlpp::HtmlPage::_CheckHeader(){
 
     do{
         ++i;
-    } while (_Page[i] == ' ');
+    } while (page[i] == ' ');
 
     const char typevalue[] = { 'h','t','m','l' };
     size_t tpvl = 4;
 
-    if ((i + tpvl) > _Page.length()) {
+    if ((i + tpvl) > page.length()) {
         HTMLException excp;
         excp[HTMLException::Critical] << "Doctype header broken or wrong type";
         throw excp;
@@ -577,7 +613,7 @@ void libhtmlpp::HtmlPage::_CheckHeader(){
     int ii = 0,ie=i+tpvl;
 
     while (i < ie) {
-        if (_Page[i] != typevalue[ii]) {
+        if (page[i] != typevalue[ii]) {
             HTMLException excp;
             excp[HTMLException::Critical] << "wrong Doctype";
             throw excp;

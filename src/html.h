@@ -52,6 +52,8 @@ namespace libhtmlpp {
             delete _nextElement;
         };
 
+        Element(const Element &el) = delete;
+
         void insertAfter(Element* el);
         void insertBefore(Element* el);
 
@@ -71,8 +73,12 @@ namespace libhtmlpp {
 
     class HtmlElement : public Element {
     public:
+        HtmlElement();
         HtmlElement(const char* tag);
+        HtmlElement(const HtmlElement &hel) = delete;
         ~HtmlElement();
+
+        Element&     operator=(const Element &hel);
 
         void         setAttribute(const char* name, const char* value);
         void         setIntAttribute(const char* name, int value);
@@ -106,6 +112,7 @@ namespace libhtmlpp {
         //if text Attributes must be zero
         Attributes*    _firstAttr;
         Attributes*    _lastAttr;
+
         friend class HtmlString;
         friend class HtmlTable;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
@@ -114,10 +121,12 @@ namespace libhtmlpp {
     class TextElement : public Element{
     public:
         TextElement();
+        TextElement(const TextElement &texel) = delete;
         ~TextElement();
     protected:
         std::string   _Text;
         friend class HtmlString;
+        friend class HtmlElement;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
     };
 
@@ -141,7 +150,7 @@ namespace libhtmlpp {
         HtmlString& operator+=(const char* src);
         HtmlString& operator+=(HtmlString& hstring);
         HtmlString& operator=(const char* src);
-        const char operator[](size_t pos);
+        const char  operator[](size_t pos) const;
 
         HtmlString& operator<<(const char* src);
         HtmlString& operator<<(std::string src);
@@ -150,8 +159,8 @@ namespace libhtmlpp {
         HtmlString& operator<<(char src);
         HtmlString& operator<<(unsigned long src);
 
-        const size_t       size();
-        const size_t       length();
+        const size_t       size() ;
+        const size_t       length() const;
         void               clear();
         HtmlElement*       parse();
     private:
@@ -170,13 +179,13 @@ namespace libhtmlpp {
     public:
         HtmlPage();
         ~HtmlPage();
-        HtmlString *loadFile(const char* path);
-        void        saveFile(const char* path);
-        HtmlString *loadString(const std::string src);
-        HtmlString *loadString(HtmlString node);
+        HtmlElement *loadFile(const char* path);
+        void         saveFile(const char* path);
+        HtmlElement *loadString(const std::string src);
+        HtmlElement *loadString(HtmlString node);
     private:
-        void       _CheckHeader();
-        HtmlString _Page;
+        void         _CheckHeader(const HtmlString& page);
+        HtmlElement *_RootNode;
     };
 
     class HtmlTable {

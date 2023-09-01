@@ -190,6 +190,7 @@ namespace libhtmlpp {
         private:
             Column();
             Column(const Column &col);
+            Column(HtmlString data);
             ~Column();
 
             Column      *_nextColumn;
@@ -202,9 +203,10 @@ namespace libhtmlpp {
             Row(const Row &row);
             ~Row();
 
-            Column& operator<<(HtmlString  value);
-            Column& operator<<(const char* value);
-            Column& operator<<(int value);
+            Row&    operator<<(Column &col);
+            Row& operator<<(HtmlString  value);
+            Row& operator<<(const char* value);
+            Row& operator<<(int value);
 
             Column& operator[](size_t pos);
 

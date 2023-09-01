@@ -79,6 +79,7 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){
+    _InitString();
     _Data=str._Data;
 }
 
@@ -763,9 +764,11 @@ void libhtmlpp::HtmlTable::insert(libhtmlpp::HtmlElement* element){
         HtmlElement *hrow= new HtmlElement("tr");
 
         for(Column *ccol=crow->_firstColumn; ccol; ccol=ccol->_nextColumn ){
-            HtmlElement *hcol= new HtmlElement("td");
-            hcol->appendChild(ccol->Data.parse());
-            hrow->appendChild(hcol);
+            HtmlString buf;
+            buf << "<td>";
+            buf+=ccol->Data;
+            buf << "</td>";
+            hrow->appendChild(buf.parse());
         }
 
         element->appendChild(hrow);
@@ -800,14 +803,19 @@ libhtmlpp::HtmlTable::Column::Column(){
     _nextColumn=nullptr;
 }
 
-libhtmlpp::HtmlTable::Column::~Column(){
-    delete _nextColumn;
-}
-
 libhtmlpp::HtmlTable::Column::Column(const libhtmlpp::HtmlTable::Column& col){
+     _nextColumn=nullptr;
     Data = col.Data;
 }
 
+libhtmlpp::HtmlTable::Column::Column(libhtmlpp::HtmlString data){
+     _nextColumn=nullptr;
+    Data=data;
+}
+
+libhtmlpp::HtmlTable::Column::~Column(){
+    delete _nextColumn;
+}
 
 libhtmlpp::HtmlTable::Row::Row(){
     _firstColumn=nullptr;
@@ -822,32 +830,42 @@ libhtmlpp::HtmlTable::Row::~Row(){
 }
 
 libhtmlpp::HtmlTable::Row::Row(const libhtmlpp::HtmlTable::Row& row){
+    _firstColumn=nullptr;
+    _lastColumn=nullptr;
+    _nextRow=nullptr;
+    _count=0;
+
     for(Column *curel=row._firstColumn; curel; curel=curel->_nextColumn){
         *this << curel->Data;
     }
 }
 
-libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(libhtmlpp::HtmlString value){
+libhtmlpp::HtmlTable::Row& libhtmlpp::HtmlTable::Row::operator<<(Column &col){
     if(_firstColumn){
-        _lastColumn->_nextColumn=new Column;
+        _lastColumn->_nextColumn=new Column(col);
         _lastColumn=_lastColumn->_nextColumn;
     }else{
-        _firstColumn= new Column;
+        _firstColumn= new Column(col);
         _lastColumn=_firstColumn;
     }
-    _lastColumn->Data=value;
     ++_count;
-    return *_lastColumn;
+    return *this;
 }
 
+libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::Row::operator<<(libhtmlpp::HtmlString value){
+    Column col(value);
+    *this << col;
+    return *this;
+}
 
-libhtmlpp::HtmlTable::Column &libhtmlpp::HtmlTable::Row::operator<<(const char* value){
+libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::Row::operator<<(const char* value){
     HtmlString buf;
     buf << value;
-    return *this << buf;
+    *this << buf;
+    return  *this;
 }
 
-libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(int value){
+libhtmlpp::HtmlTable::Row & libhtmlpp::HtmlTable::Row::operator<<(int value){
     char buf[255];
     snprintf(buf,255,"%d",value);
     return *this << buf;

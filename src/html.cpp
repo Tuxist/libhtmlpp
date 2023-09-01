@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
 #include <fstream>
 
 #include "utils.h"
@@ -724,10 +726,59 @@ libhtmlpp::HtmlTable::HtmlTable(){
 libhtmlpp::HtmlTable::~HtmlTable(){
 }
 
+libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::operator<<(const libhtmlpp::HtmlTable::Row row){
+    if(_firstRow){
+        _lastRow->_nextRow=new Row(row);
+        _lastRow=_lastRow->_nextRow;
+    }else{
+        _firstRow= new Row(row);
+        _lastRow=_firstRow;
+    }
+    ++_count;
+    return *_lastRow;
+}
+
+libhtmlpp::HtmlTable::Row & libhtmlpp::HtmlTable::operator[](size_t pos){
+    if(!_firstRow || _count<pos){
+        libhtmlpp::HTMLException exp;
+        exp[HTMLException::Error] << "HtmlTable: Row at this position won't exists !";
+        throw exp;
+    }
+    size_t cpos=0;
+    Row *curel=nullptr;
+    for(curel=_firstRow; curel; curel=curel->_nextRow){
+        if(cpos==pos)
+            return *curel;
+        ++cpos;
+    }
+    return *curel;
+}
+
 void libhtmlpp::HtmlTable::insert(libhtmlpp::Element* element){
 }
 
 void libhtmlpp::HtmlTable::parse(libhtmlpp::Element* element){
+}
+
+void libhtmlpp::HtmlTable::setHeader(int count,...){
+    va_list args;
+    va_start(args,count);
+
+    for (int i = 0; i < count; ++i) {
+        _header << va_arg(args, const char*);
+    }
+
+}
+
+void libhtmlpp::HtmlTable::deleteRow(size_t pos){
+    Row *drow=&(*this)[pos];
+    try{
+        Row *prev=&(*this)[pos-1];
+        prev->_nextRow=drow->_nextRow;
+    }catch(...){}
+    drow->_nextRow=nullptr;
+    --_count;
+    delete drow;
 }
 
 libhtmlpp::HtmlTable::Column::Column(){
@@ -753,6 +804,12 @@ libhtmlpp::HtmlTable::Row::Row(){
 libhtmlpp::HtmlTable::Row::~Row(){
     delete _firstColumn;
     delete _nextRow;
+}
+
+libhtmlpp::HtmlTable::Row::Row(const libhtmlpp::HtmlTable::Row& row){
+    for(Column *curel=row._firstColumn; curel; curel=curel->_nextColumn){
+        *this << curel->Data;
+    }
 }
 
 libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(libhtmlpp::HtmlString value){
@@ -781,14 +838,10 @@ libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(int value){
     return *this << buf;
 }
 
-libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::operator<<(const libhtmlpp::HtmlTable::Column col){
-    return *_lastRow;
-}
-
-libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator[](int pos){
+libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator[](size_t pos){
     if(!_firstColumn || _count<pos){
         libhtmlpp::HTMLException exp;
-        exp[HTMLException::Error] << "HtmlTable: Row at this position won't exists !";
+        exp[HTMLException::Error] << "HtmlTable: Column at this position won't exists !";
         throw exp;
     }
     size_t cpos=0;
@@ -801,9 +854,20 @@ libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator[](int pos){
     return *curel;
 }
 
-
-void libhtmlpp::HtmlTable::Row::setHeader(const libhtmlpp::HtmlTable::Column col){
-    _header = col;
+void libhtmlpp::HtmlTable::Row::delColumn(size_t pos){
+    Column *dcol=&(*this)[pos];
+    try{
+        Column *prev=&(*this)[pos-1];
+        prev->_nextColumn=dcol->_nextColumn;
+    }catch(...){}
+    dcol->_nextColumn=nullptr;
+    --_count;
+    delete dcol;
 }
 
-
+void libhtmlpp::HtmlTable::Row::clear(){
+    delete _firstColumn;
+    _firstColumn = nullptr;
+    _lastColumn = nullptr;
+    _count = 0;
+}

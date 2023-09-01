@@ -198,30 +198,37 @@ namespace libhtmlpp {
         class Row {
         public:
             Row();
+            Row(const Row &row);
             ~Row();
 
             Column& operator<<(HtmlString  value);
             Column& operator<<(const char* value);
             Column& operator<<(int value);
 
-            Column& operator[](int pos);
+            Column& operator[](size_t pos);
 
-            void setHeader(const Column col);
+            void delColumn(size_t pos);
+            void clear();
         private:
             Column *_firstColumn;
             Column *_lastColumn;
-            Column  _header;
             Row    *_nextRow;
             size_t  _count;
             friend class HtmlTable;
         };
 
-        Row& operator<<(const Column col);
+        Row& operator<<(const Row row);
+        Row& operator[](size_t pos);
 
         void insert(Element *element);
         void parse(Element *element);
+
+        void setHeader(int count,...);
+        void deleteRow(size_t pos);
     private:
         Row     *_firstRow;
         Row     *_lastRow;
+        Row      _header;
+        size_t   _count;
     };
 };

@@ -57,8 +57,8 @@ namespace libhtmlpp {
         void insertAfter(Element* el);
         void insertBefore(Element* el);
 
-        Element*       nextElement();
-        Element*       prevElement();
+        Element*       nextElement() const;
+        Element*       prevElement() const;
 
         int            getType();
     protected:

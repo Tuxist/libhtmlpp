@@ -491,7 +491,7 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
 
 libhtmlpp::Element& libhtmlpp::HtmlElement::operator=(const Element &hel){
     Element *dest=nullptr,*prev=nullptr;
-    for(Element *curel=(Element*)&hel; curel; curel=curel->nextElement()){
+    for(const Element *curel=&hel; curel; curel=curel->nextElement()){
         if(curel->_Type==HtmlEl){
             dest=new HtmlElement(((HtmlElement*)curel)->_TagName.c_str());
             for(Attributes *cattr=((HtmlElement*)curel)->_firstAttr; cattr; cattr=cattr->_nextAttr){
@@ -528,11 +528,11 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
     _nextElement=el;
 }
 
-libhtmlpp::Element *libhtmlpp::Element::nextElement(){
+libhtmlpp::Element *libhtmlpp::Element::nextElement() const{
     return _nextElement;
 }
 
-libhtmlpp::Element *libhtmlpp::Element::prevElement(){
+libhtmlpp::Element *libhtmlpp::Element::prevElement() const{
     return _prevElement;
 }
 

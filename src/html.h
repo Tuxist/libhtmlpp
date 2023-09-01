@@ -124,26 +124,10 @@ namespace libhtmlpp {
 
     HtmlElement *getRootNode(Element* el);
 
-    class HtmlTable {
-    public:
-        HtmlTable(HtmlElement *element);
-        ~HtmlTable();
-        class Row {
-        public:
-            Row& operator<<(const char* value);
-            Row& operator<<(int value);
-        private:
-            Row();
-            ~Row();
-            Row* _nextRow;
-        };
-    private:
-        HtmlElement *_Element;
-    };
-
     class HtmlString {
     public:
         HtmlString();
+        HtmlString(const HtmlString &str);
         ~HtmlString();
 
         void append(const char* src, size_t srcsize);
@@ -192,5 +176,52 @@ namespace libhtmlpp {
     private:
         void       _CheckHeader();
         HtmlString _Page;
+    };
+
+    class HtmlTable {
+    public:
+        HtmlTable();
+        ~HtmlTable();
+
+        class Column {
+        public:
+            HtmlString  Data;
+        private:
+            Column();
+            Column(const Column &col);
+            ~Column();
+
+            Column      *_nextColumn;
+            friend class HtmlTable;
+        };
+
+        class Row {
+        public:
+            Row();
+            ~Row();
+
+            Column& operator<<(HtmlString  value);
+            Column& operator<<(const char* value);
+            Column& operator<<(int value);
+
+            Column& operator[](int pos);
+
+            void setHeader(const Column col);
+        private:
+            Column *_firstColumn;
+            Column *_lastColumn;
+            Column  _header;
+            Row    *_nextRow;
+            size_t  _count;
+            friend class HtmlTable;
+        };
+
+        Row& operator<<(const Column col);
+
+        void insert(Element *element);
+        void parse(Element *element);
+    private:
+        Row     *_firstRow;
+        Row     *_lastRow;
     };
 };

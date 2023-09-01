@@ -76,6 +76,11 @@ libhtmlpp::HtmlString::~HtmlString(){
    clear();
 }
 
+libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){
+    _Data=str._Data;
+}
+
+
 void libhtmlpp::HtmlString::append(const char* src, size_t srcsize){
     _Data.append(src,srcsize);
 }
@@ -704,21 +709,101 @@ libhtmlpp::HtmlElement::Attributes::~Attributes() {
     delete _nextAttr;
 }
 
-libhtmlpp::HtmlTable::HtmlTable(HtmlElement *element){
-    _Element=element;
-    if(_Element->_TagName!="table"){
-        HTMLException exp;
-        exp[HTMLException::Critical] << "Element ist not table Aborting!";
-        throw exp;
-    }
-}
-
-libhtmlpp::HtmlTable::~HtmlTable(){
-}
-
 libhtmlpp::TextElement::TextElement(){
     _Type=TextEl;
 }
 
 libhtmlpp::TextElement::~TextElement(){
 }
+
+libhtmlpp::HtmlTable::HtmlTable(){
+    _firstRow=nullptr;
+    _lastRow=nullptr;
+}
+
+libhtmlpp::HtmlTable::~HtmlTable(){
+}
+
+void libhtmlpp::HtmlTable::insert(libhtmlpp::Element* element){
+}
+
+void libhtmlpp::HtmlTable::parse(libhtmlpp::Element* element){
+}
+
+libhtmlpp::HtmlTable::Column::Column(){
+    _nextColumn=nullptr;
+}
+
+libhtmlpp::HtmlTable::Column::~Column(){
+    delete _nextColumn;
+}
+
+libhtmlpp::HtmlTable::Column::Column(const libhtmlpp::HtmlTable::Column& col){
+    Data = col.Data;
+}
+
+
+libhtmlpp::HtmlTable::Row::Row(){
+    _firstColumn=nullptr;
+    _lastColumn=nullptr;
+    _nextRow=nullptr;
+    _count=0;
+}
+
+libhtmlpp::HtmlTable::Row::~Row(){
+    delete _firstColumn;
+    delete _nextRow;
+}
+
+libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(libhtmlpp::HtmlString value){
+    if(_firstColumn){
+        _lastColumn->_nextColumn=new Column;
+        _lastColumn=_lastColumn->_nextColumn;
+    }else{
+        _firstColumn= new Column;
+        _lastColumn=_firstColumn;
+    }
+    _lastColumn->Data=value;
+    ++_count;
+    return *_lastColumn;
+}
+
+
+libhtmlpp::HtmlTable::Column &libhtmlpp::HtmlTable::Row::operator<<(const char* value){
+    HtmlString buf;
+    buf << value;
+    return *this << buf;
+}
+
+libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator<<(int value){
+    char buf[255];
+    snprintf(buf,255,"%d",value);
+    return *this << buf;
+}
+
+libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::operator<<(const libhtmlpp::HtmlTable::Column col){
+    return *_lastRow;
+}
+
+libhtmlpp::HtmlTable::Column & libhtmlpp::HtmlTable::Row::operator[](int pos){
+    if(!_firstColumn || _count<pos){
+        libhtmlpp::HTMLException exp;
+        exp[HTMLException::Error] << "HtmlTable: Row at this position won't exists !";
+        throw exp;
+    }
+    size_t cpos=0;
+    Column *curel=nullptr;
+    for(curel=_firstColumn; curel; curel=curel->_nextColumn){
+        if(cpos==pos)
+            return *curel;
+        ++cpos;
+    }
+    return *curel;
+}
+
+
+void libhtmlpp::HtmlTable::Row::setHeader(const libhtmlpp::HtmlTable::Column col){
+    _header = col;
+}
+
+

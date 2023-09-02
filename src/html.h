@@ -194,6 +194,7 @@ namespace libhtmlpp {
         HtmlElement *loadFile(const char* path);
         void         saveFile(const char* path);
         HtmlElement *loadString(const std::string src);
+        HtmlElement *loadString(const char *src);
         HtmlElement *loadString(HtmlString node);
     private:
         void         _CheckHeader(const HtmlString& page);
@@ -224,7 +225,7 @@ namespace libhtmlpp {
             Row(const Row &row);
             ~Row();
 
-            Row&    operator<<(Column &col);
+            Row& operator<<(Column &col);
             Row& operator<<(HtmlString  value);
             Row& operator<<(const char* value);
             Row& operator<<(int value);

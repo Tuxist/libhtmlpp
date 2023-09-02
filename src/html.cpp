@@ -632,6 +632,11 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string src){
     return loadString(_Page);
 }
 
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const char *src){
+    _Page=src;
+    return loadString(_Page);
+}
+
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(HtmlString node){
     _CheckHeader(node);
     return _Page.parse();

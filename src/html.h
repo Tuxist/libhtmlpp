@@ -57,18 +57,22 @@ namespace libhtmlpp {
         void insertAfter(Element* el);
         void insertBefore(Element* el);
 
+        virtual Element& operator=(const Element &hel)=0;
+
         Element*       nextElement() const;
         Element*       prevElement() const;
 
-        int            getType();
+        int            getType() const;
     protected:
         Element*      _prevElement;
         Element*      _nextElement;
         int           _Type;
 
         friend class HtmlElement;
+        friend class TextElement;
         friend class HtmlString;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
+        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     class HtmlElement : public Element {
@@ -83,16 +87,17 @@ namespace libhtmlpp {
         void         setAttribute(const char* name, const char* value);
         void         setIntAttribute(const char* name, int value);
 
-        const char*  getAtributte(const char* name);
+        const char*  getAtributte(const char* name) const;
         int          getIntAtributte(const char* name);
 
         void         insertChild(Element* el);
         void         appendChild(Element* el);
 
         void         setTagname(const char *name);
-        const char  *getTagname();
+        const char  *getTagname() const;
 
-        HtmlElement *getElementbyID(const char *id);
+        HtmlElement *getElementbyID(const char *id) const;
+        HtmlElement *getElementbyTag(const char *tag) const;
     protected:
 
         Element*    _childElement;
@@ -102,7 +107,7 @@ namespace libhtmlpp {
             ~Attributes();
             std::string _Key;
             std::string _Value;
-            Attributes*       _nextAttr;
+            Attributes* _nextAttr;
         };
 
     private:
@@ -116,6 +121,7 @@ namespace libhtmlpp {
         friend class HtmlString;
         friend class HtmlTable;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
+        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     class TextElement : public Element{
@@ -123,11 +129,17 @@ namespace libhtmlpp {
         TextElement();
         TextElement(const TextElement &texel) = delete;
         ~TextElement();
+
+        Element&    operator=(const Element &hel);
+
+        const char *getText();
+        void        setText(const char *txt);
+
     protected:
         std::string   _Text;
         friend class HtmlString;
-        friend class HtmlElement;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
+        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     void print(Element* el, HtmlElement* parent,std::string &output);

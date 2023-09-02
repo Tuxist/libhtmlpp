@@ -449,9 +449,9 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
 }
 
 libhtmlpp::HtmlElement::HtmlElement(){
+    _childElement=nullptr;
     _firstAttr=nullptr;
     _lastAttr=nullptr;
-    _childElement=nullptr;
     _Type=HtmlEl;
 }
 
@@ -466,7 +466,7 @@ void libhtmlpp::HtmlElement::setTagname(const char* name){
     _TagName=name;
 }
 
-const char* libhtmlpp::HtmlElement::getTagname(){
+const char* libhtmlpp::HtmlElement::getTagname() const{
     return _TagName.c_str();
 }
 
@@ -474,47 +474,78 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
     if(_childElement){
         delete _childElement;
     }
-    _childElement=el;
+    if(el->getType()==HtmlEl)
+        _childElement=new HtmlElement;
+    else if(el->getType()==TextEl)
+        _childElement=new TextElement;
+    _copy(nullptr,_childElement,el);
 }
 
 void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     if(_childElement){
-        Element *curel=_childElement;
+        Element *curel=_childElement,*prev=nullptr;
         while(curel->_nextElement){
+            prev=curel;
             curel=curel->nextElement();
         }
-        curel->_nextElement=el;
+        if(el->getType()==HtmlEl)
+            curel=new HtmlElement;
+        else if(el->getType()==TextEl)
+            curel=new TextElement;
+        prev->_nextElement=curel;
+        _copy(prev,curel,el);
     }else{
-        _childElement=el;
+        insertChild(el);
     }
 }
 
 libhtmlpp::Element& libhtmlpp::HtmlElement::operator=(const Element &hel){
-    Element *dest=nullptr,*prev=nullptr;
-    for(const Element *curel=&hel; curel; curel=curel->nextElement()){
-        if(curel->_Type==HtmlEl){
-            dest=new HtmlElement(((HtmlElement*)curel)->_TagName.c_str());
-            for(Attributes *cattr=((HtmlElement*)curel)->_firstAttr; cattr; cattr=cattr->_nextAttr){
-                ((HtmlElement*)dest)->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
-            }
-            if(((HtmlElement*)curel)->_childElement){
-                ((HtmlElement*)dest)->_childElement=((HtmlElement*)curel)->_childElement;
-            }
-        }else if(curel->_Type==TextEl){
-            dest=new TextElement();
-            ((TextElement*)dest)->_Text=((TextElement*)curel)->_Text;
-        }
-        dest->_Type=curel->_Type;
-        dest->_prevElement=prev;
-        prev=dest;
-        dest=dest->_nextElement;
-    }
-    return *dest;
+    _copy(nullptr,this,(Element*)&hel);
+    return *this;
 }
 
+namespace libhtmlpp {
+    void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
+        if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
+            libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
+            libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
+            hdest->setTagname(hsrc->getTagname());
+            for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
+                hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
+            }
+            if(hsrc->_childElement){
+                hdest->_childElement= new HtmlElement;
+                _copy(nullptr,hdest->_childElement,hsrc->_childElement);
+            }
+        }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
+            ((TextElement*)dest)->setText(((TextElement*)src)->getText());
+        }
+
+        dest->_prevElement=(Element*)prev;
+
+        const Element* next=src->nextElement();
+
+        if(next){
+            if(next->getType()==HtmlEl)
+                dest->_nextElement= new HtmlElement();
+            else if(next->getType()==TextEl)
+                dest->_nextElement= new TextElement();
+            _copy(src,dest->_nextElement,next);
+        }
+    }
+};
 
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
-    _prevElement->_nextElement=el;
+    if(el->getType()==HtmlEl){
+        HtmlElement *nel=new HtmlElement();
+        *nel=*((libhtmlpp::HtmlElement*)el);
+        _prevElement->_nextElement=nel;
+
+    }else if(el->getType()==TextEl){
+        TextElement *txt= new TextElement;
+        *txt=*el;
+        _prevElement->_nextElement=txt;
+    }
     Element *nexel;
     do{
         nexel=el->_nextElement;
@@ -524,8 +555,21 @@ void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
 }
 
 void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
-    el->_nextElement=_nextElement;
-    _nextElement=el;
+    if(el->getType()==HtmlEl){
+        HtmlElement *nel=new HtmlElement();
+        *nel=*((libhtmlpp::HtmlElement*)el);
+        nel->_nextElement=_nextElement;
+        _nextElement=nel;
+    }else if(el->getType()==TextEl){
+        TextElement *txt= new TextElement;
+        *txt=*el;
+        _nextElement=txt;
+    }
+
+}
+
+libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
+    return *this;
 }
 
 libhtmlpp::Element *libhtmlpp::Element::nextElement() const{
@@ -536,8 +580,22 @@ libhtmlpp::Element *libhtmlpp::Element::prevElement() const{
     return _prevElement;
 }
 
-int libhtmlpp::Element::getType(){
+libhtmlpp::Element & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
+    _copy(nullptr,this,(Element*)&hel);
+    return *this;
+}
+
+
+int libhtmlpp::Element::getType() const{
     return _Type;
+}
+
+void libhtmlpp::TextElement::setText(const char* txt){
+    _Text=txt;
+}
+
+const char * libhtmlpp::TextElement::getText(){
+    return _Text.c_str();
 }
 
 
@@ -577,6 +635,21 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(HtmlString node){
 }
 
 void libhtmlpp::HtmlPage::saveFile(const char* path){
+    std::string data;
+    std::ofstream fs;
+
+    print(_Page.parse(),nullptr,data);
+
+    try{
+        fs.open(path);
+    }catch(std::exception &e){
+        HTMLException excp;
+        throw excp[HTMLException::Critical] << e.what();
+    }
+
+    fs << data;
+
+    fs.close();
 }
 
 void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
@@ -680,8 +753,8 @@ libhtmlpp::HtmlElement * libhtmlpp::getRootNode(libhtmlpp::Element* el){
     return nullptr;
 }
 
-libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
-    for(Element *curel=this; curel; curel=curel->nextElement()){
+libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{
+    for(const Element *curel=this; curel; curel=curel->nextElement()){
         if(curel->getType()==HtmlEl){
             if(((HtmlElement*)curel)->_childElement){
                 HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyID(id);
@@ -690,6 +763,23 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id){
             }
             const char *key=((HtmlElement*)curel)->getAtributte("id");
             if(key && strcmp(key,id)==0){
+                return (HtmlElement*)curel;
+            }
+        }
+    }
+    return nullptr;
+}
+
+libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyTag(const char *tag) const{
+    for(const Element *curel=this; curel; curel=curel->nextElement()){
+        if(curel->getType()==HtmlEl){
+            if(((HtmlElement*)curel)->_childElement){
+                HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyTag(tag);
+                if(find)
+                    return find;
+            }
+            const char *tname=((HtmlElement*)curel)->getTagname();
+            if(tname && strcmp(tname,tag)==0){
                 return (HtmlElement*)curel;
             }
         }
@@ -722,10 +812,12 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
 }
 
 void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
-
+    char buf[255];
+    snprintf(buf,255,"%d",value);
+    setAttribute(name,buf);
 }
 
-const char* libhtmlpp::HtmlElement::getAtributte(const char* name) {
+const char* libhtmlpp::HtmlElement::getAtributte(const char* name) const{
     for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
         if (curattr->_Key == name) {
             return curattr->_Value.c_str();

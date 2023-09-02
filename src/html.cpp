@@ -492,7 +492,8 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
             curel=new HtmlElement;
         else if(el->getType()==TextEl)
             curel=new TextElement;
-        prev->_nextElement=curel;
+        if(prev)
+            prev->_nextElement=curel;
         _copy(prev,curel,el);
     }else{
         insertChild(el);
@@ -750,17 +751,6 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
     }
 }
 
-libhtmlpp::HtmlElement * libhtmlpp::getRootNode(libhtmlpp::Element* el){
-    for(Element *curel=el; curel; curel=curel->nextElement()){
-        if(curel->getType()==HtmlEl){
-            if(strcmp(((libhtmlpp::HtmlElement*)curel)->getTagname(),"html")==0){
-                return (libhtmlpp::HtmlElement*)curel;
-            }
-        }
-    }
-    return nullptr;
-}
-
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{
     for(const Element *curel=this; curel; curel=curel->nextElement()){
         if(curel->getType()==HtmlEl){
@@ -892,17 +882,17 @@ libhtmlpp::HtmlTable::Row & libhtmlpp::HtmlTable::operator[](size_t pos){
 void libhtmlpp::HtmlTable::insert(libhtmlpp::HtmlElement* element){
     element->setTagname("table");
     for(Row *crow=_firstRow; crow; crow=crow->_nextRow){
-        HtmlElement *hrow= new HtmlElement("tr");
+        HtmlElement hrow("tr");
 
         for(Column *ccol=crow->_firstColumn; ccol; ccol=ccol->_nextColumn ){
             HtmlString buf;
             buf << "<td>";
             buf+=ccol->Data;
             buf << "</td>";
-            hrow->appendChild(buf.parse());
+            hrow.appendChild(buf.parse());
         }
 
-        element->appendChild(hrow);
+        element->appendChild(&hrow);
     }
 }
 

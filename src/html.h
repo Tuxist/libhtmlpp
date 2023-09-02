@@ -144,8 +144,6 @@ namespace libhtmlpp {
 
     void print(Element* el, HtmlElement* parent,std::string &output);
 
-    HtmlElement *getRootNode(Element* el);
-
     class HtmlString {
     public:
         HtmlString();

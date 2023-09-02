@@ -500,7 +500,7 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
 }
 
 libhtmlpp::Element& libhtmlpp::HtmlElement::operator=(const Element &hel){
-    _copy(nullptr,this,(Element*)&hel);
+    _copy(nullptr,this,&hel);
     return *this;
 }
 
@@ -514,7 +514,10 @@ namespace libhtmlpp {
                 hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
             }
             if(hsrc->_childElement){
-                hdest->_childElement= new HtmlElement;
+                if(hsrc->_childElement->getType()==HtmlEl)
+                    hdest->_childElement= new HtmlElement;
+                else if(hsrc->_childElement->getType()==TextEl)
+                    hdest->_childElement= new TextElement;
                 _copy(nullptr,hdest->_childElement,hsrc->_childElement);
             }
         }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
@@ -581,7 +584,7 @@ libhtmlpp::Element *libhtmlpp::Element::prevElement() const{
 }
 
 libhtmlpp::Element & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
-    _copy(nullptr,this,(Element*)&hel);
+    _copy(nullptr,this,&hel);
     return *this;
 }
 

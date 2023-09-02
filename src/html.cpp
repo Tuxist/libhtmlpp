@@ -439,21 +439,22 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-libhtmlpp::HtmlElement::HtmlElement(const char *tagname){
-    _childElement = nullptr;
-    _firstAttr = nullptr;
-    _lastAttr = nullptr;
-    _Type=HtmlEl;
+libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : HtmlElement(){
     if(tagname)
         _TagName = tagname;
 }
 
-libhtmlpp::HtmlElement::HtmlElement(){
+libhtmlpp::HtmlElement::HtmlElement() : Element(){
     _childElement=nullptr;
     _firstAttr=nullptr;
     _lastAttr=nullptr;
     _Type=HtmlEl;
 }
+
+libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement& hel) : HtmlElement(){
+    _copy(nullptr,this,&hel);
+}
+
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     if(_Type==HtmlEl){
@@ -601,11 +602,36 @@ int libhtmlpp::Element::getType() const{
     return _Type;
 }
 
+libhtmlpp::Element::Element(){
+    _prevElement=nullptr;
+    _nextElement=nullptr;
+}
+
+libhtmlpp::Element::Element(const libhtmlpp::Element& el){
+    _prevElement=nullptr;
+    _nextElement=nullptr;
+    _copy(nullptr,this,&el);
+}
+
+libhtmlpp::Element::~Element(){
+    delete _nextElement;
+};
+
+libhtmlpp::TextElement::TextElement() : Element(){
+    _Type=TextEl;
+}
+
+libhtmlpp::TextElement::TextElement(const TextElement &texel) : TextElement(){
+    _copy(nullptr,this,&texel);
+}
+
+libhtmlpp::TextElement::~TextElement(){
+}
+
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
     _copy(nullptr,this,&hel);
     return *this;
 }
-
 
 void libhtmlpp::TextElement::setText(const char* txt){
     _Text=txt;
@@ -847,13 +873,6 @@ libhtmlpp::HtmlElement::Attributes::Attributes() {
 
 libhtmlpp::HtmlElement::Attributes::~Attributes() {
     delete _nextAttr;
-}
-
-libhtmlpp::TextElement::TextElement(){
-    _Type=TextEl;
-}
-
-libhtmlpp::TextElement::~TextElement(){
 }
 
 libhtmlpp::HtmlTable::HtmlTable(){

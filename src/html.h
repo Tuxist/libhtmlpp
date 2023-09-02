@@ -43,16 +43,11 @@ namespace libhtmlpp {
 
     class Element {
     public:
-        Element(){
-            _prevElement=nullptr;
-            _nextElement=nullptr;
-        }
+        Element();
 
-        virtual ~Element(){
-            delete _nextElement;
-        };
+        virtual ~Element();
 
-        Element(const Element &el) = delete;
+        Element(const Element &el);
 
         void insertAfter(Element* el);
         void insertBefore(Element* el);
@@ -79,7 +74,7 @@ namespace libhtmlpp {
     public:
         HtmlElement();
         HtmlElement(const char* tag);
-        HtmlElement(const HtmlElement &hel) = delete;
+        HtmlElement(const HtmlElement &hel);
         ~HtmlElement();
 
         HtmlElement& operator=(const Element &hel);
@@ -127,7 +122,7 @@ namespace libhtmlpp {
     class TextElement : public Element{
     public:
         TextElement();
-        TextElement(const TextElement &texel) = delete;
+        TextElement(const TextElement &texel);
         ~TextElement();
 
         TextElement& operator=(const Element &hel);

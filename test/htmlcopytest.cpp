@@ -65,14 +65,16 @@ int main(int arc,char *argv[]){
 
         HtmlCopy cpy(index);
 
-        std::cout << "Modified html:" << std::endl;
-
-        cpy.printModify();
 
         std::string html;
 
         std::cout << "Orginal html:" << std::endl;
         libhtmlpp::print(index,nullptr,html);
+
+        std::cout << "Modified html:" << std::endl;
+
+        cpy.printModify();
+
 
         std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;

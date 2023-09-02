@@ -500,10 +500,11 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     }
 }
 
-libhtmlpp::Element& libhtmlpp::HtmlElement::operator=(const Element &hel){
+libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element& hel){
     _copy(nullptr,this,&hel);
     return *this;
 }
+
 
 namespace libhtmlpp {
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -542,37 +543,49 @@ namespace libhtmlpp {
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
     if(el->getType()==HtmlEl){
         HtmlElement *nel=new HtmlElement();
-        *nel=*((libhtmlpp::HtmlElement*)el);
+        _copy(nullptr,nel,el);
         _prevElement->_nextElement=nel;
-
     }else if(el->getType()==TextEl){
         TextElement *txt= new TextElement;
-        *txt=*el;
+        _copy(nullptr,txt,el);
         _prevElement->_nextElement=txt;
     }
-    Element *nexel;
-    do{
-        nexel=el->_nextElement;
-    }while(nexel!=nullptr);
+    Element *nexel=_prevElement->_nextElement,*prev=nullptr;
 
-    nexel->_nextElement=_nextElement;
+    while(nexel){
+        prev=nexel;
+        nexel=nexel->nextElement();
+    }
+
+    nexel=this;
+    _prevElement=prev;
 }
 
 void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
+    Element *nexel=nullptr,*prev=_nextElement;
+
     if(el->getType()==HtmlEl){
         HtmlElement *nel=new HtmlElement();
-        *nel=*((libhtmlpp::HtmlElement*)el);
-        nel->_nextElement=_nextElement;
-        _nextElement=nel;
+        _copy(this,nel,el);
+        nexel=nel;
     }else if(el->getType()==TextEl){
         TextElement *txt= new TextElement;
-        *txt=*el;
-        _nextElement=txt;
+        _copy(this,txt,el);
+        nexel=txt;
     }
+
+    _nextElement=nexel;
+
+    while(nexel){
+        nexel=nexel->nextElement();
+    }
+
+    nexel=prev;
 
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
+    _copy(nullptr,this,&hel);
     return *this;
 }
 
@@ -584,15 +597,15 @@ libhtmlpp::Element *libhtmlpp::Element::prevElement() const{
     return _prevElement;
 }
 
-libhtmlpp::Element & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
+int libhtmlpp::Element::getType() const{
+    return _Type;
+}
+
+libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
     _copy(nullptr,this,&hel);
     return *this;
 }
 
-
-int libhtmlpp::Element::getType() const{
-    return _Type;
-}
 
 void libhtmlpp::TextElement::setText(const char* txt){
     _Text=txt;

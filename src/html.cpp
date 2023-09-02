@@ -485,7 +485,7 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
 void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     if(_childElement){
         Element *curel=_childElement,*prev=nullptr;
-        while(curel->_nextElement){
+        while(curel){
             prev=curel;
             curel=curel->nextElement();
         }
@@ -566,16 +566,15 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
     Element *nexel=nullptr,*prev=_nextElement;
 
     if(el->getType()==HtmlEl){
-        HtmlElement *nel=new HtmlElement();
-        _copy(this,nel,el);
-        nexel=nel;
+        _nextElement= new HtmlElement;
+
     }else if(el->getType()==TextEl){
-        TextElement *txt= new TextElement;
-        _copy(this,txt,el);
-        nexel=txt;
+        _nextElement= new TextElement;
     }
 
-    _nextElement=nexel;
+    _copy(this,_nextElement,el);
+
+    nexel=_nextElement;
 
     while(nexel){
         nexel=nexel->nextElement();
@@ -881,6 +880,7 @@ libhtmlpp::HtmlTable::HtmlTable(){
 }
 
 libhtmlpp::HtmlTable::~HtmlTable(){
+    delete _firstRow;
 }
 
 libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::operator<<(const libhtmlpp::HtmlTable::Row row){

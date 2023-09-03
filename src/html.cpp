@@ -502,10 +502,20 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
 }
 
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element& hel){
+    delete _firstAttr;
+    delete _childElement;
+    delete _nextElement;
     _copy(nullptr,this,&hel);
     return *this;
 }
 
+libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element* hel){
+    delete _firstAttr;
+    delete _childElement;
+    delete _nextElement;
+    _copy(nullptr,this,hel);
+    return *this;
+}
 
 namespace libhtmlpp {
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -585,7 +595,14 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
+    delete _nextElement;
     _copy(nullptr,this,&hel);
+    return *this;
+}
+
+libhtmlpp::Element& libhtmlpp::Element::operator=(const Element *hel){
+    delete _nextElement;
+    _copy(nullptr,this,hel);
     return *this;
 }
 
@@ -628,7 +645,14 @@ libhtmlpp::TextElement::~TextElement(){
 }
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
+    delete _nextElement;
     _copy(nullptr,this,&hel);
+    return *this;
+}
+
+libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element* hel){
+    delete _nextElement;
+    _copy(nullptr,this,hel);
     return *this;
 }
 

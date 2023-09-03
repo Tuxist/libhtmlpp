@@ -53,6 +53,7 @@ namespace libhtmlpp {
         void insertBefore(Element* el);
 
         Element& operator=(const Element &hel);
+        Element& operator=(const Element *hel);
 
         Element*       nextElement() const;
         Element*       prevElement() const;
@@ -78,6 +79,7 @@ namespace libhtmlpp {
         ~HtmlElement();
 
         HtmlElement& operator=(const Element &hel);
+        HtmlElement& operator=(const Element *hel);
 
         void         setAttribute(const char* name, const char* value);
         void         setIntAttribute(const char* name, int value);
@@ -126,6 +128,7 @@ namespace libhtmlpp {
         ~TextElement();
 
         TextElement& operator=(const Element &hel);
+        TextElement& operator=(const Element *hel);
 
         const char *getText();
         void        setText(const char *txt);

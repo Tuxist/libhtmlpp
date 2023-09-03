@@ -778,8 +778,6 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
                     output.append("=\"");
                     output.append(curattr->_Value);
                     output.append("\"");
-                }else{
-                    output.append(" ");
                 }
             }
             output.append(">");

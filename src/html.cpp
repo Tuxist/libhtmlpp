@@ -485,10 +485,11 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
 void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     if(_childElement){
         Element *curel=_childElement,*prev=nullptr;
-        while(curel){
+        do{
             prev=curel;
             curel=curel->nextElement();
-        }
+        }while(curel);
+
         if(el->getType()==HtmlEl)
             curel=new HtmlElement;
         else if(el->getType()==TextEl)

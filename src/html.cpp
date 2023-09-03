@@ -191,7 +191,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
 libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,libhtmlpp::DocElements* next,libhtmlpp::DocElements* start,libhtmlpp::DocElements* end){
     auto checkterminator = [end](DocElements *termel){
         int i=0;
-        for (DocElements* curcel=termel->nextel; curcel!=end; curcel=curcel->nextel) {
+        for (DocElements* curcel=termel->nextel; curcel; curcel=curcel->nextel) {
 
             if (curcel->element->_Type==HtmlEl && !curcel->terminator &&
                 ((HtmlElement*)curcel->element)->_TagName == ((HtmlElement*)termel->element)->_TagName) {
@@ -205,6 +205,8 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
                 else
                     --i;
             }
+            if(curcel==end)
+                break;
         }
         return (DocElements*) nullptr;
     };

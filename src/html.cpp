@@ -270,7 +270,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
         if((i+1) < _HTableSize){
             int tlen = (_HTable[i+1][0]-_HTable[i][2]);
-            if(tlen>1){
+            if(tlen>0){
                 addelement(&firstEl,&lastEl);
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;

@@ -224,12 +224,8 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
     if(!start->terminator && start->element->_Type==HtmlEl){
         DocElements *parent=checkterminator(start);
         if(parent){
-            if(parent!=next){
-                ((HtmlElement*)start->element)->_childElement =next->element;
-                next=_buildtreenode(nullptr,next->nextel,next,parent);
-            }else{
-                ((HtmlElement*)start->element)->_childElement = nullptr;
-            }
+            ((HtmlElement*)start->element)->_childElement =next->element;
+            next=_buildtreenode(nullptr,next->nextel,next,parent);
         }
     };
 
@@ -788,14 +784,17 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
 
             if (((HtmlElement*) el)->_childElement) {
                 print((Element*)((HtmlElement*) el)->_childElement, (HtmlElement*)el, output);
+                output.append("</");
+                output.append(((HtmlElement*) el)->_TagName);
+                output.append(">");
+            }else if(strcmp(((HtmlElement*) el)->getTagname(),"div")==0){
+                output.append("</");
+                output.append(((HtmlElement*) el)->_TagName);
+                output.append(">");
             }
 
             if (el->_nextElement) {
                 print(el->_nextElement,parent,output);
-            }else if(parent){
-                output.append("</");
-                output.append(parent->_TagName);
-                output.append(">");
             }
         }break;
 
@@ -803,10 +802,6 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             output.append(((TextElement*)el)->_Text);
             if (el->_nextElement) {
                 print(el->_nextElement,parent,output);
-            }else if(parent){
-                output.append("</");
-                output.append(parent->_TagName);
-                output.append(">");
             }
         }break;
 

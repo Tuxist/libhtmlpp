@@ -224,8 +224,12 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
     if(!start->terminator && start->element->_Type==HtmlEl){
         DocElements *parent=checkterminator(start);
         if(parent){
-            ((HtmlElement*)start->element)->_childElement =next->element;
-            next=_buildtreenode(nullptr,next->nextel,next,parent);
+            if(parent!=next){
+                ((HtmlElement*)start->element)->_childElement =next->element;
+                next=_buildtreenode(nullptr,next->nextel,next,parent);
+            }else{
+                ((HtmlElement*)start->element)->_childElement = nullptr;
+            }
         }
     };
 

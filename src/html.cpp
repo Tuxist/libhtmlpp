@@ -45,6 +45,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLCOMMENT 2
 #define HTMLHEADER 3
 
+void libhtmlpp::HtmlEncode(const char* input, std::string& output){
+    size_t ilen=strlen(input);
+    for(size_t i=0; i<ilen; ++i){
+        size_t ii=0;
+        bool changed=false;
+        while(HtmlSigns[ii][0]){
+            if(input[i]==HtmlSigns[ii][0][0]){
+                output.append(HtmlSigns[ii][1]);
+                changed=true;
+            }
+            ++ii;
+        }
+        if(!changed)
+            output.push_back(input[i]);
+    }
+}
+
+
 namespace libhtmlpp {
     class DocElements {
     public:

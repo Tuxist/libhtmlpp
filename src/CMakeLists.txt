@@ -49,6 +49,7 @@ install(FILES
     request.h
     utils.h
     exception.h
+    encode.h
     "${CMAKE_BINARY_DIR}/config.h"
     "${CMAKE_CURRENT_BINARY_DIR}/htmlpp_export.h"
     DESTINATION include/htmlpp

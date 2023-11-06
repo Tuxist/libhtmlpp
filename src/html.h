@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <cstring>
 
+#include "encode.h"
+
 #pragma once
 
 namespace libhtmlpp {
@@ -40,6 +42,8 @@ namespace libhtmlpp {
         TextEl=0,
         HtmlEl=1
     };
+
+    void HtmlEncode(const char *input,std::string &output);
 
     class Element {
     public:

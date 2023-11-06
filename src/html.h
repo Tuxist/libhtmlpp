@@ -43,8 +43,6 @@ namespace libhtmlpp {
         HtmlEl=1
     };
 
-    void HtmlEncode(const char *input,std::string &output);
-
     class Element {
     public:
         Element();
@@ -186,6 +184,8 @@ namespace libhtmlpp {
         size_t            _HTableSize;
         HtmlElement*      _RootNode;
     };
+
+    void HtmlEncode(const char *input,HtmlString &output);
 
     class HtmlPage {
     public:

@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utils.h"
 #include "html.h"
 #include "config.h"
+#include "encode.h"
 
 #define HTMLTAG_OPEN '<'
 #define HTMLTAG_TERMINATE '/'

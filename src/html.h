@@ -30,8 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <cstring>
 
-#include "encode.h"
-
 #pragma once
 
 namespace libhtmlpp {

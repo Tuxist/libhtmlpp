@@ -111,6 +111,11 @@ void libhtmlpp::HtmlString::clear(){
     _InitString();
 }
 
+bool libhtmlpp::HtmlString::empty(){
+    return _Data.empty();
+}
+
+
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
     append(src);
     return *this;

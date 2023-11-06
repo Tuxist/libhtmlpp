@@ -317,7 +317,10 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         }
 
     }
-    
+
+    if(!firstEl)
+        return nullptr;
+
     Element* firsthel = firstEl->element;
 
     _buildtreenode(nullptr,firstEl->nextel,firstEl,lastEl);

@@ -127,6 +127,11 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     return *this;
 }
 
+libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string src){
+    _Data=src;
+    return *this;
+}
+
 const char libhtmlpp::HtmlString::operator[](size_t pos) const{
     if(_Data.length()<pos){
         HTMLException exp;
@@ -197,6 +202,21 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     _RootNode = (HtmlElement*)_buildTree(pos);
     return _RootNode;
 }
+
+bool libhtmlpp::HtmlString::validate(std::string &err)
+{
+    try{
+        HtmlElement *el=parse();
+        if(el){
+            delete el;
+            return true;
+        }
+    }catch(HTMLException &e){
+        err=e.what();
+    }
+    return false;
+}
+
 
 libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,libhtmlpp::DocElements* next,libhtmlpp::DocElements* start,libhtmlpp::DocElements* end){
     auto checkterminator = [end](DocElements *termel){

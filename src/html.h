@@ -158,6 +158,7 @@ namespace libhtmlpp {
         HtmlString& operator+=(const char* src);
         HtmlString& operator+=(HtmlString& hstring);
         HtmlString& operator=(const char* src);
+        HtmlString& operator=(std::string src);
         const char  operator[](size_t pos) const;
 
         HtmlString& operator<<(const char* src);
@@ -173,6 +174,7 @@ namespace libhtmlpp {
         void               clear();
         const char *       c_str();
         HtmlElement*       parse();
+        bool               validate(std::string &err);
     private:
         void              _InitString();
         void              _parseTree();

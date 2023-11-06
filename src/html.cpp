@@ -145,6 +145,11 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(std::string src) {
     return *this;
 }
 
+libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(HtmlString src) {
+    _Data.append(src._Data);
+    return *this;
+}
+
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(int src) {
     char buf[255];
     snprintf(buf, 255, "%d", src);

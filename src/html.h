@@ -164,6 +164,7 @@ namespace libhtmlpp {
 
         HtmlString& operator<<(const char* src);
         HtmlString& operator<<(std::string src);
+        HtmlString& operator<<(HtmlString src);
         HtmlString& operator<<(int src);
         HtmlString& operator<<(unsigned int src);
         HtmlString& operator<<(char src);

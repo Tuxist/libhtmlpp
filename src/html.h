@@ -171,6 +171,7 @@ namespace libhtmlpp {
         const size_t       size() ;
         const size_t       length() const;
         void               clear();
+        const char *       c_str();
         HtmlElement*       parse();
     private:
         void              _InitString();

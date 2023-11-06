@@ -185,6 +185,10 @@ const size_t libhtmlpp::HtmlString::length() const{
     return _Data.length();
 }
 
+const char * libhtmlpp::HtmlString::c_str(){
+    return _Data.c_str();
+}
+
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     HTMLException excp;
     _parseTree();

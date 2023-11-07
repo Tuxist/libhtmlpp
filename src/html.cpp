@@ -208,8 +208,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     return _RootNode;
 }
 
-bool libhtmlpp::HtmlString::validate(std::string &err)
-{
+bool libhtmlpp::HtmlString::validate(std::string &err){
     try{
         _parseTree();
         ssize_t pos = 0;

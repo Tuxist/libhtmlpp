@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HtmlCopy{
 public:
     HtmlCopy(libhtmlpp::Element *index){
-        index2=*index;
+        index2=index;
         libhtmlpp::HtmlElement  el("span");
         el.setAttribute("id","txt3");
         libhtmlpp::HtmlElement *body=index2.getElementbyTag("body");

@@ -561,6 +561,15 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
     }
 }
 
+
+libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element hel){
+    delete _firstAttr;
+    delete _childElement;
+    delete _nextElement;
+    _copy(nullptr,this,&hel);
+    return *this;
+}
+
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element& hel){
     delete _firstAttr;
     delete _childElement;

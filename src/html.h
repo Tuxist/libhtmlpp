@@ -187,9 +187,11 @@ namespace libhtmlpp {
         ssize_t**         _HTable;
         size_t            _HTableSize;
         HtmlElement*      _RootNode;
+        friend void HtmlEncode(const char *input,HtmlString &output);
     };
 
     void HtmlEncode(const char *input,HtmlString &output);
+    void HtmlEncode(const char *input,std::string &output);
 
     class HtmlPage {
     public:

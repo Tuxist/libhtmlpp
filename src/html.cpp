@@ -480,7 +480,7 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-void libhtmlpp::HtmlEncode(const char* input, HtmlString& output){
+void libhtmlpp::HtmlEncode(const char* input, std::string &output){
     size_t ilen=strlen(input);
     for(size_t i=0; i<ilen; ++i){
         size_t ii=0;
@@ -495,6 +495,10 @@ void libhtmlpp::HtmlEncode(const char* input, HtmlString& output){
         if(!changed)
             output.push_back(input[i]);
     }
+}
+
+void libhtmlpp::HtmlEncode(const char* input, HtmlString& output){
+    HtmlEncode(input,output._Data);
 }
 
 

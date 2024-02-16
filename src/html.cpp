@@ -312,7 +312,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         size_t epos=_HTableSize;
 
         for(size_t ii=i; ii<_HTableSize; ++ii){
-            if(_HTable[ii][0]>=0){
+            if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
                 epos=ii;
                 break;
             }

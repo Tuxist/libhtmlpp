@@ -325,7 +325,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
-                ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-1);
+                ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-2);
             }
         }
     }
@@ -465,12 +465,18 @@ void libhtmlpp::HtmlString::_parseTree(){
                 break;
             case HTMLTAG_CLOSE:
                 if (_Data.substr(ii - 2, 3) != "-->" && open) {
-                    if( _Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos ||
-                        _Data.find("/style",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos
-                    ){
-                        _HTable[ip][2] = ii;
-                        ++ip;
-                        open = false;
+                    _HTable[ip][2] = ii;
+                    ++ip;
+                    open = false;
+                    size_t pause=0;
+                    if( _Data.find("script",_HTable[ip][0],ii-_HTable[ip][0])!=std::string::npos){
+                        if( (pause=_Data.find("/script",ii) ) !=std::string::npos) {
+                            ii+=(pause-2);
+                        }
+                    }else if(_Data.find("style",_HTable[ip][0])!=std::string::npos){
+                        if( (pause=_Data.find("/script",ii) ) !=std::string::npos){
+                            ii+=(pause-2);
+                        }
                     }
                 }
                 break;

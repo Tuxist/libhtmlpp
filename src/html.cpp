@@ -474,7 +474,7 @@ void libhtmlpp::HtmlString::_parseTree(){
                             ii+=(pause-2);
                         }
                     }else if(_Data.find("style",_HTable[ip][0],ii-_HTable[ip][0])!=std::string::npos){
-                        if( (pause=_Data.find("/script",ii) ) !=std::string::npos){
+                        if( (pause=_Data.find("/style",ii) ) !=std::string::npos){
                             ii+=(pause-2);
                         }
                     }

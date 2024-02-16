@@ -467,13 +467,14 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
-                    if (_Data.substr(ii - 2, 3) != "-->" && !open) {
+                if (_Data.substr(ii - 2, 3) != "-->" && open) {
+                    if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
                         _HTable[ip][2] = ii;
                         ++ip;
                     }
+                    open = false;
                 }
-                open = false;
+                break;
             case ' ':
                 break;
             default:

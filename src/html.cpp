@@ -101,12 +101,16 @@ void libhtmlpp::HtmlString::insert(size_t pos, char src){
     _Data[pos]=src;
 }
 
+void libhtmlpp::HtmlString::insert(size_t pos, char src){
+    _Data[pos]=src;
+}
+
 void libhtmlpp::HtmlString::clear(){
     _Data.clear();
     for(size_t i=0; i<_HTableSize; ++i){
         delete[] _HTable[i];
     }
-    delete     _HTable;
+    delete[]   _HTable;
     delete     _RootNode;
     _InitString();
 }
@@ -293,45 +297,42 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
 
 
-	for (size_t i = 0; i < _HTableSize; ++i) {
-        if(_HTable[i][0] == -1 || _HTable[i][1] == -1)
+        for (size_t i = 0; i < _HTableSize; ++i) {
+        if(_HTable[i][0] == -1 || _HTable[i][2] == -1)
             continue;
 
-		addelement(&firstEl,&lastEl);
+                addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
         lastEl->epos = _HTable[i][2];
 
-		if (_HTable[i][1] != -1){
-			lastEl->terminator = true;
+                if (_HTable[i][1] != -1){
+                        lastEl->terminator = true;
         }
 
         _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
                      (HtmlElement**) &lastEl->element);
 
-
-        size_t epos=i;
+        size_t epos=0;
 
         for(size_t ii=i+1; ii<_HTableSize; ++ii){
-            if(_HTable[ii][0]>=0 && _HTable[ii][1]>=0){
+            if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
                 epos=ii;
                 break;
             }
         }
 
         if(epos < _HTableSize){
-            int tlen = (_HTable[epos][0]-_HTable[i][1]);
+            int tlen = (_HTable[epos][0]-_HTable[i][2]);
             if(tlen>1){
                 addelement(&firstEl,&lastEl);
                 lastEl->element=new TextElement();
-                lastEl->spos = _HTable[i][1]+1;
+                lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
                 ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-1);
                 lastEl->terminator=false;
             }
         }
-
-        i=epos;
     }
 
     if(!firstEl)
@@ -417,7 +418,6 @@ void libhtmlpp::HtmlString::_InitString(){
 
 void libhtmlpp::HtmlString::_parseTree(){
     HTMLException excp;
-
     if(_HTable){
         for(size_t i=0; i< _HTableSize; ++i){
             delete[] _HTable[i];
@@ -448,7 +448,8 @@ void libhtmlpp::HtmlString::_parseTree(){
         _HTable[is][2] = -1;
     }
 
-    bool open=false,pterm=false;
+    bool open=false;
+    bool pterm=false;
     size_t ip=0;
     for(size_t ii=0; ii<_Data.length(); ++ii){
         switch(_Data[ii]){
@@ -456,6 +457,7 @@ void libhtmlpp::HtmlString::_parseTree(){
                 if(!open){
                     if (_Data.substr(ii, 4) != "<!--") {
                         open = true;
+                        pterm = true;
                         _HTable[ip][0] = ii;
                     }else{
                         ii+=4;
@@ -467,16 +469,18 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
-                    if (_Data.substr(ii - 2, 3) != "-->" && !open) {
+                if (_Data.substr(ii - 2, 3) != "-->" && open) {
+                    if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
                         _HTable[ip][2] = ii;
                         ++ip;
+                        open = false;
                     }
                 }
-                open = false;
+                break;
             case ' ':
                 break;
             default:
+                pterm=false;
                 break;
         }
     }

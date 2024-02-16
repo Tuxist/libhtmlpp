@@ -103,6 +103,10 @@ void libhtmlpp::HtmlString::insert(size_t pos, char src){
 
 void libhtmlpp::HtmlString::clear(){
     _Data.clear();
+    for(size_t i=0; i<_HTableSize; ++i){
+        delete[] _HTable[i];
+    }
+    delete     _HTable;
     delete    *_HTable;
     delete     _RootNode;
     _InitString();
@@ -407,15 +411,20 @@ void libhtmlpp::HtmlString::_serialelize(std::string in, libhtmlpp::HtmlElement 
 }
 
 void libhtmlpp::HtmlString::_InitString(){
-    *_HTable=nullptr;
+    _HTable=nullptr;
     _HTableSize=0;
     _RootNode=nullptr;
 }
 
 void libhtmlpp::HtmlString::_parseTree(){
     HTMLException excp;
-    delete *_HTable;
 
+    if(_HTable){
+        for(size_t i=0; i< _HTableSize; ++i){
+            delete[] _HTable[i];
+        }
+        delete[] _HTable;
+    }
 
     size_t closetag = 0;
     for (size_t i = 0; i < _Data.size(); ++i) {
@@ -432,10 +441,12 @@ void libhtmlpp::HtmlString::_parseTree(){
 
     _HTableSize = closetag;
 
-    *_HTable = new ssize_t[_HTableSize];
+    _HTable = new ssize_t*[_HTableSize];
     for (size_t is = 0; is < _HTableSize; is++) {
+        _HTable[is] = new ssize_t[3];
         _HTable[is][0] = -1;
         _HTable[is][1] = -1;
+        _HTable[is][2] = -1;
     }
 
     bool open=false,pterm=false;

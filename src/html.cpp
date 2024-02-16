@@ -107,7 +107,6 @@ void libhtmlpp::HtmlString::clear(){
         delete[] _HTable[i];
     }
     delete     _HTable;
-    delete    *_HTable;
     delete     _RootNode;
     _InitString();
 }

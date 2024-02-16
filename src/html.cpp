@@ -413,12 +413,16 @@ void libhtmlpp::HtmlString::_parseTree(){
         switch (_Data[i]) {
         case HTMLTAG_OPEN:
             if (_Data.substr(i, 4) != "<!--") {
-                ++opentag;
+                size_t end = _Data.find(i,' ') >  _Data.find(i,'>') ? _Data.find(i,' ') : _Data.find(i,'>');
+                if(!_Data.substr(i, end).find("script"))
+                    ++opentag;
             }
             break;
         case HTMLTAG_CLOSE:
             if (_Data.substr(i - 2, 3) != "-->") {
-                ++closetag;
+                size_t end = _Data.find(i,' ') >  _Data.find(i,'>') ? _Data.find(i,' ') : _Data.find(i,'>');
+                if(!_Data.substr(i, end).find("script"))
+                    ++closetag;
             }
             break;
         default:

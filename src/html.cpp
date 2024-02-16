@@ -101,10 +101,6 @@ void libhtmlpp::HtmlString::insert(size_t pos, char src){
     _Data[pos]=src;
 }
 
-void libhtmlpp::HtmlString::insert(size_t pos, char src){
-    _Data[pos]=src;
-}
-
 void libhtmlpp::HtmlString::clear(){
     _Data.clear();
     for(size_t i=0; i<_HTableSize; ++i){

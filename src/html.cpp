@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "encode.h"
 
 #define HTMLTAG_OPEN '<'
+#define HTMLTAG_TERMINATE '/'
 #define HTMLTAG_CLOSE '>'
 
 #define HTMLELEMENT 0
@@ -305,17 +306,11 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
                      (HtmlElement**) &lastEl->element);
 
-<<<<<<< HEAD
+
         size_t epos=i;
 
         for(size_t ii=i+1; ii<_HTableSize; ++ii){
             if(_HTable[ii][0]>=0 && _HTable[ii][1]>=0){
-=======
-        size_t epos=_HTableSize;
-
-        for(size_t ii=i; ii<_HTableSize; ++ii){
-            if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
->>>>>>> parent of abd6092 (fix of the fixes)
                 epos=ii;
                 break;
             }
@@ -443,7 +438,7 @@ void libhtmlpp::HtmlString::_parseTree(){
         _HTable[is][1] = -1;
     }
 
-    bool open=false;
+    bool open=false,pterm=false;
     size_t ip=0;
     for(size_t ii=0; ii<_Data.length(); ++ii){
         switch(_Data[ii]){
@@ -457,15 +452,18 @@ void libhtmlpp::HtmlString::_parseTree(){
                     }
                 }
                 break;
+            case HTMLTAG_TERMINATE:
+                if(pterm==true)
+                    _HTable[ip][1]=ii;
+                break;
             case HTMLTAG_CLOSE:
-                if (_Data.substr(ii - 2, 3) != "-->" && open) {
-                    if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
-                        _HTable[ip][1] = ii;
+                if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
+                    if (_Data.substr(ii - 2, 3) != "-->" && !open) {
+                        _HTable[ip][2] = ii;
                         ++ip;
                     }
-                    open = false;
                 }
-                break;
+                open = false;
             case ' ':
                 break;
             default:

@@ -14,4 +14,4 @@ target_link_libraries(htmlcopytest htmlpp)
 
 add_test(htmlcopytest_right htmlcopytest ${CMAKE_SOURCE_DIR}/test/htmlfiles/right.html)
 
-set_tests_properties(htmlpagetest_wrong PROPERTIES WILL_FAIL TRUE)
+#set_tests_properties(htmlpagetest_wrong PROPERTIES WILL_FAIL TRUE)

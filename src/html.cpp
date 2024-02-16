@@ -309,9 +309,9 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
                      (HtmlElement**) &lastEl->element);
 
-        size_t epos=_HTableSize;
+        size_t epos=0;
 
-        for(size_t ii=i; ii<_HTableSize; ++ii){
+        for(size_t ii=i+1; ii<_HTableSize; ++ii){
             if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
                 epos=ii;
                 break;
@@ -329,8 +329,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->terminator=false;
             }
         }
-
-        i=epos;
     }
 
     if(!firstEl)
@@ -471,8 +469,8 @@ void libhtmlpp::HtmlString::_parseTree(){
                     if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
                         _HTable[ip][2] = ii;
                         ++ip;
+                        open = false;
                     }
-                    open = false;
                 }
                 break;
             case ' ':

@@ -466,7 +466,9 @@ void libhtmlpp::HtmlString::_parseTree(){
                 break;
             case HTMLTAG_CLOSE:
                 if (_Data.substr(ii - 2, 3) != "-->" && open) {
-                    if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
+                    if( _Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos ||
+                        _Data.find("/style",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos
+                    ){
                         _HTable[ip][2] = ii;
                         ++ip;
                         open = false;

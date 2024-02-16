@@ -293,17 +293,17 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
 
 
-        for (size_t i = 0; i < _HTableSize; ++i) {
+    for (size_t i = 0; i < _HTableSize; ++i) {
         if(_HTable[i][0] == -1 || _HTable[i][2] == -1)
             continue;
 
-                addelement(&firstEl,&lastEl);
+        addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
         lastEl->epos = _HTable[i][2];
 
-                if (_HTable[i][1] != -1){
-                        lastEl->terminator = true;
+        if (_HTable[i][1] != -1){
+            lastEl->terminator = true;
         }
 
         _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
@@ -326,7 +326,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
                 ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-1);
-                lastEl->terminator=false;
             }
         }
     }

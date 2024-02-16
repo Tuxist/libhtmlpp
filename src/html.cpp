@@ -291,7 +291,12 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         }
     };
 
+
+
 	for (size_t i = 0; i < _HTableSize; ++i) {
+        if(_HTable[i][0] == -1 || _HTable[i][2] == -1)
+            continue;
+
 		addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
@@ -304,18 +309,28 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
                      (HtmlElement**) &lastEl->element);
 
-        if((i+1) < _HTableSize){
-            int tlen = (_HTable[i+1][0]-_HTable[i][2]);
+        size_t epos=_HTableSize;
+
+        for(size_t ii=i; ii<_HTableSize; ++ii){
+            if(_HTable[ii][0]>=0){
+                epos=ii;
+                break;
+            }
+        }
+
+        if(epos < _HTableSize){
+            int tlen = (_HTable[epos][0]-_HTable[i][2]);
             if(tlen>1){
                 addelement(&firstEl,&lastEl);
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;
-                lastEl->epos = _HTable[i+1][0]-1;
+                lastEl->epos = _HTable[epos][0]-1;
                 ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-1);
                 lastEl->terminator=false;
             }
         }
 
+        i=epos;
     }
 
     if(!firstEl)
@@ -408,34 +423,18 @@ void libhtmlpp::HtmlString::_parseTree(){
         delete[] _HTable;
     }
 
-    size_t opentag = 0, closetag = 0;
+    size_t closetag = 0;
     for (size_t i = 0; i < _Data.size(); ++i) {
         switch (_Data[i]) {
-        case HTMLTAG_OPEN:
-            if (_Data.substr(i, 4) != "<!--") {
-                size_t end = _Data.find(i,' ') >  _Data.find(i,'>') ? _Data.find(i,' ') : _Data.find(i,'>');
-                if(_Data.substr(i, end).find("script")){
-                    i+=_Data.find("/script",end);
+            case HTMLTAG_CLOSE:
+                if (_Data.substr(i - 2, 3) != "-->") {
                     ++closetag;
                 }
-                ++opentag;
-            }
-            break;
-        case HTMLTAG_CLOSE:
-            if (_Data.substr(i - 2, 3) != "-->") {
-                ++closetag;
-            }
             break;
         default:
             break;
         }
     }
-
-    if (opentag == 0 || opentag != closetag) {
-        HTMLException excp;
-        throw excp[HTMLException::Critical] << "Wrong formated Document!";
-    }
-
 
     _HTableSize = closetag;
 
@@ -446,19 +445,21 @@ void libhtmlpp::HtmlString::_parseTree(){
         _HTable[is][1] = -1;
         _HTable[is][2] = -1;
     }
-    
+
     bool open=false;
     bool pterm=false;
     size_t ip=0;
     for(size_t ii=0; ii<_Data.length(); ++ii){
         switch(_Data[ii]){
             case HTMLTAG_OPEN:
-                if (_Data.substr(ii, 4) != "<!--") {
-                    open = true;
-                    pterm = true;
-                    _HTable[ip][0] = ii;
-                }else{
-                    ii+=4;
+                if(!open){
+                    if (_Data.substr(ii, 4) != "<!--") {
+                        open = true;
+                        pterm = true;
+                        _HTable[ip][0] = ii;
+                    }else{
+                        ii+=4;
+                    }
                 }
                 break;
             case HTMLTAG_TERMINATE:
@@ -466,16 +467,13 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if (_Data.substr(ii - 2, 3) != "-->") {
-                    if (!open) {
-                        excp[HTMLException::Error] << "HtmlString: parseTree parse Error couldn't fid opentag";
-                        throw excp;
+                if(_Data.find("/script",_HTable[ip][0],ii-_HTable[ip][0])==std::string::npos){
+                    if (_Data.substr(ii - 2, 3) != "-->" && !open) {
+                        _HTable[ip][2] = ii;
+                        ++ip;
                     }
-                    _HTable[ip][2] = ii;
-                    ++ip;
-                    open = false;
                 }
-                break;
+                open = false;
             case ' ':
                 break;
             default:

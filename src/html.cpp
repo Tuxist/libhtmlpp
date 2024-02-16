@@ -416,6 +416,7 @@ void libhtmlpp::HtmlString::_parseTree(){
                 size_t end = _Data.find(i,' ') >  _Data.find(i,'>') ? _Data.find(i,' ') : _Data.find(i,'>');
                 if(_Data.substr(i, end).find("script")){
                     i+=_Data.find("/script",end);
+                    ++closetag;
                 }
                 ++opentag;
             }

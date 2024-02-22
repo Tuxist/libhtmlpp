@@ -635,6 +635,7 @@ namespace libhtmlpp {
             else if(next->getType()==TextEl)
                 dest->_nextElement= new TextElement();
             std::thread ct(_copy,src,dest->_nextElement,next);
+            ct.join();
         }
     }
 };

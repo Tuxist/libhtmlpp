@@ -65,6 +65,21 @@ namespace libhtmlpp {
         }
 
         ~DocElements() {
+            DocElements *delel=this;
+            while(delel){
+                delel=delel->nextel;
+            }
+
+            DocElements *bef;
+
+            do{
+                bef=delel->prevel;
+                delete delel;
+            }while(bef!=this);
+
+            bef->nextel=nullptr;
+
+
             delete nextel;
         }
     };

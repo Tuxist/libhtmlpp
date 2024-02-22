@@ -65,7 +65,7 @@ namespace libhtmlpp {
         }
 
         ~DocElements() {
-            delete nextel;
+            // delete nextel;
         }
     };
 };

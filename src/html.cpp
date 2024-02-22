@@ -70,10 +70,10 @@ namespace libhtmlpp {
                 delel=delel->nextel;
             }
 
-            DocElements *bef;
+            DocElements *bef=delel;
 
             do{
-                bef=delel->prevel;
+                bef=bef->prevel;
                 delete delel;
             }while(bef!=this);
 

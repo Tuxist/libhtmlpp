@@ -203,7 +203,8 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     HTMLException excp;
     _parseTree();
     ssize_t pos = 0;
-    delete[] _RootNode;
+    if(_RootNode)
+        delete[] _RootNode;
     _RootNode = (HtmlElement*)_buildTree(pos);
     return _RootNode;
 }
@@ -336,8 +337,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     Element* firsthel = firstEl->element;
 
     _buildtreenode(nullptr,firstEl->nextel,firstEl,lastEl);
-
-    delete firstEl;
 
     return firsthel;
 }

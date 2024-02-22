@@ -5,7 +5,7 @@ enable_testing ()
 set(LIBV "1.0.0")
 set(Upstream_VERSION 1.0.0)
 
-SET(CMAKE_CXX_FLAGS "-fPIC -Wall -fsplit-stack")
+SET(CMAKE_CXX_FLAGS "-fPIC -Wl,-stack_size -Wl,0x1000000")
 
 configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 

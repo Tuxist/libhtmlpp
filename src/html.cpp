@@ -606,36 +606,39 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
 }
 
 namespace libhtmlpp {
+
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
-        if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
-            libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
-            libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
-            hdest->setTagname(hsrc->getTagname());
-            for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
-                hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
+
+        auto copy_r = [](const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
+            if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
+                libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
+                libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
+                hdest->setTagname(hsrc->getTagname());
+                for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
+                    hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
+                }
+                if(hsrc->_childElement){
+                    if(hsrc->_childElement->getType()==HtmlEl)
+                        hdest->_childElement= new HtmlElement;
+                    else if(hsrc->_childElement->getType()==TextEl)
+                        hdest->_childElement= new TextElement;
+                    _copy(nullptr,hdest->_childElement,hsrc->_childElement);
+                }
+            }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
+                ((TextElement*)dest)->setText(((TextElement*)src)->getText());
             }
-            if(hsrc->_childElement){
-                if(hsrc->_childElement->getType()==HtmlEl)
-                    hdest->_childElement= new HtmlElement;
-                else if(hsrc->_childElement->getType()==TextEl)
-                    hdest->_childElement= new TextElement;
-                _copy(nullptr,hdest->_childElement,hsrc->_childElement);
-            }
-        }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
-            ((TextElement*)dest)->setText(((TextElement*)src)->getText());
-        }
 
-        dest->_prevElement=(Element*)prev;
+            dest->_prevElement=(Element*)prev;
+        };
 
-        const Element* next=src->nextElement();
+        copy_r(prev,dest,src);
 
-        if(next){
-            if(next->getType()==HtmlEl)
+        for(const Element* curel=src->nextElement(); curel; curel=curel->nextElement()){
+            if(curel->getType()==HtmlEl)
                 dest->_nextElement= new HtmlElement();
-            else if(next->getType()==TextEl)
+            else if(curel->getType()==TextEl)
                 dest->_nextElement= new TextElement();
-            std::thread ct(_copy,src,dest->_nextElement,next);
-            ct.join();
+            copy_r(src,dest->_nextElement,curel);
         }
     }
 };

@@ -65,8 +65,17 @@ namespace libhtmlpp {
         }
 
         ~DocElements() {
-            if (nextel)
-                delete nextel;
+            libhtmlpp::DocElements* lastel=this;
+
+            while(lastel->nextel!=nullptr){
+                lastel=lastel->nextel;
+            }
+
+            do{
+                libhtmlpp::DocElements* delel=lastel;
+                lastel=lastel->prevel;
+                delete delel;
+            }while(lastel!=this);
         }
     };
 };

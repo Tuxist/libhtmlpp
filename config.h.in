@@ -1,2 +1,3 @@
 #define HTML_BLOCKSIZE 255
 #define ${CMAKE_SYSTEM_NAME}
+#define MAXTHREADS 8

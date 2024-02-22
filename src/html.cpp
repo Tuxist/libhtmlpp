@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdarg.h>
 
+#include <atomic>
 #include <fstream>
 #include <thread>
 
@@ -48,6 +49,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLHEADER 3
 
 namespace libhtmlpp {
+
+    std::atomic_int _MaxThreads;
+
     class DocElements {
     public:
         libhtmlpp::Element*     element;
@@ -606,8 +610,8 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
 }
 
 namespace libhtmlpp {
-
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
+        ++_MaxThreads;
 
         auto copy_r = [](const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
             if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
@@ -622,7 +626,9 @@ namespace libhtmlpp {
                         hdest->_childElement= new HtmlElement;
                     else if(hsrc->_childElement->getType()==TextEl)
                         hdest->_childElement= new TextElement;
-                    _copy(nullptr,hdest->_childElement,hsrc->_childElement);
+                    while(_MaxThreads>8);
+                    std::thread cpt(_copy,nullptr,hdest->_childElement,hsrc->_childElement);
+                    cpt.join();
                 }
             }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
                 ((TextElement*)dest)->setText(((TextElement*)src)->getText());
@@ -643,7 +649,9 @@ namespace libhtmlpp {
 
             dest=dest->_nextElement;
         }
+        --_MaxThreads;
     }
+
 };
 
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){

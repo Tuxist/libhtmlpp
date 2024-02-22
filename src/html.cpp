@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdarg.h>
 
 #include <fstream>
+#include <thread>
 
 #include "utils.h"
 #include "html.h"
@@ -633,7 +634,7 @@ namespace libhtmlpp {
                 dest->_nextElement= new HtmlElement();
             else if(next->getType()==TextEl)
                 dest->_nextElement= new TextElement();
-            _copy(src,dest->_nextElement,next);
+            std::thread ct(_copy,src,dest->_nextElement,next);
         }
     }
 };

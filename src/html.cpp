@@ -338,6 +338,8 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     _buildtreenode(nullptr,firstEl->nextel,firstEl,lastEl);
 
+    delete firstEl;
+
     return firsthel;
 }
 

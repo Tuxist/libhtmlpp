@@ -634,11 +634,14 @@ namespace libhtmlpp {
         copy_r(prev,dest,src);
 
         for(const Element* curel=src->nextElement(); curel; curel=curel->nextElement()){
+
             if(curel->getType()==HtmlEl)
                 dest->_nextElement= new HtmlElement();
             else if(curel->getType()==TextEl)
                 dest->_nextElement= new TextElement();
             copy_r(src,dest->_nextElement,curel);
+
+            dest=dest->_nextElement;
         }
     }
 };

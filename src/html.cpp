@@ -468,7 +468,6 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][2] = ii;
                     ++ip;
                     open = false;
-                    size_t pause=0;
                 }
                 break;
             case ' ':

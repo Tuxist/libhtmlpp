@@ -971,19 +971,27 @@ PRINTNEXTEL:
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{
-    for(const Element *curel=this; curel; curel=curel->nextElement()){
+    std::stack <Element*> *childs=new std::stack <Element*>;
+    const Element *curel=this;
+SEARCHBYID:
+    while( (curel=curel->nextElement()) ) {
         if(curel->getType()==HtmlEl){
             if(((HtmlElement*)curel)->_childElement){
-                HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyID(id);
-                if(find)
-                    return find;
+                childs->push(((HtmlElement*)curel)->_childElement);
             }
             const char *key=((HtmlElement*)curel)->getAtributte("id");
             if(key && strcmp(key,id)==0){
+                delete childs;
                 return (HtmlElement*)curel;
             }
         }
     }
+    if(!childs->empty()){
+        curel=childs->top();
+        childs->pop();
+        goto SEARCHBYID;
+    }
+    delete childs;
     return nullptr;
 }
 

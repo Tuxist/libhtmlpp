@@ -101,11 +101,11 @@ libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){
 
 
 void libhtmlpp::HtmlString::append(const char* src, size_t srcsize){
-    _Data.append(src,srcsize);
+    _Data->append(src,srcsize);
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
-    _Data.push_back(src);
+    _Data->push_back(src);
 }
 
 void libhtmlpp::HtmlString::append(const char* src) {
@@ -117,7 +117,7 @@ void libhtmlpp::HtmlString::insert(size_t pos, char src){
 }
 
 void libhtmlpp::HtmlString::clear(){
-    _Data.clear();
+    _Data->clear();
     for(size_t i=0; i<_HTableSize; ++i){
         delete[] _HTable[i];
     }
@@ -127,7 +127,7 @@ void libhtmlpp::HtmlString::clear(){
 }
 
 bool libhtmlpp::HtmlString::empty(){
-    return _Data.empty();
+    return _Data->empty();
 }
 
 
@@ -137,28 +137,32 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
-    _Data.append(hstring._Data);
+    _Data->append(hstring._Data);
     return *this;
 }
 
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
-    _Data=src;
+    if(_Data)
+        delete _Data;
+    _Data=new std::string(src);
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string src){
-    _Data=src;
+    if(_Data)
+        delete _Data;
+    _Data=new std::string(src);
     return *this;
 }
 
 const char libhtmlpp::HtmlString::operator[](size_t pos) const{
-    if(_Data.length()<pos){
+    if(_Data->length()<pos){
         HTMLException exp;
         exp[HTMLException::Error] << "HtmlString[] out of range !";
         throw exp;
     }
-    return _Data[pos];
+    return _Data->at(pos);
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(const char* src) {
@@ -167,12 +171,12 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(const char* src) {
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(std::string src) {
-    _Data.append(src);
+    _Data->append(src);
     return *this;
 }
 
 libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(HtmlString src) {
-    _Data.append(src._Data);
+    _Data->append(*src._Data);
     return *this;
 }
 
@@ -203,15 +207,15 @@ libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator<<(char src) {
 }
 
 const size_t libhtmlpp::HtmlString::size() {
-    return _Data.size();
+    return _Data->size();
 }
 
 const size_t libhtmlpp::HtmlString::length() const{
-    return _Data.length();
+    return _Data->length();
 }
 
 const char * libhtmlpp::HtmlString::c_str(){
-    return _Data.c_str();
+    return _Data->c_str();
 }
 
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
@@ -322,7 +326,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             lastEl->terminator = true;
         }
 
-        _serialelize(_Data.substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
+        _serialelize(_Data->substr(lastEl->spos,(lastEl->epos - lastEl->spos)+1),
                      (HtmlElement**) &lastEl->element);
 
         size_t epos=0;
@@ -341,7 +345,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
-                ((TextElement*) lastEl->element)->_Text= new std::string(_Data.substr(lastEl->spos,tlen-1));
+                ((TextElement*) lastEl->element)->_Text= new std::string(_Data->substr(lastEl->spos,tlen-1));
             }
         }
     }
@@ -437,10 +441,10 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 
     size_t closetag = 0;
-    for (size_t i = 0; i < _Data.size(); ++i) {
-        switch (_Data[i]) {
+    for (size_t i = 0; i < _Data->size(); ++i) {
+        switch (_Data->at(i)) {
             case HTMLTAG_CLOSE:
-                if (_Data.substr(i - 2, 3) != "-->") {
+                if (_Data->substr(i - 2, 3) != "-->") {
                     ++closetag;
                 }
             break;
@@ -462,11 +466,11 @@ void libhtmlpp::HtmlString::_parseTree(){
     bool open=false;
     bool pterm=false;
     size_t ip=0;
-    for(size_t ii=0; ii<_Data.length(); ++ii){
-        switch(_Data[ii]){
+    for(size_t ii=0; ii<_Data->length(); ++ii){
+        switch(_Data->at(ii)){
             case HTMLTAG_OPEN:
                 if(!open){
-                    if (_Data.substr(ii, 4) != "<!--") {
+                    if (_Data->substr(ii, 4) != "<!--") {
                         open = true;
                         pterm = true;
                         _HTable[ip][0] = ii;
@@ -480,7 +484,7 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if (_Data.substr(ii - 2, 3) != "-->" && open) {
+                if (_Data->substr(ii - 2, 3) != "-->" && open) {
                     _HTable[ip][2] = ii;
                     ++ip;
                     open = false;
@@ -495,25 +499,25 @@ void libhtmlpp::HtmlString::_parseTree(){
     }
 }
 
-void libhtmlpp::HtmlEncode(const char* input, std::string &output){
+void libhtmlpp::HtmlEncode(const char* input, std::string *output){
     size_t ilen=strlen(input);
     for(size_t i=0; i<ilen; ++i){
         size_t ii=0;
         bool changed=false;
         while(HtmlSigns[ii][0]){
             if(input[i]==HtmlSigns[ii][0][0]){
-                output.append(HtmlSigns[ii][1]);
+                output->append(HtmlSigns[ii][1]);
                 changed=true;
             }
             ++ii;
         }
         if(!changed)
-            output.push_back(input[i]);
+            output->push_back(input[i]);
     }
 }
 
-void libhtmlpp::HtmlEncode(const char* input, HtmlString& output){
-    HtmlEncode(input,output._Data);
+void libhtmlpp::HtmlEncode(const char* input, HtmlString* output){
+    HtmlEncode(input,output->_Data);
 }
 
 
@@ -939,7 +943,7 @@ PRINTNEXTEL:
                 el=cpylist->top();
 
                 output->append("</");
-                output->append(*((HtmlElement*) el)->_TagName);
+                output->append(((HtmlElement*) el)->getTagname());
                 output->append(">");
                 el=el->_nextElement;
                 cpylist->pop();
@@ -958,7 +962,7 @@ PRINTNEXTEL:
                 el=cpylist->top();
 
                 output->append("</");
-                output->append(*((HtmlElement*) el)->_TagName);
+                output->append(((HtmlElement*) el)->getTagname());
                 output->append(">");
                 el=el->_nextElement;
                 cpylist->pop();

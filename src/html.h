@@ -183,15 +183,15 @@ namespace libhtmlpp {
         void              _serialelize(std::string  in, HtmlElement** out);
         Element*          _buildTree(ssize_t& pos);
         DocElements      *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
-        std::string       _Data;
+        std::string      *_Data;
         ssize_t**         _HTable;
         size_t            _HTableSize;
         HtmlElement*      _RootNode;
-        friend void HtmlEncode(const char *input,HtmlString &output);
+        friend void HtmlEncode(const char *input,HtmlString *output);
     };
 
-    void HtmlEncode(const char *input,HtmlString &output);
-    void HtmlEncode(const char *input,std::string &output);
+    void HtmlEncode(const char *input,HtmlString *output);
+    void HtmlEncode(const char *input,std::string *output);
 
     class HtmlPage {
     public:

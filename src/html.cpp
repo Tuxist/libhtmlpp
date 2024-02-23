@@ -138,7 +138,7 @@ libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator+=(const char *src){
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString& hstring){
-    _Data->append(hstring._Data);
+    _Data->append(*hstring._Data);
     return *this;
 }
 

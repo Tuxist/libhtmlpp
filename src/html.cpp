@@ -92,6 +92,7 @@ libhtmlpp::HtmlString::HtmlString(){
 
 libhtmlpp::HtmlString::~HtmlString(){
    clear();
+   delete _Data;
 }
 
 libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){

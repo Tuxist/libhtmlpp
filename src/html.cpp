@@ -607,7 +607,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _copy(nullptr,this,hel);
     return *this;
 }
-#include <iostream>
+
 namespace libhtmlpp {
 
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){

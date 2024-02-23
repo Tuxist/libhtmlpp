@@ -46,9 +46,10 @@ public:
     }
 
     void printModify(){
-        std::string html;
-        libhtmlpp::print(&index2,nullptr,html);
+        std::string *html = new std::string;
+        libhtmlpp::print(&index2,html);
         std::cout << html << std::endl;
+        delete html;
     }
 
     ~HtmlCopy(){
@@ -66,10 +67,10 @@ int main(int arc,char *argv[]){
         HtmlCopy cpy(index);
 
 
-        std::string html;
+        std::string *html = new std::string;
 
         std::cout << "Orginal html:" << std::endl;
-        libhtmlpp::print(index,nullptr,html);
+        libhtmlpp::print(index,html);
 
         std::cout << "Modified html:" << std::endl;
 
@@ -78,6 +79,7 @@ int main(int arc,char *argv[]){
 
         std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
+        delete html;
     }catch(libhtmlpp::HTMLException &exp){
         std::cout << exp.what() << std::endl;
         std::cout << Red << "Test not Passed!" << NOCOLOR << std::endl;

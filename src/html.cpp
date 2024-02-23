@@ -943,13 +943,16 @@ PRINTNEXTEL:
             while(!cpylist->empty()){
                 el=cpylist->top();
 
+                el=el->_nextElement;
+                cpylist->pop();
+                if(el->_nextElement){
+                    el=el->_nextElement;
+                    goto PRINTNEXTEL;
+                }
+
                 output->append("</");
                 output->append(((HtmlElement*) el)->getTagname());
                 output->append(">");
-                el=el->_nextElement;
-                cpylist->pop();
-                if(el)
-                    goto PRINTNEXTEL;
             }
         }break;
 
@@ -962,13 +965,15 @@ PRINTNEXTEL:
             while(!cpylist->empty()){
                 el=cpylist->top();
 
+                cpylist->pop();
+                if(el->_nextElement){
+                    el=el->_nextElement;
+                    goto PRINTNEXTEL;
+                }
+
                 output->append("</");
                 output->append(((HtmlElement*) el)->getTagname());
                 output->append(">");
-                el=el->_nextElement;
-                cpylist->pop();
-                if(el)
-                    goto PRINTNEXTEL;
 
             }
         }break;

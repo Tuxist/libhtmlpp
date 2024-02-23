@@ -135,7 +135,7 @@ namespace libhtmlpp {
         void        setText(const char *txt);
 
     protected:
-        std::string   _Text;
+        std::string   *_Text;
         friend class HtmlString;
         friend void print(Element* el, HtmlElement* parent,std::string &output);
         friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);

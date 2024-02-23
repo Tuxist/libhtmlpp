@@ -341,7 +341,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
-                ((TextElement*) lastEl->element)->_Text=_Data.substr(lastEl->spos,tlen-1);
+                ((TextElement*) lastEl->element)->_Text= new std::string(_Data.substr(lastEl->spos,tlen-1));
             }
         }
     }
@@ -776,6 +776,7 @@ libhtmlpp::TextElement::TextElement(const TextElement &texel) : TextElement(){
 }
 
 libhtmlpp::TextElement::~TextElement(){
+    delete _Text;
 }
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
@@ -791,11 +792,11 @@ libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Elem
 }
 
 void libhtmlpp::TextElement::setText(const char* txt){
-    _Text=txt;
+    _Text=new std::string(txt);
 }
 
 const char * libhtmlpp::TextElement::getText(){
-    return _Text.c_str();
+    return _Text->c_str();
 }
 
 
@@ -942,7 +943,7 @@ PRINTNEXTEL:
         }break;
 
         case TextEl :{
-            output.append(((TextElement*)el)->_Text);
+            output.append(*((TextElement*)el)->_Text);
             if (el->_nextElement) {
                 el=el->_nextElement;
                 goto PRINTNEXTEL;

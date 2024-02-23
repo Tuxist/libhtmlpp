@@ -110,7 +110,7 @@ namespace libhtmlpp {
 
     private:
         //if text tagname must be zero
-        std::string  _TagName;
+        std::string   *_TagName;
 
         //if text Attributes must be zero
         Attributes*    _firstAttr;

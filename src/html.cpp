@@ -519,7 +519,7 @@ void libhtmlpp::HtmlEncode(const char* input, HtmlString& output){
 
 libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : HtmlElement(){
     if(tagname)
-        _TagName = tagname;
+        _TagName = new std::string(tagname);
 }
 
 libhtmlpp::HtmlElement::HtmlElement() : Element(){
@@ -539,14 +539,17 @@ libhtmlpp::HtmlElement::~HtmlElement(){
         delete   _firstAttr;
         delete   _childElement;
     }
+    delete _TagName;
 }
 
 void libhtmlpp::HtmlElement::setTagname(const char* name){
-    _TagName=name;
+    if(_TagName)
+        delete _TagName;
+    _TagName=new std::string(name);
 }
 
 const char* libhtmlpp::HtmlElement::getTagname() const{
-    return _TagName.c_str();
+    return _TagName->c_str();
 }
 
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
@@ -906,7 +909,7 @@ PRINTNEXTEL:
     switch(el->_Type){
         case HtmlEl:{
             output.append("<");
-            output.append(((HtmlElement*) el)->_TagName);
+            output.append(*((HtmlElement*) el)->_TagName);
             for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
                 output.append(" ");
                 output.append(curattr->_Key);
@@ -933,7 +936,7 @@ PRINTNEXTEL:
                 el=cpylist->top();
 
                 output.append("</");
-                output.append(((HtmlElement*) el)->_TagName);
+                output.append(*((HtmlElement*) el)->_TagName);
                 output.append(">");
                 el=el->_nextElement;
                 cpylist->pop();
@@ -952,7 +955,7 @@ PRINTNEXTEL:
                 el=cpylist->top();
 
                 output.append("</");
-                output.append(((HtmlElement*) el)->_TagName);
+                output.append(*((HtmlElement*) el)->_TagName);
                 output.append(">");
                 el=el->_nextElement;
                 cpylist->pop();

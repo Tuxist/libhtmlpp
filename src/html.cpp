@@ -30,9 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdarg.h>
 
-#include <atomic>
 #include <fstream>
-#include <thread>
+#include <stack>
 
 #include "utils.h"
 #include "html.h"
@@ -49,9 +48,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLHEADER 3
 
 namespace libhtmlpp {
-
-    std::atomic_int _MaxThreads;
-
     class DocElements {
     public:
         libhtmlpp::Element*     element;
@@ -589,6 +585,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _firstAttr;
     delete _childElement;
     delete _nextElement;
+
     _copy(nullptr,this,&hel);
     return *this;
 }
@@ -597,6 +594,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _firstAttr;
     delete _childElement;
     delete _nextElement;
+
     _copy(nullptr,this,&hel);
     return *this;
 }
@@ -605,53 +603,84 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _firstAttr;
     delete _childElement;
     delete _nextElement;
+
     _copy(nullptr,this,hel);
     return *this;
 }
-
+#include <iostream>
 namespace libhtmlpp {
+
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
-        ++_MaxThreads;
 
-        auto copy_r = [](const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
-            if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
-                libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
-                libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
-                hdest->setTagname(hsrc->getTagname());
-                for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
-                    hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
-                }
-                if(hsrc->_childElement){
-                    if(hsrc->_childElement->getType()==HtmlEl)
-                        hdest->_childElement= new HtmlElement;
-                    else if(hsrc->_childElement->getType()==TextEl)
-                        hdest->_childElement= new TextElement;
-                    while(_MaxThreads>8);
-                    std::thread cpt(_copy,nullptr,hdest->_childElement,hsrc->_childElement);
-                    cpt.join();
-                }
-            }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
-                ((TextElement*)dest)->setText(((TextElement*)src)->getText());
-            }
+        struct cpyel {
+            cpyel(){
 
-            dest->_prevElement=(Element*)prev;
+            };
+
+            cpyel(const cpyel &src){
+                destin=src.destin;
+                source=src.source;
+            };
+
+            libhtmlpp::Element *destin;
+            libhtmlpp::Element *source;
         };
 
-        copy_r(prev,dest,src);
+        std::stack<cpyel> *cpylist = new std::stack<cpyel>;
 
-        for(const Element* curel=src->nextElement(); curel; curel=curel->nextElement()){
+NEXTEL:
+        if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
+            libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
+            libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
 
-            if(curel->getType()==HtmlEl)
-                dest->_nextElement= new HtmlElement();
-            else if(curel->getType()==TextEl)
-                dest->_nextElement= new TextElement();
-            copy_r(src,dest->_nextElement,curel);
+            hdest->setTagname(hsrc->getTagname());
+            for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
+                hdest->setAttribute(cattr->_Key.c_str(),cattr->_Value.c_str());
+            }
 
-            dest=dest->_nextElement;
+            if(hsrc->_childElement){
+                if(hsrc->_childElement->getType()==HtmlEl){
+                    hdest->_childElement= new HtmlElement;
+                    hdest->_Type=HtmlEl;
+                }else if(hsrc->_childElement->getType()==TextEl){
+                    hdest->_childElement= new TextElement;
+                    hdest->_Type=TextEl;
+                }
+                cpyel childel;
+                childel.destin=hdest->_childElement;
+                childel.source=hsrc->_childElement;
+                cpylist->push(childel);
+            }
+        }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
+            ((TextElement*)dest)->setText(((TextElement*)src)->getText());
         }
-        --_MaxThreads;
-    }
 
+        dest->_prevElement=(Element*)prev;
+
+        Element* next=src->nextElement();
+
+        if(next){
+             if(next->getType()==HtmlEl)
+                dest->_nextElement= new HtmlElement();
+             else if(next->getType()==TextEl)
+                dest->_nextElement= new TextElement();
+             prev=src;
+             src=next;
+             dest=dest->_nextElement;
+             goto NEXTEL;
+        }
+
+        if(!cpylist->empty()){
+            cpyel childel(cpylist->top());
+            prev=nullptr;
+            dest=childel.destin;
+            src=childel.source;;
+            cpylist->pop();
+            goto NEXTEL;
+        }
+
+        delete cpylist;
+    }
 };
 
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
@@ -699,12 +728,14 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
     delete _nextElement;
+    _nextElement=nullptr;
     _copy(nullptr,this,&hel);
     return *this;
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element *hel){
     delete _nextElement;
+    _nextElement=nullptr;
     _copy(nullptr,this,hel);
     return *this;
 }
@@ -867,6 +898,10 @@ void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
 
 
 void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
+
+    std::stack<libhtmlpp::Element*> *cpylist = new std::stack<libhtmlpp::Element*>;
+
+PRINTNEXTEL:
     switch(el->_Type){
         case HtmlEl:{
             output.append("<");
@@ -883,25 +918,46 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             output.append(">");
 
             if (((HtmlElement*) el)->_childElement) {
-                print((Element*)((HtmlElement*) el)->_childElement, (HtmlElement*)el, output);
-                output.append("</");
-                output.append(((HtmlElement*) el)->_TagName);
-                output.append(">");
-            }else if(strcmp(((HtmlElement*) el)->getTagname(),"div")==0){
-                output.append("</");
-                output.append(((HtmlElement*) el)->_TagName);
-                output.append(">");
+                cpylist->push(el);
+                el=((HtmlElement*) el)->_childElement;
+                goto PRINTNEXTEL;
             }
 
             if (el->_nextElement) {
-                print(el->_nextElement,parent,output);
+                el=el->_nextElement;
+                goto PRINTNEXTEL;
+            }
+
+            while(!cpylist->empty()){
+                el=cpylist->top();
+
+                output.append("</");
+                output.append(((HtmlElement*) el)->_TagName);
+                output.append(">");
+                el=el->_nextElement;
+                cpylist->pop();
+                if(el)
+                    goto PRINTNEXTEL;
             }
         }break;
 
         case TextEl :{
             output.append(((TextElement*)el)->_Text);
             if (el->_nextElement) {
-                print(el->_nextElement,parent,output);
+                el=el->_nextElement;
+                goto PRINTNEXTEL;
+            }
+            while(!cpylist->empty()){
+                el=cpylist->top();
+
+                output.append("</");
+                output.append(((HtmlElement*) el)->_TagName);
+                output.append(">");
+                el=el->_nextElement;
+                cpylist->pop();
+                if(el)
+                    goto PRINTNEXTEL;
+
             }
         }break;
 
@@ -911,6 +967,7 @@ void libhtmlpp::print(Element* el, HtmlElement* parent,std::string& output) {
             throw excp;
             break;
     }
+    delete cpylist;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{

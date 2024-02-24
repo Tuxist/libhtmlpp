@@ -48,7 +48,7 @@ public:
     void printModify(){
         std::string *html = new std::string;
         libhtmlpp::print(&index2,html);
-        std::cout << html << std::endl;
+        std::cout << *html << std::endl;
         delete html;
     }
 
@@ -71,13 +71,12 @@ int main(int arc,char *argv[]){
 
         std::cout << "Orginal html:" << std::endl;
         libhtmlpp::print(index,html);
+        std::cout << *html << std::endl;
 
         std::cout << "Modified html:" << std::endl;
 
         cpy.printModify();
 
-
-        std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
         delete html;
     }catch(libhtmlpp::HTMLException &exp){

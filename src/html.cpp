@@ -255,7 +255,6 @@ bool libhtmlpp::HtmlString::validate(std::string &err){
     return false;
 }
 
-
 libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,libhtmlpp::DocElements* next,libhtmlpp::DocElements* start,libhtmlpp::DocElements* end){
     auto checkterminator = [end](DocElements *termel){
         int i=0;
@@ -267,7 +266,7 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
             }
 
             if (curcel->element->_Type==HtmlEl && curcel->terminator &&
-                ((HtmlElement*)curcel->element)->_TagName == ((HtmlElement*)termel->element)->_TagName) {
+                *((HtmlElement*)curcel->element)->_TagName == *((HtmlElement*)termel->element)->_TagName) {
                 if(i==0)
                     return curcel;
                 else
@@ -963,7 +962,7 @@ void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
     }
 }
 
-
+#include <iostream>
 void libhtmlpp::print(Element* el, std::string *output) {
 
     std::stack<libhtmlpp::Element*> *cpylist = new std::stack<libhtmlpp::Element*>;

@@ -87,6 +87,7 @@ namespace libhtmlpp {
 };
 
 libhtmlpp::HtmlString::HtmlString(){
+    _Data = new std::string;
     _InitString();
 }
 
@@ -95,8 +96,7 @@ libhtmlpp::HtmlString::~HtmlString(){
    delete _Data;
 }
 
-libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){
-    _InitString();
+libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str) : HtmlString(){
     _Data=str._Data;
 }
 
@@ -144,16 +144,14 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
-    if(_Data)
-        delete _Data;
-    _Data=new std::string(src);
+    clear();
+    *_Data=src;
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string src){
-    if(_Data)
-        delete _Data;
-    _Data=new std::string(src);
+    clear();
+    *_Data=src;
     return *this;
 }
 
@@ -616,7 +614,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _copy(nullptr,this,hel);
     return *this;
 }
-
+#include <iostream>
 namespace libhtmlpp {
 
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -631,13 +629,13 @@ namespace libhtmlpp {
                 source=src.source;
             };
 
-            libhtmlpp::Element *destin;
-            libhtmlpp::Element *source;
+            libhtmlpp::Element       *destin;
+            const libhtmlpp::Element *source;
         };
 
         std::stack<cpyel> *cpylist = new std::stack<cpyel>;
 
-NEXTEL:
+NEWEL:
         if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
             libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
             libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
@@ -656,7 +654,7 @@ NEXTEL:
                     hdest->_Type=TextEl;
                 }
                 cpyel childel;
-                childel.destin=hdest->_childElement;
+                childel.destin=hdest->_childElement;;
                 childel.source=hsrc->_childElement;
                 cpylist->push(childel);
             }
@@ -676,7 +674,7 @@ NEXTEL:
              prev=src;
              src=next;
              dest=dest->_nextElement;
-             goto NEXTEL;
+             goto NEWEL;
         }
 
         if(!cpylist->empty()){
@@ -685,7 +683,7 @@ NEXTEL:
             dest=childel.destin;
             src=childel.source;;
             cpylist->pop();
-            goto NEXTEL;
+            goto NEWEL;
         }
 
         delete cpylist;
@@ -943,38 +941,38 @@ PRINTNEXTEL:
             while(!cpylist->empty()){
                 el=cpylist->top();
 
-                el=el->_nextElement;
+                output->append("</");
+                output->append(((HtmlElement*) el)->getTagname());
+                output->append(">");
+
                 cpylist->pop();
                 if(el->_nextElement){
                     el=el->_nextElement;
                     goto PRINTNEXTEL;
                 }
-
-                output->append("</");
-                output->append(((HtmlElement*) el)->getTagname());
-                output->append(">");
             }
         }break;
 
         case TextEl :{
             output->append(*((TextElement*)el)->_Text);
+
             if (el->_nextElement) {
                 el=el->_nextElement;
                 goto PRINTNEXTEL;
             }
+
             while(!cpylist->empty()){
                 el=cpylist->top();
+
+                output->append("</");
+                output->append(((HtmlElement*) el)->getTagname());
+                output->append(">");
 
                 cpylist->pop();
                 if(el->_nextElement){
                     el=el->_nextElement;
                     goto PRINTNEXTEL;
                 }
-
-                output->append("</");
-                output->append(((HtmlElement*) el)->getTagname());
-                output->append(">");
-
             }
         }break;
 
@@ -1013,7 +1011,10 @@ SEARCHBYID:
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyTag(const char *tag) const{
-    for(const Element *curel=this; curel; curel=curel->nextElement()){
+    std::stack <Element*> *childs=new std::stack <Element*>;
+    const Element *curel=this;
+SEARCHBYTAG:
+    while( (curel=curel->nextElement()) ) {
         if(curel->getType()==HtmlEl){
             if(((HtmlElement*)curel)->_childElement){
                 HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyTag(tag);
@@ -1026,6 +1027,12 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyTag(const char *tag)
             }
         }
     }
+    if(!childs->empty()){
+        curel=childs->top();
+        childs->pop();
+        goto SEARCHBYTAG;
+    }
+    delete childs;
     return nullptr;
 }
 

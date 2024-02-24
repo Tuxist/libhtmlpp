@@ -148,6 +148,9 @@ namespace libhtmlpp {
     public:
         HtmlString();
         HtmlString(const HtmlString &str);
+        HtmlString(const HtmlString *str);
+        HtmlString(const char *str);
+        HtmlString(std::string *str);
         ~HtmlString();
 
         void append(const char* src, size_t srcsize);
@@ -202,10 +205,11 @@ namespace libhtmlpp {
         void         saveFile(const char* path);
         HtmlElement *loadString(const std::string *src);
         HtmlElement *loadString(const char *src);
-        HtmlElement *loadString(HtmlString node);
+        HtmlElement *loadString(const HtmlString &node);
+        HtmlElement *loadString(const HtmlString *node);
     private:
         void         _CheckHeader(const HtmlString& page);
-        HtmlString   _Page;
+        HtmlString  *_Page;
     };
 
     class HtmlTable {

@@ -97,8 +97,21 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str) : HtmlString(){
-    _Data=str._Data;
+    *_Data=*str._Data;
 }
+
+libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString* str) : HtmlString(){
+    *_Data=*str->_Data;
+}
+
+libhtmlpp::HtmlString::HtmlString(const char* str) : HtmlString(){
+    *_Data=str;
+}
+
+libhtmlpp::HtmlString::HtmlString(std::string* str) : HtmlString(){
+    *_Data=*str;
+}
+
 
 
 void libhtmlpp::HtmlString::append(const char* src, size_t srcsize){
@@ -145,13 +158,13 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     clear();
-    *_Data=src;
+    _Data->append(src);
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string src){
     clear();
-    *_Data=src;
+    _Data->append(src);
     return *this;
 }
 
@@ -520,17 +533,23 @@ void libhtmlpp::HtmlEncode(const char* input, HtmlString* output){
 }
 
 
-libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : HtmlElement(){
-    if(tagname)
-        _TagName = new std::string(tagname);
-}
-
-libhtmlpp::HtmlElement::HtmlElement() : Element(){
+libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : Element(){
     _childElement=nullptr;
     _firstAttr=nullptr;
     _lastAttr=nullptr;
     _Type=HtmlEl;
-    _TagName=nullptr;
+    if(tagname)
+        _TagName = new std::string(tagname);
+    else
+        _TagName = nullptr;
+}
+
+libhtmlpp::HtmlElement::HtmlElement() : Element() {
+    _childElement=nullptr;
+    _firstAttr=nullptr;
+    _lastAttr=nullptr;
+    _Type=HtmlEl;
+    _TagName = nullptr;
 }
 
 libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement& hel) : HtmlElement(){
@@ -552,11 +571,14 @@ libhtmlpp::HtmlElement::~HtmlElement(){
 void libhtmlpp::HtmlElement::setTagname(const char* name){
     if(_TagName)
         delete _TagName;
-    _TagName=new std::string(name);
+    if(name)
+        _TagName=new std::string(name);
 }
 
 const char* libhtmlpp::HtmlElement::getTagname() const{
-    return _TagName->c_str();
+    if(_TagName)
+        return _TagName->c_str();
+    return nullptr;
 }
 
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
@@ -596,6 +618,10 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _childElement;
     delete _nextElement;
 
+    _firstAttr=nullptr;
+    _childElement=nullptr;
+    _nextElement=nullptr;
+
     _copy(nullptr,this,&hel);
     return *this;
 }
@@ -604,6 +630,10 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _firstAttr;
     delete _childElement;
     delete _nextElement;
+
+    _firstAttr=nullptr;
+    _childElement=nullptr;
+    _nextElement=nullptr;
 
     _copy(nullptr,this,&hel);
     return *this;
@@ -614,14 +644,19 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     delete _childElement;
     delete _nextElement;
 
+    _firstAttr=nullptr;
+    _childElement=nullptr;
+    _nextElement=nullptr;
+
     _copy(nullptr,this,hel);
     return *this;
 }
-#include <iostream>
+
 namespace libhtmlpp {
 
     void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
-
+        if(!src || !dest)
+            return;
         struct cpyel {
             cpyel(){
 
@@ -665,7 +700,8 @@ NEWEL:
             ((TextElement*)dest)->setText(((TextElement*)src)->getText());
         }
 
-        dest->_prevElement=(Element*)prev;
+        if(prev)
+            dest->_prevElement=(Element*)prev;
 
         Element* next=src->nextElement();
 
@@ -678,13 +714,15 @@ NEWEL:
              src=next;
              dest=dest->_nextElement;
              goto NEWEL;
+        }else{
+            dest->_nextElement=nullptr;
         }
 
         if(!cpylist->empty()){
             cpyel childel(cpylist->top());
             prev=nullptr;
             dest=childel.destin;
-            src=childel.source;;
+            src=childel.source;
             cpylist->pop();
             goto NEWEL;
         }
@@ -765,11 +803,13 @@ int libhtmlpp::Element::getType() const{
 libhtmlpp::Element::Element(){
     _prevElement=nullptr;
     _nextElement=nullptr;
+    _Type=-1;
 }
 
 libhtmlpp::Element::Element(const libhtmlpp::Element& el){
     _prevElement=nullptr;
     _nextElement=nullptr;
+    _Type=-1;
     _copy(nullptr,this,&el);
 }
 
@@ -827,36 +867,42 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
         throw excp[HTMLException::Critical] << e.what();
     }
 
-    while (fs.good()) {
-        fs.read(tmp,HTML_BLOCKSIZE);
-        data->append(tmp,fs.gcount());
+    while (!fs.eof()) {
+        size_t rd= fs.readsome(tmp,HTML_BLOCKSIZE);
+        data->append(tmp,rd);
     }
     fs.close();
+
     libhtmlpp::HtmlElement *el=loadString(data);
     delete data;
     return el;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string *src){
-    _Page=src->c_str();
+    _Page = new HtmlString(src->c_str());
     return loadString(_Page);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const char *src){
-    _Page=src;
+    _Page= new HtmlString(src);
     return loadString(_Page);
 }
 
-libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(HtmlString node){
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const HtmlString &node){
     _CheckHeader(node);
-    return _Page.parse();
+    return _Page->parse();
+}
+
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const HtmlString *node){
+    _CheckHeader(node);
+    return _Page->parse();
 }
 
 void libhtmlpp::HtmlPage::saveFile(const char* path){
     std::string *data=new std::string;;
     std::ofstream fs;
 
-    print(_Page.parse(),data);
+    print(_Page->parse(),data);
 
     try{
         fs.open(path);
@@ -994,23 +1040,28 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) c
     std::stack <Element*> *childs=new std::stack <Element*>;
     const Element *curel=this;
 SEARCHBYID:
-    while( (curel=curel->nextElement()) ) {
-        if(curel->getType()==HtmlEl){
-            if(((HtmlElement*)curel)->_childElement){
-                childs->push(((HtmlElement*)curel)->_childElement);
-            }
-            const char *key=((HtmlElement*)curel)->getAtributte("id");
-            if(key && strcmp(key,id)==0){
-                delete childs;
-                return (HtmlElement*)curel;
-            }
+    if(curel->getType()==HtmlEl){
+        if(((HtmlElement*)curel)->_childElement){
+            childs->push(((HtmlElement*)curel)->_childElement);
+        }
+        const char *key=((HtmlElement*)curel)->getAtributte("id");
+        if(key && strcmp(key,id)==0){
+            delete childs;
+            return (HtmlElement*)curel;
         }
     }
+
+    if(curel->nextElement()){
+        curel=curel->nextElement();
+        goto SEARCHBYID;
+    }
+
     if(!childs->empty()){
         curel=childs->top();
         childs->pop();
         goto SEARCHBYID;
     }
+
     delete childs;
     return nullptr;
 }
@@ -1019,24 +1070,29 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyTag(const char *tag)
     std::stack <Element*> *childs=new std::stack <Element*>;
     const Element *curel=this;
 SEARCHBYTAG:
-    while( (curel=curel->nextElement()) ) {
-        if(curel->getType()==HtmlEl){
-            if(((HtmlElement*)curel)->_childElement){
-                HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyTag(tag);
-                if(find)
-                    return find;
-            }
-            const char *tname=((HtmlElement*)curel)->getTagname();
-            if(tname && strcmp(tname,tag)==0){
-                return (HtmlElement*)curel;
-            }
+    if(curel->getType()==HtmlEl){
+        if(((HtmlElement*)curel)->_childElement){
+            HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyTag(tag);
+            if(find)
+                return find;
+        }
+        const char *tname=((HtmlElement*)curel)->getTagname();
+        if(tname && strcmp(tname,tag)==0){
+            return (HtmlElement*)curel;
         }
     }
+
+    if(curel->nextElement()){
+        curel=curel->nextElement();
+        goto SEARCHBYTAG;
+    }
+
     if(!childs->empty()){
         curel=childs->top();
         childs->pop();
         goto SEARCHBYTAG;
     }
+
     delete childs;
     return nullptr;
 }

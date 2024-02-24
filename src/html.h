@@ -76,6 +76,7 @@ namespace libhtmlpp {
         HtmlElement();
         HtmlElement(const char* tag);
         HtmlElement(const HtmlElement &hel);
+        HtmlElement(const HtmlElement *hel);
         ~HtmlElement();
 
         HtmlElement& operator=(const Element  hel);

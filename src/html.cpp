@@ -537,6 +537,9 @@ libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement& hel) : HtmlEle
     _copy(nullptr,this,&hel);
 }
 
+libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement* hel) : HtmlElement(){
+    _copy(nullptr,this,hel);
+}
 
 libhtmlpp::HtmlElement::~HtmlElement(){
     if(_Type==HtmlEl){

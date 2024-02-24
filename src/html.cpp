@@ -870,8 +870,8 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
     }
 
     while (fs.good()) {
-        size_t rd= fs.readsome(tmp,HTML_BLOCKSIZE);
-        data->append(tmp,rd);
+        fs.read(tmp,HTML_BLOCKSIZE);
+        data->append(tmp,fs.gcount());
     }
     fs.close();
 

@@ -553,11 +553,11 @@ libhtmlpp::HtmlElement::HtmlElement() : Element() {
 }
 
 libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement& hel) : HtmlElement(){
-    _copy(nullptr,this,&hel);
+    _copy(this,&hel);
 }
 
 libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement* hel) : HtmlElement(){
-    _copy(nullptr,this,hel);
+    _copy(this,hel);
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
@@ -589,7 +589,7 @@ void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
         _childElement=new HtmlElement;
     else if(el->getType()==TextEl)
         _childElement=new TextElement;
-    _copy(nullptr,_childElement,el);
+    _copy(_childElement,el);
 }
 
 void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
@@ -604,9 +604,11 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
             curel=new HtmlElement;
         else if(el->getType()==TextEl)
             curel=new TextElement;
-        if(prev)
+        if(prev){
             prev->_nextElement=curel;
-        _copy(prev,curel,el);
+            curel->_prevElement=prev;
+        }
+        _copy(curel,el);
     }else{
         insertChild(el);
     }
@@ -622,7 +624,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _childElement=nullptr;
     _nextElement=nullptr;
 
-    _copy(nullptr,this,&hel);
+    _copy(this,&hel);
     return *this;
 }
 
@@ -635,7 +637,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _childElement=nullptr;
     _nextElement=nullptr;
 
-    _copy(nullptr,this,&hel);
+    _copy(this,&hel);
     return *this;
 }
 
@@ -648,13 +650,14 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _childElement=nullptr;
     _nextElement=nullptr;
 
-    _copy(nullptr,this,hel);
+    _copy(this,hel);
     return *this;
 }
 
 namespace libhtmlpp {
 
-    void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src){
+    void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src){
+        const libhtmlpp::Element* prev;
         if(!src || !dest)
             return;
         struct cpyel {
@@ -710,12 +713,10 @@ NEWEL:
                 dest->_nextElement= new HtmlElement();
              else if(next->getType()==TextEl)
                 dest->_nextElement= new TextElement();
-             prev=src;
+             prev=dest;
              src=next;
              dest=dest->_nextElement;
              goto NEWEL;
-        }else{
-            dest->_nextElement=nullptr;
         }
 
         if(!cpylist->empty()){
@@ -734,11 +735,11 @@ NEWEL:
 void libhtmlpp::Element::insertBefore(libhtmlpp::Element* el){
     if(el->getType()==HtmlEl){
         HtmlElement *nel=new HtmlElement();
-        _copy(nullptr,nel,el);
+        _copy(nel,el);
         _prevElement->_nextElement=nel;
     }else if(el->getType()==TextEl){
         TextElement *txt= new TextElement;
-        _copy(nullptr,txt,el);
+        _copy(txt,el);
         _prevElement->_nextElement=txt;
     }
     Element *nexel=_prevElement->_nextElement,*prev=nullptr;
@@ -762,7 +763,7 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
         _nextElement= new TextElement;
     }
 
-    _copy(this,_nextElement,el);
+    _copy(_nextElement,el);
 
     nexel=_nextElement;
 
@@ -777,14 +778,14 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
     delete _nextElement;
     _nextElement=nullptr;
-    _copy(nullptr,this,&hel);
+    _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element *hel){
     delete _nextElement;
     _nextElement=nullptr;
-    _copy(nullptr,this,hel);
+    _copy(this,hel);
     return *this;
 }
 
@@ -810,7 +811,7 @@ libhtmlpp::Element::Element(const libhtmlpp::Element& el){
     _prevElement=nullptr;
     _nextElement=nullptr;
     _Type=-1;
-    _copy(nullptr,this,&el);
+    _copy(this,&el);
 }
 
 libhtmlpp::Element::~Element(){
@@ -822,7 +823,7 @@ libhtmlpp::TextElement::TextElement() : Element(){
 }
 
 libhtmlpp::TextElement::TextElement(const TextElement &texel) : TextElement(){
-    _copy(nullptr,this,&texel);
+    _copy(this,&texel);
 }
 
 libhtmlpp::TextElement::~TextElement(){
@@ -831,13 +832,13 @@ libhtmlpp::TextElement::~TextElement(){
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
     delete _nextElement;
-    _copy(nullptr,this,&hel);
+    _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element* hel){
     delete _nextElement;
-    _copy(nullptr,this,hel);
+    _copy(this,hel);
     return *this;
 }
 
@@ -851,6 +852,7 @@ const char * libhtmlpp::TextElement::getText(){
 
 
 libhtmlpp::HtmlPage::HtmlPage(){
+    _Page=nullptr;
 }
 
 libhtmlpp::HtmlPage::~HtmlPage(){
@@ -867,7 +869,7 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
         throw excp[HTMLException::Critical] << e.what();
     }
 
-    while (!fs.eof()) {
+    while (fs.good()) {
         size_t rd= fs.readsome(tmp,HTML_BLOCKSIZE);
         data->append(tmp,rd);
     }
@@ -879,11 +881,15 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string *src){
+    if(_Page)
+        delete _Page;
     _Page = new HtmlString(src->c_str());
     return loadString(_Page);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const char *src){
+    if(_Page)
+        delete _Page;
     _Page= new HtmlString(src);
     return loadString(_Page);
 }

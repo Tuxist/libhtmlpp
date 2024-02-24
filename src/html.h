@@ -68,7 +68,7 @@ namespace libhtmlpp {
         friend class TextElement;
         friend class HtmlString;
         friend void  print(Element* el, std::string *output);
-        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
+        friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     class HtmlElement : public Element {
@@ -120,7 +120,7 @@ namespace libhtmlpp {
         friend class HtmlString;
         friend class HtmlTable;
         friend void  print(Element* el, std::string *output);
-        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
+        friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     class TextElement : public Element{
@@ -139,7 +139,7 @@ namespace libhtmlpp {
         std::string   *_Text;
         friend class HtmlString;
         friend void  print(Element* el, std::string *output);
-        friend void _copy(const libhtmlpp::Element* prev,libhtmlpp::Element *dest,const libhtmlpp::Element *src);
+        friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
     void print(Element* el, std::string *output);

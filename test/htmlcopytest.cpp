@@ -47,7 +47,7 @@ public:
 
     void printModify(){
         std::string *html = new std::string;
-        libhtmlpp::print(&index2,&html);
+        libhtmlpp::print(&index2,html);
         std::cout << html << std::endl;
         delete html;
     }
@@ -70,7 +70,7 @@ int main(int arc,char *argv[]){
         std::string *html = new std::string;
 
         std::cout << "Orginal html:" << std::endl;
-        libhtmlpp::print(index,&html);
+        libhtmlpp::print(index,html);
 
         std::cout << "Modified html:" << std::endl;
 

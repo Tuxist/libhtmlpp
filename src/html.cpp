@@ -908,7 +908,7 @@ void libhtmlpp::HtmlPage::saveFile(const char* path){
     std::string *data=new std::string;;
     std::ofstream fs;
 
-    print(_Page->parse(),&data);
+    print(_Page->parse(),data);
 
     try{
         fs.open(path);
@@ -964,25 +964,25 @@ void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
 }
 
 
-void libhtmlpp::print(Element* el, std::string **output) {
+void libhtmlpp::print(Element* el, std::string *output) {
 
     std::stack<libhtmlpp::Element*> *cpylist = new std::stack<libhtmlpp::Element*>;
 
 PRINTNEXTEL:
     switch(el->_Type){
         case HtmlEl:{
-            (*output)->append("<");
-            (*output)->append(*((HtmlElement*) el)->_TagName);
+            output->append("<");
+            output->append(*((HtmlElement*) el)->_TagName);
             for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
-                (*output)->append(" ");
-                (*output)->append(curattr->_Key);
+                output->append(" ");
+                output->append(curattr->_Key);
                 if(!curattr->_Value.empty()){
-                    (*output)->append("=\"");
-                    (*output)->append(curattr->_Value);
-                    (*output)->append("\"");
+                    output->append("=\"");
+                    output->append(curattr->_Value);
+                    output->append("\"");
                 }
             }
-            (*output)->append(">");
+            output->append(">");
 
             if (((HtmlElement*) el)->_childElement) {
                 cpylist->push(el);
@@ -998,9 +998,9 @@ PRINTNEXTEL:
             while(!cpylist->empty()){
                 el=cpylist->top();
 
-                (*output)->append("</");
-                (*output)->append(((HtmlElement*) el)->getTagname());
-                (*output)->append(">");
+                output->append("</");
+                output->append(((HtmlElement*) el)->getTagname());
+                output->append(">");
 
                 cpylist->pop();
                 if(el->_nextElement){
@@ -1011,7 +1011,7 @@ PRINTNEXTEL:
         }break;
 
         case TextEl :{
-            (*output)->append(*((TextElement*)el)->_Text);
+            output->append(*((TextElement*)el)->_Text);
 
             if (el->_nextElement) {
                 el=el->_nextElement;
@@ -1021,9 +1021,9 @@ PRINTNEXTEL:
             while(!cpylist->empty()){
                 el=cpylist->top();
 
-                (*output)->append("</");
-                (*output)->append(((HtmlElement*) el)->getTagname());
-                (*output)->append(">");
+                output->append("</");
+                output->append(((HtmlElement*) el)->getTagname());
+                output->append(">");
 
                 cpylist->pop();
                 if(el->_nextElement){

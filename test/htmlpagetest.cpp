@@ -39,7 +39,7 @@ int main(int arc,char *argv[]){
     try{
         libhtmlpp::Element *index=page.loadFile(argv[1]);
         std::string *html = new std::string;
-        libhtmlpp::print(index,&html);
+        libhtmlpp::print(index,html);
         std::cout << html << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
         delete html;

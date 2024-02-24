@@ -67,7 +67,7 @@ namespace libhtmlpp {
         friend class HtmlElement;
         friend class TextElement;
         friend class HtmlString;
-        friend void  print(Element* el, std::string **output);
+        friend void  print(Element* el, std::string *output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -119,7 +119,7 @@ namespace libhtmlpp {
 
         friend class HtmlString;
         friend class HtmlTable;
-        friend void  print(Element* el, std::string **output);
+        friend void  print(Element* el, std::string *output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -138,11 +138,11 @@ namespace libhtmlpp {
     protected:
         std::string   *_Text;
         friend class HtmlString;
-        friend void  print(Element* el, std::string **output);
+        friend void  print(Element* el, std::string *output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
-    void print(Element* el, std::string **output);
+    void print(Element* el, std::string *output);
 
     class HtmlString {
     public:

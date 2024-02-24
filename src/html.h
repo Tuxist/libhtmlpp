@@ -199,7 +199,7 @@ namespace libhtmlpp {
         ~HtmlPage();
         HtmlElement *loadFile(const char* path);
         void         saveFile(const char* path);
-        HtmlElement *loadString(const std::string src);
+        HtmlElement *loadString(const std::string *src);
         HtmlElement *loadString(const char *src);
         HtmlElement *loadString(HtmlString node);
     private:

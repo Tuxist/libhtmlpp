@@ -1115,7 +1115,7 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
 
     for (Attributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
         if(curattr->_Key.size() >= strlen(name)){
-            if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()-1) ==0 ) {
+            if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) ==0 ) {
                 cattr = curattr;
             }
         }
@@ -1129,9 +1129,9 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
             _lastAttr = _firstAttr;
         }
         cattr = _lastAttr;
-        std::copy(name,name+strlen(name)+1,std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );    }
+        std::copy(name,name+strlen(name),std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );    }
     if(value)
-        std::copy(value,value+strlen(value)+1,std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
+        std::copy(value,value+strlen(value),std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
     else
         cattr->_Value.clear();
 }

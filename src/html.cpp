@@ -534,10 +534,9 @@ void libhtmlpp::HtmlString::_parseTree(){
 }
 
 void libhtmlpp::HtmlEncode(const char* input, std::string &output){
-    HtmlString *tmp=new HtmlString;
-    HtmlEncode(input,tmp);
-    output=tmp->c_str();
-    delete tmp;
+    HtmlString tmp(output);
+    HtmlEncode(input,&tmp);
+    output=tmp.c_str();
 }
 
 void libhtmlpp::HtmlEncode(const char* input, HtmlString* output){
@@ -799,27 +798,27 @@ int libhtmlpp::Element::getType() const{
 libhtmlpp::Element::Element(){
     _prevElement=nullptr;
     _nextElement=nullptr;
+    _firstElement=nullptr;
     _Type=-1;
 }
 
 libhtmlpp::Element::Element(const libhtmlpp::Element& el){
     _prevElement=nullptr;
     _nextElement=nullptr;
+    _firstElement=nullptr;
     _Type=-1;
     _copy(this,&el);
 }
 
 libhtmlpp::Element::~Element(){
-    std::stack<Element*> el;
-    for(Element *curel=this; curel; curel=curel->nextElement()){
-        if(curel->_prevElement)
-            curel->_prevElement->_nextElement=nullptr;
-        el.push(curel);
-    }
-
-    while(!el.empty()){
-        delete el.top();
-        el.pop();
+    if(this==_firstElement){
+        Element *curel=this;
+        while(curel){
+            Element *next=curel->_nextElement;
+            curel->_nextElement=nullptr;
+            delete curel;
+            curel=next;
+        }
     }
 };
 
@@ -827,7 +826,8 @@ libhtmlpp::TextElement::TextElement() : Element(){
     _Type=TextEl;
 }
 
-libhtmlpp::TextElement::TextElement(const TextElement &texel) : TextElement(){
+libhtmlpp::TextElement::TextElement(const TextElement &texel) : Element(){
+    _Type=TextEl;
     _copy(this,&texel);
 }
 

@@ -63,6 +63,7 @@ namespace libhtmlpp {
     protected:
         Element*      _prevElement;
         Element*      _nextElement;
+        Element*      _firstElement;
         int           _Type;
 
         friend class HtmlElement;

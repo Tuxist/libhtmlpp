@@ -622,7 +622,7 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
         }
         _copy(curel,el);
     }else{
-        insertChild(el);
+        // insertChild(el);
     }
 }
 
@@ -856,7 +856,7 @@ libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Elem
 }
 
 void libhtmlpp::TextElement::setText(const char* txt){
-    std::copy(txt,txt+strlen(txt)+1,std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
+    std::copy(txt,txt+strlen(txt),std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
 }
 
 const char * libhtmlpp::TextElement::getText(){
@@ -979,7 +979,7 @@ PRINTNEXTEL:
     switch(el->_Type){
         case HtmlEl:{
             output.append("<");
-            output.append(((HtmlElement*) el)->_TagName.data());
+            output.append(((HtmlElement*) el)->getTagname());
             for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
                 output.append(" ");
                 output.append(curattr->_Key.data());

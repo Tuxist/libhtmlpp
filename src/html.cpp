@@ -1190,7 +1190,12 @@ libhtmlpp::HtmlTable::HtmlTable(){
 }
 
 libhtmlpp::HtmlTable::~HtmlTable(){
-    delete _firstRow;
+    Row *next=_firstRow,*curel=nullptr;
+    while(next){
+        curel=next;
+        next=next->_nextRow;
+        delete curel;
+    }
 }
 
 libhtmlpp::HtmlTable::Row &libhtmlpp::HtmlTable::operator<<(const libhtmlpp::HtmlTable::Row row){
@@ -1288,12 +1293,11 @@ libhtmlpp::HtmlTable::Row::Row(){
 }
 
 libhtmlpp::HtmlTable::Row::~Row(){
-    delete _firstColumn;
-    Row *next=_nextRow,*curel=nullptr;
-    while(next){
-        curel=next;
-        next=next->_nextRow;
-        delete curel;
+    Column *cnext=_firstColumn,*ccurel=nullptr;
+    while(cnext){
+        ccurel=cnext;
+        cnext=cnext->_nextColumn;
+        delete ccurel;
     }
 }
 
@@ -1367,7 +1371,12 @@ void libhtmlpp::HtmlTable::Row::delColumn(size_t pos){
 }
 
 void libhtmlpp::HtmlTable::Row::clear(){
-    delete _firstColumn;
+    Column *cnext=_firstColumn,*ccurel=nullptr;
+    while(cnext){
+        ccurel=cnext;
+        cnext=cnext->_nextColumn;
+        delete ccurel;
+    }
     _firstColumn = nullptr;
     _lastColumn = nullptr;
     _count = 0;

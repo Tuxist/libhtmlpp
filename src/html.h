@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 
 #include <cstring>
-#include <string>
+#include <vector>
 
 #pragma once
 
@@ -67,7 +67,7 @@ namespace libhtmlpp {
         friend class HtmlElement;
         friend class TextElement;
         friend class HtmlString;
-        friend void  print(Element* el, std::string *output);
+        friend void  print(Element* el, std::string &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -119,7 +119,7 @@ namespace libhtmlpp {
 
         friend class HtmlString;
         friend class HtmlTable;
-        friend void  print(Element* el, std::string *output);
+        friend void  print(Element* el, std::string &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -136,13 +136,13 @@ namespace libhtmlpp {
         void        setText(const char *txt);
 
     protected:
-        std::string   *_Text;
+        std::vector<char> _Text;
         friend class HtmlString;
-        friend void  print(Element* el, std::string *output);
+        friend void  print(Element* el, std::string &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
-    void print(Element* el, std::string *output);
+    void print(Element* el, std::vector<char> &output);
 
     class HtmlString {
     public:
@@ -155,6 +155,7 @@ namespace libhtmlpp {
 
         void append(const char* src, size_t srcsize);
         void append(const char* src);
+        void append(HtmlString& hstring);
 
         void push_back(const char  src);
 
@@ -175,22 +176,21 @@ namespace libhtmlpp {
         HtmlString& operator<<(char src);
         HtmlString& operator<<(unsigned long src);
 
-        const size_t       size() ;
-        const size_t       length() const;
+        const size_t       size() const;
         void               clear();
         bool               empty();
         const char *       c_str();
         HtmlElement*       parse();
         bool               validate(std::string *err);
     private:
-        void              _parseTree();
-        void              _serialelize(std::string  *in, HtmlElement** out);
-        Element*          _buildTree(ssize_t& pos);
-        DocElements      *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
-        std::string      *_Data;
-        ssize_t**         _HTable;
-        size_t            _HTableSize;
-        HtmlElement*      _RootNode;
+        void               _parseTree();
+        void               _serialelize(std::vector<char> in, HtmlElement** out);
+        Element*           _buildTree(ssize_t& pos);
+        DocElements       *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
+        std::vector<char>  _Data;
+        ssize_t**          _HTable;
+        size_t             _HTableSize;
+        HtmlElement*       _RootNode;
         friend void HtmlEncode(const char *input,HtmlString *output);
     };
 

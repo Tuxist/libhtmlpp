@@ -38,11 +38,10 @@ int main(int arc,char *argv[]){
     libhtmlpp::HtmlPage page;
     try{
         libhtmlpp::Element *index=page.loadFile(argv[1]);
-        std::string *html = new std::string;
+        std::vector<char> html;
         libhtmlpp::print(index,html);
-        std::cout << *html << std::endl;
+        std::cout << html.data() << std::endl;
         std::cout << Green << "Test Passed!" << NOCOLOR << std::endl;
-        delete html;
     }catch(libhtmlpp::HTMLException &exp){
         std::cout << exp.what() << std::endl;
         std::cout << Red << "Test not Passed!" << NOCOLOR << std::endl;

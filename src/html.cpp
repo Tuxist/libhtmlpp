@@ -158,13 +158,14 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     clear();
-    std::copy(src,src+strlen(src),_Data.begin());
+    std::copy(src,src+strlen(src),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string *src){
     clear();
-    std::copy(src->begin(),src->end(),_Data.begin());
+    std::copy(src->begin(),src->end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
+    _Data.push_back('\0');
     return *this;
 }
 

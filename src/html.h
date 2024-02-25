@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sys/types.h>
 
-#include <string>
 #include <cstring>
+#include <string>
 
 #pragma once
 
@@ -104,8 +104,8 @@ namespace libhtmlpp {
         struct Attributes {
             Attributes();
             ~Attributes();
-            std::string _Key;
-            std::string _Value;
+            std::string *_Key;
+            std::string *_Value;
             Attributes* _nextAttr;
         };
 
@@ -163,11 +163,12 @@ namespace libhtmlpp {
         HtmlString& operator+=(const char* src);
         HtmlString& operator+=(HtmlString& hstring);
         HtmlString& operator=(const char* src);
-        HtmlString& operator=(std::string src);
+        HtmlString& operator=(std::string *src);
         const char  operator[](size_t pos) const;
 
         HtmlString& operator<<(const char* src);
-        HtmlString& operator<<(std::string src);
+        HtmlString& operator<<(std::string &src);
+        HtmlString& operator<<(std::string *src);
         HtmlString& operator<<(HtmlString src);
         HtmlString& operator<<(int src);
         HtmlString& operator<<(unsigned int src);
@@ -180,11 +181,10 @@ namespace libhtmlpp {
         bool               empty();
         const char *       c_str();
         HtmlElement*       parse();
-        bool               validate(std::string &err);
+        bool               validate(std::string *err);
     private:
-        void              _InitString();
         void              _parseTree();
-        void              _serialelize(std::string  in, HtmlElement** out);
+        void              _serialelize(std::string  *in, HtmlElement** out);
         Element*          _buildTree(ssize_t& pos);
         DocElements      *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
         std::string      *_Data;
@@ -195,7 +195,7 @@ namespace libhtmlpp {
     };
 
     void HtmlEncode(const char *input,HtmlString *output);
-    void HtmlEncode(const char *input,std::string *output);
+    void HtmlEncode(const char *input,std::string &output);
 
     class HtmlPage {
     public:
@@ -223,7 +223,7 @@ namespace libhtmlpp {
         private:
             Column();
             Column(const Column &col);
-            Column(HtmlString data);
+            Column(const HtmlString &data);
             ~Column();
 
             Column      *_nextColumn;

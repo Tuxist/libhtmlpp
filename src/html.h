@@ -142,7 +142,7 @@ namespace libhtmlpp {
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
-    void print(Element* el, std::vector<char> &output);
+    void print(Element* el, std::string &output);
 
     class HtmlString {
     public:

@@ -46,7 +46,7 @@ public:
     }
 
     void printModify(){
-        std::vector<char> html;
+        std::string html;
         libhtmlpp::print(&index2,html);
         std::cout << html.data() << std::endl;
     }
@@ -66,7 +66,7 @@ int main(int arc,char *argv[]){
         HtmlCopy cpy(index);
 
 
-        std::vector<char> html;
+        std::string html;
 
         std::cout << "Orginal html:" << std::endl;
         libhtmlpp::print(index,html);

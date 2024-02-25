@@ -406,6 +406,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
     std::vector<char> tag;
 
     std::copy(in.begin()+st,in.begin()+et,std::insert_iterator<std::vector<char>>(tag,tag.begin()) );
+    tag.push_back('\0');
 
     *out = new HtmlElement(tag.data());
 
@@ -422,6 +423,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
         if(in[et]==' ' || in[et]=='>' || in[et]=='=') {
             if(startpos!=-1 && !value){
                 std::copy(in.begin()+startpos,in.begin()+et,std::insert_iterator<std::vector<char>>(key,key.begin()) );
+                key.push_back('\0');
                 (*out)->setAttribute(key.data(),nullptr);
                 startpos=-1;
             }
@@ -434,6 +436,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
             }else if(!key.empty()){
                 std::vector<char> val;
                 std::copy(in.begin()+vst,in.begin()+et,std::insert_iterator<std::vector<char>>(val,val.begin()) );
+                val.push_back('\0');
                 (*out)->setAttribute(key.data(),val.data());
                 key.clear();
                 --vst;
@@ -622,7 +625,7 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
         }
         _copy(curel,el);
     }else{
-        // insertChild(el);
+        insertChild(el);
     }
 }
 
@@ -856,7 +859,7 @@ libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Elem
 }
 
 void libhtmlpp::TextElement::setText(const char* txt){
-    std::copy(txt,txt+strlen(txt),std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
+    std::copy(txt,txt+strlen(txt)+1,std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
 }
 
 const char * libhtmlpp::TextElement::getText(){

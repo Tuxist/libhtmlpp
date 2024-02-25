@@ -877,7 +877,7 @@ libhtmlpp::HtmlPage::~HtmlPage(){
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
-    std::string *data=new std::string;;
+    std::string data;
     char tmp[HTML_BLOCKSIZE];
     std::ifstream fs;
     try{
@@ -889,19 +889,18 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
 
     while (fs.good()) {
         fs.read(tmp,HTML_BLOCKSIZE);
-        data->append(tmp,fs.gcount());
+        data.append(tmp,fs.gcount());
     }
     fs.close();
 
     libhtmlpp::HtmlElement *el=loadString(data);
-    delete data;
     return el;
 }
 
-libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string *src){
+libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string &src){
     if(_Page)
         delete _Page;
-    _Page = new HtmlString(src->c_str());
+    _Page = new HtmlString(src.c_str());
     return loadString(_Page);
 }
 

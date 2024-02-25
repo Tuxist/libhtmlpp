@@ -93,13 +93,11 @@ libhtmlpp::HtmlString::HtmlString(){
     _Data = nullptr;
 }
 
-libhtmlpp::HtmlString::HtmlString(const char* str) {
-    HtmlString();
+libhtmlpp::HtmlString::HtmlString(const char* str) : HtmlString(){
     _Data=new std::string(str);
 }
 
-libhtmlpp::HtmlString::HtmlString(std::string* str){
-    HtmlString();
+libhtmlpp::HtmlString::HtmlString(std::string* str) : HtmlString(){
     _Data=new std::string(str->c_str());
 }
 
@@ -114,14 +112,12 @@ libhtmlpp::HtmlString::~HtmlString(){
     delete     _Data;
 }
 
-libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str){
-    HtmlString();
+libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str) : HtmlString() {
     if(str._Data)
         _Data=new std::string(str._Data->c_str());
 }
 
-libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString* str){
-    HtmlString();
+libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString* str) : HtmlString(){
     if(str->_Data)
         _Data=new std::string(str->_Data->c_str());
 }
@@ -144,13 +140,19 @@ void libhtmlpp::HtmlString::insert(size_t pos, char src){
 }
 
 void libhtmlpp::HtmlString::clear(){
-    for(size_t i=0; i<_HTableSize; ++i){
-        delete[] _HTable[i];
+    if(_HTable){
+        for(size_t i=0; i<_HTableSize; ++i){
+            delete[] _HTable[i];
+        }
     }
     delete[]   _HTable;
     delete     _RootNode;
     delete     _Data;
-    HtmlString();
+
+    _HTable=nullptr;
+    _HTableSize=0;
+    _RootNode=nullptr;
+    _Data = nullptr;
 }
 
 bool libhtmlpp::HtmlString::empty(){
@@ -694,7 +696,10 @@ NEWEL:
 
             hdest->setTagname(hsrc->getTagname());
             for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
-                hdest->setAttribute(cattr->_Key->c_str(),cattr->_Value->c_str());
+                if(cattr->_Value)
+                    hdest->setAttribute(cattr->_Key->c_str(),cattr->_Value->c_str());
+                else
+                    hdest->setAttribute(cattr->_Key->c_str(),nullptr);
             }
 
             if(hsrc->_childElement){

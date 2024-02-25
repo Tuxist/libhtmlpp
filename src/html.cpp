@@ -1229,7 +1229,7 @@ void libhtmlpp::HtmlTable::insert(libhtmlpp::HtmlElement* element){
         for(Column *ccol=crow->_firstColumn; ccol; ccol=ccol->_nextColumn ){
             HtmlString buf;
             buf << "<td>";
-            buf << ccol->Data;
+            buf << ccol->Data.c_str();
             buf << "</td>";
             hrow.appendChild(buf.parse());
         }
@@ -1289,7 +1289,10 @@ libhtmlpp::HtmlTable::Row::Row(){
 
 libhtmlpp::HtmlTable::Row::~Row(){
     delete _firstColumn;
-     for(Row *curel=this; curel; curel=curel->_nextRow){
+    Row *next=_nextRow,*curel=nullptr;
+    while(next){
+        curel=next;
+        next=next->_nextRow;
         delete curel;
     }
 }

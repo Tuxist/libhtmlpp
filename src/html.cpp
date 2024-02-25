@@ -872,7 +872,7 @@ libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Elem
 }
 
 void libhtmlpp::TextElement::setText(const char* txt){
-    std::copy(txt,txt+strlen(txt),_Text.begin());
+    std::copy(txt,txt+strlen(txt),std::insert_iterator<std::vector<char>>(_Text,_Text.begin()) );
 }
 
 const char * libhtmlpp::TextElement::getText(){

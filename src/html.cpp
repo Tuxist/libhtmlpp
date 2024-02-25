@@ -49,6 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HTMLHEADER 3
 
 namespace libhtmlpp {
+
     class DocElements {
     public:
         libhtmlpp::Element*     element;
@@ -581,9 +582,12 @@ libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement* hel) : HtmlEle
 }
 
 libhtmlpp::HtmlElement::~HtmlElement(){
-    if(_Type==HtmlEl){
-        delete   _firstAttr;
-        delete   _childElement;
+    Attributes *cura=_firstAttr;
+    while(cura){
+        Attributes *next=cura->_nextAttr;
+        cura->_nextAttr=nullptr;
+        delete cura;
+        cura=next;
     }
 }
 
@@ -638,7 +642,6 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
 }
 
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element& hel){
-
     _copy(this,&hel);
     return *this;
 }
@@ -807,6 +810,17 @@ libhtmlpp::Element::Element(const libhtmlpp::Element& el){
 }
 
 libhtmlpp::Element::~Element(){
+    std::stack<Element*> el;
+    for(Element *curel=this; curel; curel=curel->nextElement()){
+        if(curel->_prevElement)
+            curel->_prevElement->_nextElement=nullptr;
+        el.push(curel);
+    }
+
+    while(!el.empty()){
+        delete el.top();
+        el.pop();
+    }
 };
 
 libhtmlpp::TextElement::TextElement() : Element(){
@@ -1143,11 +1157,9 @@ int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 }
 
 libhtmlpp::HtmlElement::Attributes::Attributes() {
-    _nextAttr = nullptr;
 }
 
 libhtmlpp::HtmlElement::Attributes::~Attributes() {
-    delete _nextAttr;
 }
 
 libhtmlpp::HtmlTable::HtmlTable(){

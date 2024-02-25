@@ -159,13 +159,13 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator+=(libhtmlpp::HtmlString&
 libhtmlpp::HtmlString &libhtmlpp::HtmlString::operator=(const char *src){
     clear();
     std::copy(src,src+strlen(src),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
+
     return *this;
 }
 
 libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string *src){
     clear();
     std::copy(src->begin(),src->end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
-    _Data.push_back('\0');
     return *this;
 }
 
@@ -338,7 +338,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
         std::vector<char> tmp;
         std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>(tmp,tmp.begin()));
-        tmp.push_back('\0');
         _serialelize(tmp, (HtmlElement**) &lastEl->element);
 
         size_t epos=0;
@@ -359,7 +358,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->epos = _HTable[epos][0];
                 std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>
                             (((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
-                ((TextElement*) lastEl->element)->_Text.push_back('\0');
             }
         }
     }
@@ -409,8 +407,6 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
 
     std::copy(in.begin()+st,in.begin()+et,std::insert_iterator<std::vector<char>>(tag,tag.begin()) );
 
-    tag.push_back('\0');
-
     *out = new HtmlElement(tag.data());
 
     if (!*out) {
@@ -426,7 +422,6 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
         if(in[et]==' ' || in[et]=='>' || in[et]=='=') {
             if(startpos!=-1 && !value){
                 std::copy(in.begin()+startpos,in.begin()+et,std::insert_iterator<std::vector<char>>(key,key.begin()) );
-                key.push_back('\0');
                 (*out)->setAttribute(key.data(),nullptr);
                 startpos=-1;
             }
@@ -439,7 +434,6 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
             }else if(!key.empty()){
                 std::vector<char> val;
                 std::copy(in.begin()+vst,in.begin()+et,std::insert_iterator<std::vector<char>>(val,val.begin()) );
-                val.push_back('\0');
                 (*out)->setAttribute(key.data(),val.data());
                 key.clear();
                 --vst;
@@ -565,7 +559,6 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : Element(){
     _lastAttr=nullptr;
     _Type=HtmlEl;
     std::copy(tagname,tagname+strlen(tagname),std::insert_iterator<std::vector<char>>(_TagName,_TagName.begin()) );
-    _TagName.push_back('\0');
 }
 
 libhtmlpp::HtmlElement::HtmlElement() : Element() {
@@ -592,11 +585,12 @@ libhtmlpp::HtmlElement::~HtmlElement(){
 
 void libhtmlpp::HtmlElement::setTagname(const char* name){
     std::copy(name,name+strlen(name),std::insert_iterator<std::vector<char>>(_TagName,_TagName.begin()) );
-    _TagName.push_back('\0');
 }
 
-const char* libhtmlpp::HtmlElement::getTagname() const{
-    return _TagName.data();
+const char* libhtmlpp::HtmlElement::getTagname(){
+    _CStr=_TagName;
+    _CStr.push_back('\0');
+    return _CStr.data();
 }
 
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
@@ -866,7 +860,9 @@ void libhtmlpp::TextElement::setText(const char* txt){
 }
 
 const char * libhtmlpp::TextElement::getText(){
-    return _Text.data();
+    _CStr=_Text;
+    _CStr.push_back('\0');
+    return _CStr.data();
 }
 
 
@@ -1148,10 +1144,12 @@ void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
 
 const char* libhtmlpp::HtmlElement::getAtributte(const char* name) const{
     for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
-        if(curattr->_Key.size() > strlen(name)+1)
+        if(curattr->_Key.size() > strlen(name))
             return nullptr;
         if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) == 0 ) {
-            return curattr->_Value.data();
+            curattr->_CStr=curattr->_Value;
+            curattr->_CStr.push_back('\0');
+            return curattr->_CStr.data();
         }
     }
     return nullptr;

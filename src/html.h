@@ -94,7 +94,7 @@ namespace libhtmlpp {
         void         appendChild(Element* el);
 
         void         setTagname(const char *name);
-        const char  *getTagname() const;
+        const char  *getTagname();
 
         HtmlElement *getElementbyID(const char *id) const;
         HtmlElement *getElementbyTag(const char *tag) const;
@@ -107,12 +107,14 @@ namespace libhtmlpp {
             ~Attributes();
             std::vector<char> _Key;
             std::vector<char> _Value;
+            std::vector<char> _CStr;
             Attributes*       _nextAttr;
         };
 
     private:
         //if text tagname must be zero
         std::vector<char> _TagName;
+        std::vector<char> _CStr;
 
         //if text Attributes must be zero
         Attributes*    _firstAttr;
@@ -138,6 +140,7 @@ namespace libhtmlpp {
 
     protected:
         std::vector<char> _Text;
+        std::vector<char> _CStr;
         friend class HtmlString;
         friend void  print(Element* el, std::string &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);

@@ -104,8 +104,10 @@ libhtmlpp::HtmlString::HtmlString(std::string* str){
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
-    for(size_t i=0; i<_HTableSize; ++i){
-        delete[] _HTable[i];
+    if(_HTable){
+        for(size_t i=0; i<_HTableSize; ++i){
+            delete[] _HTable[i];
+        }
     }
     delete[]   _HTable;
     delete     _RootNode;

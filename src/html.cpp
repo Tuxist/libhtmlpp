@@ -94,11 +94,11 @@ libhtmlpp::HtmlString::HtmlString(){
 }
 
 libhtmlpp::HtmlString::HtmlString(const char* str) : HtmlString(){
-    std::copy(str,str+strlen(str),_Data.begin());
+    std::copy(str,str+strlen(str),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()) );
 }
 
 libhtmlpp::HtmlString::HtmlString(std::string* str) : HtmlString(){
-    std::copy(str->begin(),str->end(),_Data.begin());
+    std::copy(str->begin(),str->end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
@@ -112,16 +112,16 @@ libhtmlpp::HtmlString::~HtmlString(){
 }
 
 libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString& str) : HtmlString() {
-    std::copy(str._Data.begin(),str._Data.end(),_Data.begin());
+    std::copy(str._Data.begin(),str._Data.end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
 }
 
 libhtmlpp::HtmlString::HtmlString(const libhtmlpp::HtmlString* str) : HtmlString(){
-    std::copy(str->_Data.begin(),str->_Data.end(),_Data.begin());
+    std::copy(str->_Data.begin(),str->_Data.end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
 }
 
 
 void libhtmlpp::HtmlString::append(const char* src, size_t srcsize){
-   std::copy(src,src+srcsize,_Data.end());
+   std::copy(src,src+srcsize,std::insert_iterator<std::vector<char>>(_Data,_Data.end()));
 }
 
 void libhtmlpp::HtmlString::push_back(const char src){
@@ -134,7 +134,7 @@ void libhtmlpp::HtmlString::append(const char* src) {
 }
 
 void libhtmlpp::HtmlString::append(libhtmlpp::HtmlString& hstring) {
-    std::copy(hstring._Data.begin(),hstring._Data.end(),_Data.end());
+    std::copy(hstring._Data.begin(),hstring._Data.end(),std::insert_iterator<std::vector<char>>(_Data,_Data.end()));
 }
 
 void libhtmlpp::HtmlString::insert(size_t pos, char src){
@@ -349,7 +349,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         }
 
         std::vector<char> tmp;
-        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,tmp.begin());
+        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>(tmp,tmp.begin()));
         _serialelize(tmp, (HtmlElement**) &lastEl->element);
 
         size_t epos=0;
@@ -368,7 +368,8 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                 lastEl->element=new TextElement();
                 lastEl->spos = _HTable[i][2]+1;
                 lastEl->epos = _HTable[epos][0]-1;
-                std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,((TextElement*) lastEl->element)->_Text.begin());
+                std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>
+                            (((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
             }
         }
     }

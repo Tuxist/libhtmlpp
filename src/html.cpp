@@ -67,22 +67,7 @@ namespace libhtmlpp {
         }
 
         ~DocElements() {
-            DocElements *delel=this;
-            while(delel){
-                delel=delel->nextel;
-            }
 
-            DocElements *bef=delel;
-
-            if(!bef)
-                return;
-
-            while(bef!=this){
-                bef=bef->prevel;
-                delete delel;
-            };
-
-            bef->nextel=nullptr;
         }
     };
 };
@@ -385,7 +370,12 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     _buildtreenode(nullptr,firstEl->nextel,firstEl,lastEl);
 
-    delete firstEl;
+    DocElements *dnext=firstEl,*dcurel=nullptr;
+    while(dnext){
+        dcurel=dnext;
+        dnext=dnext->nextel;
+        delete dcurel;
+    }
 
     return firsthel;
 }

@@ -1157,6 +1157,7 @@ int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 }
 
 libhtmlpp::HtmlElement::Attributes::Attributes() {
+    _nextAttr=nullptr;
 }
 
 libhtmlpp::HtmlElement::Attributes::~Attributes() {

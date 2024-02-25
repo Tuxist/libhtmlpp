@@ -1271,7 +1271,6 @@ libhtmlpp::HtmlTable::Column::Column(const libhtmlpp::HtmlString &data){
 }
 
 libhtmlpp::HtmlTable::Column::~Column(){
-    delete _nextColumn;
 }
 
 libhtmlpp::HtmlTable::Row::Row(){

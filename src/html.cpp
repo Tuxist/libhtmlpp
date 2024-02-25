@@ -412,7 +412,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
 
     std::vector<char> tag;
 
-    std::copy(in.begin()+st,in.begin()+et,tag.begin());
+    std::copy(in.begin()+st,in.begin()+et,std::insert_iterator<std::vector<char>>(tag,tag.begin()) );
 
     *out = new HtmlElement(tag.data());
 
@@ -428,7 +428,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
     while(et < in.size()) {
         if(in[et]==' ' || in[et]=='>' || in[et]=='=') {
             if(startpos!=-1 && !value){
-                std::copy(in.begin()+startpos,in.begin()+et,key.begin());
+                std::copy(in.begin()+startpos,in.begin()+et,std::insert_iterator<std::vector<char>>(key,key.begin()) );
                 (*out)->setAttribute(key.data(),nullptr);
                 startpos=-1;
             }
@@ -440,7 +440,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
                 vst=et;
             }else if(!key.empty()){
                 std::vector<char> val;
-                std::copy(in.begin()+vst+1,in.begin()+(et-1),val.begin());
+                std::copy(in.begin()+vst+1,in.begin()+(et-1),std::insert_iterator<std::vector<char>>(val,val.begin()) );
                 (*out)->setAttribute(key.data(),val.data());
                 key.clear();
                 vst=-1;

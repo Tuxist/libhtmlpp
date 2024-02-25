@@ -189,6 +189,7 @@ namespace libhtmlpp {
         Element*           _buildTree(ssize_t& pos);
         DocElements       *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
         std::vector<char>  _Data;
+        std::vector<char>  _CStr;
         ssize_t**          _HTable;
         size_t             _HTableSize;
         HtmlElement*       _RootNode;

@@ -105,14 +105,14 @@ namespace libhtmlpp {
         struct Attributes {
             Attributes();
             ~Attributes();
-            std::string *_Key;
-            std::string *_Value;
-            Attributes* _nextAttr;
+            std::vector<char> _Key;
+            std::vector<char> _Value;
+            Attributes*       _nextAttr;
         };
 
     private:
         //if text tagname must be zero
-        std::string   *_TagName;
+        std::vector<char> _TagName;
 
         //if text Attributes must be zero
         Attributes*    _firstAttr;

@@ -277,7 +277,7 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
             }
 
             if (curcel->element->_Type==HtmlEl && curcel->terminator &&
-                *((HtmlElement*)curcel->element)->_TagName == *((HtmlElement*)termel->element)->_TagName) {
+                ((HtmlElement*)curcel->element)->_TagName == ((HtmlElement*)termel->element)->_TagName) {
                 if(i==0)
                     return curcel;
                 else
@@ -565,10 +565,7 @@ libhtmlpp::HtmlElement::HtmlElement(const char *tagname) : Element(){
     _firstAttr=nullptr;
     _lastAttr=nullptr;
     _Type=HtmlEl;
-    if(tagname)
-        _TagName = new std::string(tagname);
-    else
-        _TagName = nullptr;
+    std::copy(tagname,tagname+strlen(tagname),std::insert_iterator<std::vector<char>>(_TagName,_TagName.begin()) );
 }
 
 libhtmlpp::HtmlElement::HtmlElement() : Element() {
@@ -576,7 +573,6 @@ libhtmlpp::HtmlElement::HtmlElement() : Element() {
     _firstAttr=nullptr;
     _lastAttr=nullptr;
     _Type=HtmlEl;
-    _TagName = nullptr;
 }
 
 libhtmlpp::HtmlElement::HtmlElement(const libhtmlpp::HtmlElement& hel) : HtmlElement(){
@@ -592,20 +588,14 @@ libhtmlpp::HtmlElement::~HtmlElement(){
         delete   _firstAttr;
         delete   _childElement;
     }
-    delete _TagName;
 }
 
 void libhtmlpp::HtmlElement::setTagname(const char* name){
-    if(_TagName)
-        delete _TagName;
-    if(name)
-        _TagName=new std::string(name);
+    std::copy(name,name+strlen(name),std::insert_iterator<std::vector<char>>(_TagName,_TagName.begin()) );
 }
 
 const char* libhtmlpp::HtmlElement::getTagname() const{
-    if(_TagName)
-        return _TagName->c_str();
-    return nullptr;
+    return _TagName.data();
 }
 
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
@@ -710,10 +700,10 @@ NEWEL:
 
             hdest->setTagname(hsrc->getTagname());
             for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
-                if(cattr->_Value)
-                    hdest->setAttribute(cattr->_Key->c_str(),cattr->_Value->c_str());
+                if(!cattr->_Value.empty())
+                    hdest->setAttribute(cattr->_Key.data(),cattr->_Value.data());
                 else
-                    hdest->setAttribute(cattr->_Key->c_str(),nullptr);
+                    hdest->setAttribute(cattr->_Key.data(),nullptr);
             }
 
             if(hsrc->_childElement){
@@ -1000,13 +990,13 @@ PRINTNEXTEL:
     switch(el->_Type){
         case HtmlEl:{
             output.append("<");
-            output.append(*((HtmlElement*) el)->_TagName);
+            output.append(((HtmlElement*) el)->_TagName.data());
             for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
                 output.append(" ");
-                output.append(curattr->_Key->c_str());
-                if(!curattr->_Value->empty()){
+                output.append(curattr->_Key.data());
+                if(!curattr->_Value.empty()){
                     output.append("=\"");
-                    output.append(curattr->_Value->c_str());
+                    output.append(curattr->_Value.data());
                     output.append("\"");
                 }
             }
@@ -1133,9 +1123,12 @@ SEARCHBYTAG:
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
     Attributes* cattr = nullptr;
+
     for (Attributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
-        if (curattr->_Key->compare(name)) {
-            cattr = curattr;
+        if(curattr->_Key.size() >= strlen(name)){
+            if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) ==0 ) {
+                cattr = curattr;
+            }
         }
     }
     if (!cattr) {
@@ -1147,13 +1140,12 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
             _lastAttr = _firstAttr;
         }
         cattr = _lastAttr;
-        cattr->_Key = new std::string(name);
+        std::copy(name,name+strlen(name),std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );
     }
-    delete cattr->_Value;
     if(value)
-        cattr->_Value =  new std::string(value);
+        std::copy(value,value+strlen(value),std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
     else
-        cattr->_Value=nullptr;
+        cattr->_Value.clear();
 }
 
 void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
@@ -1164,8 +1156,10 @@ void libhtmlpp::HtmlElement::setIntAttribute(const char* name, int value) {
 
 const char* libhtmlpp::HtmlElement::getAtributte(const char* name) const{
     for (Attributes* curattr = _firstAttr; curattr; curattr = curattr->_nextAttr) {
-        if (curattr->_Key->compare(name)) {
-            return curattr->_Value->c_str();
+        if(curattr->_Key.size() > strlen(name))
+            return nullptr;
+        if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) == 0 ) {
+            return curattr->_Value.data();
         }
     }
     return nullptr;
@@ -1177,13 +1171,9 @@ int libhtmlpp::HtmlElement::getIntAtributte(const char* name) {
 
 libhtmlpp::HtmlElement::Attributes::Attributes() {
     _nextAttr = nullptr;
-    _Key=nullptr;
-    _Value=nullptr;
 }
 
 libhtmlpp::HtmlElement::Attributes::~Attributes() {
-    delete _Key;
-    delete _Value;
     delete _nextAttr;
 }
 

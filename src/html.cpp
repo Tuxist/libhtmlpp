@@ -435,11 +435,12 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
                 vst=et;
             }else if(!key.empty()){
                 std::vector<char> val;
+                ++vst;
                 std::copy(in.begin()+vst,in.begin()+et,std::insert_iterator<std::vector<char>>(val,val.begin()) );
                 val.push_back('\0');
                 (*out)->setAttribute(key.data(),val.data());
                 key.clear();
-                --vst;
+                vst=-1;
                 value=false;
             }
         }else{
@@ -599,6 +600,7 @@ const char* libhtmlpp::HtmlElement::getTagname(){
 void libhtmlpp::HtmlElement::insertChild(libhtmlpp::Element* el){
     if(_childElement){
         delete _childElement;
+        _childElement=nullptr;
     }
     if(el->getType()==HtmlEl)
         _childElement=new HtmlElement;
@@ -631,44 +633,21 @@ void libhtmlpp::HtmlElement::appendChild(libhtmlpp::Element* el){
 
 
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element hel){
-    delete _firstAttr;
-    delete _childElement;
-    delete _nextElement;
-
-    _firstAttr=nullptr;
-    _childElement=nullptr;
-    _nextElement=nullptr;
-
     _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element& hel){
-    delete _firstAttr;
-    delete _childElement;
-    delete _nextElement;
-
-    _firstAttr=nullptr;
-    _childElement=nullptr;
-    _nextElement=nullptr;
 
     _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Element* hel){
-    delete _firstAttr;
-    delete _childElement;
-    delete _nextElement;
-
-    _firstAttr=nullptr;
-    _childElement=nullptr;
-    _nextElement=nullptr;
-
     _copy(this,hel);
     return *this;
 }
-
+#include <iostream>
 namespace libhtmlpp {
 
     void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -718,7 +697,7 @@ NEWEL:
                 cpylist.push(childel);
             }
         }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
-            ((TextElement*)dest)->setText(((TextElement*)src)->getText());
+             ((TextElement*)dest)->_Text=(((TextElement*)src)->_Text);
         }
 
         if(prev)
@@ -745,7 +724,7 @@ NEWEL:
             cpylist.pop();
             goto NEWEL;
         }
-
+        std::cout << cpylist.size() << std::endl;
     }
 };
 
@@ -793,15 +772,11 @@ void libhtmlpp::Element::insertAfter(libhtmlpp::Element* el){
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element &hel){
-    delete _nextElement;
-    _nextElement=nullptr;
     _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::Element& libhtmlpp::Element::operator=(const Element *hel){
-    delete _nextElement;
-    _nextElement=nullptr;
     _copy(this,hel);
     return *this;
 }
@@ -832,7 +807,6 @@ libhtmlpp::Element::Element(const libhtmlpp::Element& el){
 }
 
 libhtmlpp::Element::~Element(){
-    delete _nextElement;
 };
 
 libhtmlpp::TextElement::TextElement() : Element(){
@@ -847,13 +821,11 @@ libhtmlpp::TextElement::~TextElement(){
 }
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element& hel){
-    delete _nextElement;
     _copy(this,&hel);
     return *this;
 }
 
 libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Element* hel){
-    delete _nextElement;
     _copy(this,hel);
     return *this;
 }
@@ -1115,7 +1087,10 @@ SEARCHBYTAG:
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
-    setAttribute(name,strlen(name),value,strlen(value));
+    if(value)
+        setAttribute(name,strlen(name),value,strlen(value));
+    else
+        setAttribute(name,strlen(name),nullptr,0);
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name,size_t nlen, const char* value,size_t vlen) {

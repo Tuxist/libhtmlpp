@@ -82,8 +82,8 @@ libhtmlpp::HtmlString::HtmlString(const char* str) : HtmlString(){
     std::copy(str,str+strlen(str),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()) );
 }
 
-libhtmlpp::HtmlString::HtmlString(std::string* str) : HtmlString(){
-    std::copy(str->begin(),str->end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
+libhtmlpp::HtmlString::HtmlString(std::string& str) : HtmlString(){
+    std::copy(str.begin(),str.end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
 }
 
 libhtmlpp::HtmlString::~HtmlString(){
@@ -233,7 +233,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     _parseTree();
     ssize_t pos = 0;
     if(_RootNode)
-        delete[] _RootNode;
+        delete _RootNode;
     _RootNode = (HtmlElement*)_buildTree(pos);
     return _RootNode;
 }
@@ -354,8 +354,8 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             if(tlen>1){
                 addelement(&firstEl,&lastEl);
                 lastEl->element=new TextElement();
-                lastEl->spos = _HTable[i][2]+1;
-                lastEl->epos = _HTable[epos][0]-1;
+                lastEl->spos = _HTable[i][2];
+                lastEl->epos = _HTable[epos][0];
                 std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>
                             (((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
                 ((TextElement*) lastEl->element)->_Text.push_back('\0');
@@ -437,11 +437,11 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
                 vst=et;
             }else if(!key.empty()){
                 std::vector<char> val;
-                std::copy(in.begin()+vst+1,in.begin()+(et-1),std::insert_iterator<std::vector<char>>(val,val.begin()) );
+                std::copy(in.begin()+vst,in.begin()+et,std::insert_iterator<std::vector<char>>(val,val.begin()) );
                 val.push_back('\0');
                 (*out)->setAttribute(key.data(),val.data());
                 key.clear();
-                vst=-1;
+                --vst;
                 value=false;
             }
         }else{
@@ -471,7 +471,7 @@ void libhtmlpp::HtmlString::_parseTree(){
                 }
             break;
             case '-':
-                negs++;
+                ++negs;
             break;
         default:
             negs=0;
@@ -870,7 +870,6 @@ const char * libhtmlpp::TextElement::getText(){
 
 
 libhtmlpp::HtmlPage::HtmlPage(){
-    _Page=nullptr;
 }
 
 libhtmlpp::HtmlPage::~HtmlPage(){
@@ -898,34 +897,30 @@ libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadFile(const char* path){
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const std::string &src){
-    if(_Page)
-        delete _Page;
-    _Page = new HtmlString(src.c_str());
+    _Page=src.c_str();
     return loadString(_Page);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const char *src){
-    if(_Page)
-        delete _Page;
-    _Page= new HtmlString(src);
+    _Page=src;
     return loadString(_Page);
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const HtmlString &node){
     _CheckHeader(node);
-    return _Page->parse();
+    return _Page.parse();
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlPage::loadString(const HtmlString *node){
     _CheckHeader(node);
-    return _Page->parse();
+    return _Page.parse();
 }
 
 void libhtmlpp::HtmlPage::saveFile(const char* path){
     std::string data;
     std::ofstream fs;
 
-    print(_Page->parse(),data);
+    print(_Page.parse(),data);
 
     try{
         fs.open(path);

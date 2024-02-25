@@ -85,9 +85,12 @@ namespace libhtmlpp {
         HtmlElement& operator=(const Element *hel);
 
         void         setAttribute(const char* name, const char* value);
+        void         setAttribute(const char* name,size_t nlen, const char* value,size_t vlen);
+
         void         setIntAttribute(const char* name, int value);
 
         const char*  getAtributte(const char* name) const;
+
         int          getIntAtributte(const char* name);
 
         void         insertChild(Element* el);

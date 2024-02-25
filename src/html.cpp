@@ -699,9 +699,9 @@ NEWEL:
             hdest->setTagname(hsrc->getTagname());
             for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
                 if(!cattr->_Value.empty())
-                    hdest->setAttribute(cattr->_Key.data(),cattr->_Value.data());
+                    hdest->setAttribute(cattr->_Key.data(),cattr->_Key.size(),cattr->_Value.data(),cattr->_Value.size());
                 else
-                    hdest->setAttribute(cattr->_Key.data(),nullptr);
+                    hdest->setAttribute(cattr->_Key.data(),cattr->_Key.size(),nullptr,0);
             }
 
             if(hsrc->_childElement){
@@ -859,13 +859,14 @@ libhtmlpp::TextElement & libhtmlpp::TextElement::operator=(const libhtmlpp::Elem
 }
 
 void libhtmlpp::TextElement::setText(const char* txt){
-    std::copy(txt,txt+strlen(txt)+1,std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
+    std::copy(txt,txt+strlen(txt),
+              std::insert_iterator<std::vector<char>>(_Text,_Text.begin()));
 }
 
 const char * libhtmlpp::TextElement::getText(){
     _CStr=_Text;
     _CStr.push_back('\0');
-    return _CStr.data();
+    return _Text.data();
 }
 
 
@@ -985,10 +986,10 @@ PRINTNEXTEL:
             output.append(((HtmlElement*) el)->getTagname());
             for (HtmlElement::Attributes* curattr = ((HtmlElement*) el)->_firstAttr; curattr; curattr = curattr->_nextAttr) {
                 output.append(" ");
-                output.append(curattr->_Key.data());
+                output.append(curattr->_Key.data(),curattr->_Key.size());
                 if(!curattr->_Value.empty()){
                     output.append("=\"");
-                    output.append(curattr->_Value.data());
+                    output.append(curattr->_Value.data(),curattr->_Value.size());
                     output.append("\"");
                 }
             }
@@ -1021,7 +1022,7 @@ PRINTNEXTEL:
         }break;
 
         case TextEl :{
-            output.append(((TextElement*)el)->_Text.data());
+            output.append(((TextElement*)el)->_Text.data(),((TextElement*)el)->_Text.size());
 
             if (el->_nextElement) {
                 el=el->_nextElement;
@@ -1032,7 +1033,7 @@ PRINTNEXTEL:
                 el=cpylist->top();
 
                 output.append("</");
-                output.append(((HtmlElement*) el)->getTagname());
+                output.append(((HtmlElement*) el)->_TagName.data(),((HtmlElement*) el)->_TagName.size());
                 output.append(">");
 
                 cpylist->pop();
@@ -1114,10 +1115,14 @@ SEARCHBYTAG:
 }
 
 void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
+    setAttribute(name,strlen(name),value,strlen(value));
+}
+
+void libhtmlpp::HtmlElement::setAttribute(const char* name,size_t nlen, const char* value,size_t vlen) {
     Attributes* cattr = nullptr;
 
     for (Attributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
-        if(curattr->_Key.size() >= strlen(name)){
+        if(curattr->_Key.size() >= nlen){
             if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) ==0 ) {
                 cattr = curattr;
             }
@@ -1132,9 +1137,9 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name, const char* value) {
             _lastAttr = _firstAttr;
         }
         cattr = _lastAttr;
-        std::copy(name,name+strlen(name),std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );    }
+        std::copy(name,name+nlen,std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );    }
     if(value)
-        std::copy(value,value+strlen(value),std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
+        std::copy(value,value+vlen,std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
     else
         cattr->_Value.clear();
 }

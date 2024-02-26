@@ -337,7 +337,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
-        lastEl->epos = _HTable[i][2]+1;
+        lastEl->epos = _HTable[i][2];
 
         if (_HTable[i][1] != -1){
             lastEl->terminator = true;
@@ -347,27 +347,16 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
         _serialelize(el,(HtmlElement**) &lastEl->element);
 
-        size_t epos=0;
+        addelement(&firstEl,&lastEl);
+        lastEl->element=new TextElement();
+        lastEl->spos = _HTable[i][2]+1;
+        lastEl->epos = i+1 < _HTableSize ? _HTable[i+1][1] :  _Data.size();
+        --lastEl->epos;
+        std::vector<char> text;
+        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
+                  std::inserter<std::vector<char>>(((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
 
-        for(size_t ii=i+1; ii<_HTableSize; ++ii){
-            if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
-                epos=ii;
-                break;
-            }
-        }
 
-        if(epos < _HTableSize){
-            int tlen = (_HTable[epos][0]-_HTable[i][2]);
-            if(tlen>1){
-                addelement(&firstEl,&lastEl);
-                lastEl->element=new TextElement();
-                lastEl->spos = _HTable[i][2];
-                lastEl->epos = _HTable[epos][0];
-                std::vector<char> text;
-                std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
-                          std::inserter<std::vector<char>>(((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
-            }
-        }
     }
 
     if(!firstEl)
@@ -983,7 +972,6 @@ PRINTNEXTEL:
             if (((HtmlElement*) el)->_childElement) {
                 cpylist->push(el);
                 el=((HtmlElement*) el)->_childElement;
-                goto PRINTNEXTEL;
             }
 
             if (el->_nextElement) {

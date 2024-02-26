@@ -313,6 +313,7 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
     return _buildtreenode(prev,next->nextel,next,end);
 }
 #include <iostream>
+
 libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     DocElements *firstEl = nullptr, *lastEl = nullptr;
 
@@ -330,23 +331,23 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
 
     for (size_t i = 0; i < _HTableSize; ++i) {
-        if(_HTable[i][0] == -1)
+        if(_HTable[i][0] == -1 || _HTable[i][2] == -1)
             continue;
 
         addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
-        lastEl->epos = _HTable[i][2];
+        lastEl->epos = _HTable[i][2]+1;
 
         if (_HTable[i][1] != -1){
             lastEl->terminator = true;
         }
 
-        std::vector<char> tmp;
-        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>(tmp,tmp.begin()));
-        _serialelize(tmp, (HtmlElement**) &lastEl->element);
+        std::vector<char> el;
+        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
+        _serialelize(el,(HtmlElement**) &lastEl->element);
 
-        ssize_t epos=-1;
+        size_t epos=0;
 
         for(size_t ii=i+1; ii<_HTableSize; ++ii){
             if(_HTable[ii][0]>=0 && _HTable[ii][2]>=0){
@@ -355,18 +356,18 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             }
         }
 
-        if(epos < (ssize_t)_HTableSize){
+        if(epos < _HTableSize){
             int tlen = (_HTable[epos][0]-_HTable[i][2]);
             if(tlen>1){
                 addelement(&firstEl,&lastEl);
                 lastEl->element=new TextElement();
-                lastEl->spos = _HTable[i][2]+1;
+                lastEl->spos = _HTable[i][2];
                 lastEl->epos = _HTable[epos][0];
-                std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::insert_iterator<std::vector<char>>
-                            (((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
+                std::vector<char> text;
+                std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
+                          std::inserter<std::vector<char>>(((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
             }
         }
-        std::cout.write(((TextElement*) lastEl->element)->_Text.data(),(((TextElement*) lastEl->element)->_Text.size())) <<std::endl;
     }
 
     if(!firstEl)
@@ -387,11 +388,9 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     return firsthel;
 }
-#include <iostream>
+
 void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlElement **out) {
     size_t st=0,et=0;
-
-    std::cout.write(in.data(),in.size())<<std::endl;
 
     for (size_t i = 0; i < in.size(); ++i) {
         switch (in[i]) {
@@ -500,11 +499,10 @@ void libhtmlpp::HtmlString::_parseTree(){
     bool open=false;
     bool pterm=false;
     size_t ip=0;
-    negs=0;
+
     for(size_t ii=0; ii<_Data.size(); ++ii){
         switch(_Data.at(ii)){
             case HTMLTAG_OPEN:
-                negs=0;
                 if(!open){
                     if ( !(_Data[ii+1]=='!' && _Data[ii+2]=='-'&& _Data[ii+3]== '-') ) {
                         open = true;
@@ -516,25 +514,19 @@ void libhtmlpp::HtmlString::_parseTree(){
                 }
                 break;
             case HTMLTAG_TERMINATE:
-                negs=0;
                 if(pterm==true)
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if ( negs <2 && open) {
+                if (open) {
                     _HTable[ip][2] = ii;
                     ++ip;
                     open = false;
                 }
                 break;
-            case '-':
-                ++negs;
-            break;
             case ' ':
-                negs=0;
                 break;
             default:
-                negs=0;
                 pterm=false;
                 break;
         }
@@ -657,7 +649,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     _copy(this,hel);
     return *this;
 }
-#include <iostream>
+
 namespace libhtmlpp {
 
     void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -734,7 +726,6 @@ NEWEL:
             cpylist.pop();
             goto NEWEL;
         }
-        std::cout << cpylist.size() << std::endl;
     }
 };
 
@@ -1134,8 +1125,9 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name,size_t nlen, const ch
             _lastAttr = _firstAttr;
         }
         cattr = _lastAttr;
-        std::copy(name,name+nlen,std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );    }
-    if(value)
+        std::copy(name,name+nlen,std::insert_iterator<std::vector<char>>(cattr->_Key,cattr->_Key.begin()) );
+    }
+    if(vlen>0)
         std::copy(value,value+vlen,std::insert_iterator<std::vector<char>>(cattr->_Value ,cattr->_Value .begin()) );
     else
         cattr->_Value.clear();

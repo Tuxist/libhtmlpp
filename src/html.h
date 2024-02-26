@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace libhtmlpp {
     class DocElements;
     class HtmlElement;
+    class HtmlString;
 
     enum ElementType{
         TextEl=0,
@@ -69,7 +70,7 @@ namespace libhtmlpp {
         friend class HtmlElement;
         friend class TextElement;
         friend class HtmlString;
-        friend void  print(Element* el, std::string &output);
+        friend void  print(Element* el, HtmlString &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -126,7 +127,7 @@ namespace libhtmlpp {
 
         friend class HtmlString;
         friend class HtmlTable;
-        friend void  print(Element* el, std::string &output);
+        friend void  print(Element* el, HtmlString &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
@@ -146,11 +147,11 @@ namespace libhtmlpp {
         std::vector<char> _Text;
         std::vector<char> _CStr;
         friend class HtmlString;
-        friend void  print(Element* el, std::string &output);
+        friend void  print(Element* el, HtmlString &output);
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
-    void print(Element* el, std::string &output);
+    void print(Element* el, HtmlString &output);
 
     class HtmlString {
     public:

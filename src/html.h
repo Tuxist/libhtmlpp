@@ -173,6 +173,7 @@ namespace libhtmlpp {
         HtmlString& operator+=(HtmlString& hstring);
         HtmlString& operator=(const char* src);
         HtmlString& operator=(std::string *src);
+        HtmlString& operator=(const HtmlString& src);
         const char  operator[](size_t pos) const;
 
         HtmlString& operator<<(const char* src);

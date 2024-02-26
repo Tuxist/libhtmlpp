@@ -170,6 +170,12 @@ libhtmlpp::HtmlString & libhtmlpp::HtmlString::operator=(std::string *src){
     return *this;
 }
 
+libhtmlpp::HtmlString& libhtmlpp::HtmlString::operator=(const libhtmlpp::HtmlString& src){
+    clear();
+    std::copy(src._Data.begin(),src._Data.end(),std::insert_iterator<std::vector<char>>(_Data,_Data.begin()));
+    return *this;
+}
+
 const char libhtmlpp::HtmlString::operator[](size_t pos) const{
     return _Data.at(pos);
 }
@@ -699,7 +705,8 @@ NEWEL:
                 cpylist.push(childel);
             }
         }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
-             ((TextElement*)dest)->_Text=(((TextElement*)src)->_Text);
+            if(!(((TextElement*)src)->_Text).empty())
+                ((TextElement*)dest)->_Text=(((TextElement*)src)->_Text);
         }
 
         if(prev)
@@ -1171,8 +1178,8 @@ libhtmlpp::HtmlTable::HtmlTable(){
 libhtmlpp::HtmlTable::~HtmlTable(){
     Row *next=_firstRow,*curel=nullptr;
     while(next){
-        curel=next;
-        next=next->_nextRow;
+        next=curel->_nextRow;
+        curel->_nextRow =nullptr;
         delete curel;
     }
 }
@@ -1273,9 +1280,10 @@ libhtmlpp::HtmlTable::Row::Row(){
 libhtmlpp::HtmlTable::Row::~Row(){
     Column *cnext=_firstColumn,*ccurel=nullptr;
     while(cnext){
-        ccurel=cnext;
-        cnext=cnext->_nextColumn;
-        delete ccurel;
+        ccurel=cnext->_nextColumn;
+        cnext->_nextColumn=nullptr;
+        delete cnext;
+        cnext=ccurel;
     }
 }
 

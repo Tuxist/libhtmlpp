@@ -312,7 +312,7 @@ libhtmlpp::DocElements *libhtmlpp::HtmlString::_buildtreenode(DocElements* prev,
 
     return _buildtreenode(prev,next->nextel,next,end);
 }
-
+#include <iostream>
 libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     DocElements *firstEl = nullptr, *lastEl = nullptr;
 
@@ -355,9 +355,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             }
         }
 
-        if(epos<0)
-            continue;
-
         if(epos < (ssize_t)_HTableSize){
             int tlen = (_HTable[epos][0]-_HTable[i][2]);
             if(tlen>1){
@@ -369,6 +366,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
                             (((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
             }
         }
+        std::cout.write(((TextElement*) lastEl->element)->_Text.data(),(((TextElement*) lastEl->element)->_Text.size())) <<std::endl;
     }
 
     if(!firstEl)
@@ -389,9 +387,11 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     return firsthel;
 }
-
+#include <iostream>
 void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlElement **out) {
     size_t st=0,et=0;
+
+    std::cout.write(in.data(),in.size())<<std::endl;
 
     for (size_t i = 0; i < in.size(); ++i) {
         switch (in[i]) {
@@ -434,8 +434,7 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
         if(in[et]==' ' || in[et]=='>' || in[et]=='=') {
             if(startpos!=-1 && !value){
                 std::copy(in.begin()+startpos,in.begin()+et,std::insert_iterator<std::vector<char>>(key,key.begin()) );
-                key.push_back('\0');
-                (*out)->setAttribute(key.data(),nullptr);
+                (*out)->setAttribute(key.data(),key.size(),nullptr,0);
                 startpos=-1;
             }
             if(in[et]=='='){
@@ -444,12 +443,11 @@ void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlEl
         }else if(in[et]=='\"') {
             if( vst==-1 ){
                 vst=et;
-            }else if(!key.empty()){
+            }else if(!key.empty() && value){
                 std::vector<char> val;
                 ++vst;
                 std::copy(in.begin()+vst,in.begin()+et,std::insert_iterator<std::vector<char>>(val,val.begin()) );
-                val.push_back('\0');
-                (*out)->setAttribute(key.data(),val.data());
+                (*out)->setAttribute(key.data(),key.size(),val.data(),val.size());
                 key.clear();
                 vst=-1;
                 value=false;
@@ -1121,7 +1119,7 @@ void libhtmlpp::HtmlElement::setAttribute(const char* name,size_t nlen, const ch
     Attributes* cattr = nullptr;
 
     for (Attributes* curattr = _firstAttr; curattr; curattr=curattr->_nextAttr) {
-        if(curattr->_Key.size() >= nlen){
+        if(curattr->_Key.size() == nlen){
             if ( memcmp(curattr->_Key.data(),name,curattr->_Key.size()) ==0 ) {
                 cattr = curattr;
             }

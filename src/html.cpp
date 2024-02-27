@@ -762,6 +762,8 @@ NEWEL:
             }
         }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
             ((TextElement*)dest)->_Text=(((TextElement*)src)->_Text);
+        }else if(src->getType()==libhtmlpp::CommentEl && dest->getType()== libhtmlpp::CommentEl){
+            ((CommentElement*)dest)->_Comment=(((CommentElement*)src)->_Comment);
         }
 
         if(prev)

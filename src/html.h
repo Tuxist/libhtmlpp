@@ -86,6 +86,9 @@ namespace libhtmlpp {
         HtmlElement& operator=(const Element &hel);
         HtmlElement& operator=(const Element *hel);
 
+        bool operator==(const HtmlElement *hel);
+        bool operator==(const HtmlElement &hel);
+
         void         setAttribute(const char* name, const char* value);
         void         setAttribute(const char* name,size_t nlen, const char* value,size_t vlen);
 

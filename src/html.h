@@ -197,9 +197,9 @@ namespace libhtmlpp {
         bool               validate(std::string *err);
     private:
         void               _parseTree();
-        void               _serialelize(std::vector<char> in, HtmlElement** out);
+        void               _serialelize(std::vector<char> in, HtmlElement* out);
         Element*           _buildTree(ssize_t& pos);
-        DocElements       *_buildtreenode(DocElements* prev,DocElements* next,DocElements *start,DocElements *end);
+        void               _buildtreenode(DocElements *start);
         std::vector<char>  _Data;
         std::vector<char>  _CStr;
         ssize_t**          _HTable;

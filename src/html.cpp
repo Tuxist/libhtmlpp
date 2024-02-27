@@ -56,8 +56,8 @@ namespace libhtmlpp {
         bool                    terminator;
         class DocElements*      nextel;
         class DocElements*      prevel;
-        int                     spos;
-        int                     epos;
+        ssize_t                 spos;
+        ssize_t                 epos;
 
         DocElements() {
             nextel = nullptr;
@@ -264,7 +264,7 @@ bool libhtmlpp::HtmlString::validate(std::string *err){
     return false;
 }
 
-void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *start){
+void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *srcel){
 
     struct cpyel {
         cpyel(){
@@ -286,6 +286,7 @@ void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *start){
 
     std::stack<cpyel> cpylist;
 
+    DocElements *start=srcel;
     DocElements *next=start->nextel;
     DocElements *prev=start->prevel;
     DocElements *end=nullptr;
@@ -374,41 +375,61 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     size_t i = 0;
 
     while( i < _HTableSize ) {
-        if(_HTable[i][0] == -1 || _HTable[i][2] == -1)
-            continue;
+        if(_HTable[i][0] == -1 || _HTable[i][2] == -1){
+            break;
+        }
 
         addelement(&firstEl,&lastEl);
 
         lastEl->spos = _HTable[i][0];
-        lastEl->epos = _HTable[i][2]+1;
+        lastEl->epos = _HTable[i][2];
 
         if (_HTable[i][1] != -1){
             lastEl->terminator = true;
         }
 
-        std::vector<char> el;
-        std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
 
-        std::cout.write(el.data(),el.size())<<std::endl;
+        bool comment = false;
 
-        lastEl->element=new HtmlElement();
+        if((size_t)lastEl->spos+3<_Data.size()){
+            if(_Data.at(lastEl->spos)=='<' && _Data.at(lastEl->spos+1)=='!' &&
+                _Data.at(lastEl->spos+2)=='-' && _Data.at(lastEl->spos+3)=='-')
+                comment=true;
+        }
 
-        _serialelize(el,(HtmlElement*)lastEl->element);
+        if(!comment){
+            std::vector<char> el;
+            std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
+
+            lastEl->element=new HtmlElement();
+
+            _serialelize(el,(HtmlElement*)lastEl->element);
+        }else{
+            lastEl->element=new CommentElement();
+            std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
+                        std::inserter<std::vector<char>>(((CommentElement*) lastEl->element)->_Comment,((CommentElement*) lastEl->element)->_Comment.begin()));
+            ++i;
+            continue;
+        }
 
         ++i;
+        std::cout << i << ": " << _HTableSize << std::endl;
 
-        size_t epos = i < _HTableSize ? _HTable[i][0] :  _Data.size();
+        ssize_t epos = i < _HTableSize ? _HTable[i][0] :  _Data.size();
         --epos;
 
-        if(epos - _HTable[i-1][2] > 0){
+        ssize_t spos = _HTable[i-1][2]+1;
+
+        std::cout << spos << ":" << epos << ": "<< int(epos - spos)  << std::endl;
+
+        if(int(epos - spos) > 0){
             addelement(&firstEl,&lastEl);
             lastEl->element=new TextElement();
-            lastEl->spos = _HTable[i-1][2]+1;
+            lastEl->spos = spos;
             lastEl->epos = epos;
             std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
                         std::inserter<std::vector<char>>(((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
         }
-
     }
 
     _buildtreenode(firstEl);
@@ -511,11 +532,7 @@ void libhtmlpp::HtmlString::_parseTree(){
     for (size_t i = 0; i < _Data.size(); ++i) {
         switch (_Data[i]) {
             case HTMLTAG_CLOSE:
-                 if (memcmp(_Data.data()+i,"<--",3) !=0) {
-                        if (memcmp(_Data.data()+(i - 2),"-->",3)!=0) {
-                        ++closetag;
-                    }
-                 }
+                ++closetag;
             break;
         default:
             break;
@@ -539,13 +556,9 @@ void libhtmlpp::HtmlString::_parseTree(){
         switch(_Data[ii]){
             case HTMLTAG_OPEN:
                 if(!open){
-                    if ( memcmp(_Data.data()+ii,"<!--",4) != 0 ) {
-                        open = true;
-                        pterm = true;
-                        _HTable[ip][0] = ii;
-                    }else{
-                        ii+=4;
-                    }
+                    open = true;
+                    pterm = true;
+                    _HTable[ip][0] = ii;
                 }
                 break;
             case HTMLTAG_TERMINATE:
@@ -553,11 +566,9 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
-                if (memcmp(_Data.data()+ii,"<--",3) !=0 && open) {
                     _HTable[ip][2] = ii;
                     ++ip;
                     open = false;
-                }
                 break;
             case ' ':
                 break;
@@ -902,7 +913,40 @@ void libhtmlpp::TextElement::setText(const char* txt){
 const char * libhtmlpp::TextElement::getText(){
     _CStr=_Text;
     _CStr.push_back('\0');
-    return _Text.data();
+    return _CStr.data();
+}
+
+libhtmlpp::CommentElement::CommentElement() : Element(){
+    _Type=CommentEl;
+}
+
+libhtmlpp::CommentElement::CommentElement(const CommentElement &comel) : Element(){
+    _Type=CommentEl;
+    _copy(this,&comel);
+}
+
+libhtmlpp::CommentElement::~CommentElement(){
+}
+
+libhtmlpp::CommentElement & libhtmlpp::CommentElement::operator=(const libhtmlpp::Element& hel){
+    _copy(this,&hel);
+    return *this;
+}
+
+libhtmlpp::CommentElement & libhtmlpp::CommentElement::operator=(const libhtmlpp::Element* hel){
+    _copy(this,hel);
+    return *this;
+}
+
+void libhtmlpp::CommentElement::setComment(const char* txt){
+    std::copy(txt,txt+strlen(txt),
+              std::insert_iterator<std::vector<char>>(_Comment,_Comment.begin()));
+}
+
+const char * libhtmlpp::CommentElement::getComment(){
+    _CStr=_Comment;
+    _CStr.push_back('\0');
+    return _CStr.data();
 }
 
 
@@ -1076,7 +1120,28 @@ PRINTNEXTEL:
                 }
             }
         }break;
+        case CommentEl: {
+            output.append(((CommentElement*)el)->_Comment.data(),((CommentElement*)el)->_Comment.size());
 
+            if (el->_nextElement) {
+                el=el->_nextElement;
+                goto PRINTNEXTEL;
+            }
+
+            while(!cpylist->empty()){
+                el=cpylist->top();
+
+                output.append("</");
+                output.append(((HtmlElement*) el)->_TagName.data(),((HtmlElement*) el)->_TagName.size());
+                output.append(">");
+
+                cpylist->pop();
+                if(el->_nextElement){
+                    el=el->_nextElement;
+                    goto PRINTNEXTEL;
+                }
+            }
+        }break;
         default:
             HTMLException excp;
             excp[HTMLException::Error] << "Unkown Elementtype";

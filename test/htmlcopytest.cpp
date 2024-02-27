@@ -38,11 +38,11 @@ class HtmlCopy{
 public:
     HtmlCopy(libhtmlpp::Element *index){
         index2=index;
-        libhtmlpp::HtmlElement  el("span");
-        el.setAttribute("id","txt3");
-        libhtmlpp::HtmlElement *body=index2.getElementbyTag("body");
-        if(body)
-            body->appendChild(&el);
+        // libhtmlpp::HtmlElement  el("span");
+        // el.setAttribute("id","txt3");
+        // libhtmlpp::HtmlElement *body=index2.getElementbyTag("body");
+        // if(body)
+        //     body->appendChild(&el);
     }
 
     void printModify(){

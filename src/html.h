@@ -40,7 +40,8 @@ namespace libhtmlpp {
 
     enum ElementType{
         TextEl=0,
-        HtmlEl=1
+        HtmlEl=1,
+        CommentEl=2
     };
 
     class Element {
@@ -154,6 +155,26 @@ namespace libhtmlpp {
         friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
     };
 
+    class CommentElement : public Element{
+    public:
+        CommentElement();
+        CommentElement(const CommentElement &comel);
+        ~CommentElement();
+
+        CommentElement& operator=(const Element &hel);
+        CommentElement& operator=(const Element *hel);
+
+        const char *getComment();
+        void        setComment(const char *txt);
+
+    protected:
+        std::vector<char> _Comment;
+        std::vector<char> _CStr;
+        friend class HtmlString;
+        friend void  print(Element* el, HtmlString &output);
+        friend void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src);
+    };
+
     void print(Element* el, HtmlString &output);
 
     class HtmlString {
@@ -199,7 +220,7 @@ namespace libhtmlpp {
         void               _parseTree();
         void               _serialelize(std::vector<char> in, HtmlElement* out);
         Element*           _buildTree(ssize_t& pos);
-        void               _buildtreenode(DocElements *start);
+        void               _buildtreenode(DocElements *srcel);
         std::vector<char>  _Data;
         std::vector<char>  _CStr;
         ssize_t**          _HTable;

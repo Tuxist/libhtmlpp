@@ -263,8 +263,8 @@ bool libhtmlpp::HtmlString::validate(std::string *err){
     }
     return false;
 }
-
-void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *srcel){
+#include <iostream>
+void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *firstel,libhtmlpp::DocElements *lastel){
 
     struct cpyel {
         cpyel(){
@@ -272,13 +272,11 @@ void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *srcel){
         };
 
         cpyel(const cpyel &src){
-            prev=src.prev;
             next=src.next;
             start=src.start;
             end=src.end;
         };
 
-        libhtmlpp::DocElements *prev;
         libhtmlpp::DocElements *next;
         libhtmlpp::DocElements *start;
         libhtmlpp::DocElements *end;
@@ -286,22 +284,21 @@ void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *srcel){
 
     std::stack<cpyel> cpylist;
 
-    DocElements *start=srcel;
+    DocElements *start=firstel;
     DocElements *next=start->nextel;
-    DocElements *prev=start->prevel;
-    DocElements *end=nullptr;
+    DocElements *end=lastel;
 
     auto checkterminator = [](DocElements *termel, DocElements *end){
         int i=0;
         for (DocElements* curcel=termel->nextel; curcel; curcel=curcel->nextel) {
 
-            if (curcel->element->_Type==HtmlEl && !curcel->terminator &&
-                (*(HtmlElement*)curcel->element) == (*(HtmlElement*)termel->element)) {
+            if (curcel->element && curcel->element->_Type==HtmlEl && !curcel->terminator &&
+                (*(HtmlElement*)curcel->element) == ((HtmlElement*)termel->element)) {
                 ++i;
             }
 
-            if (curcel->element->_Type==HtmlEl && curcel->terminator &&
-                (*(HtmlElement*)curcel->element) == (*(HtmlElement*)termel->element)) {
+            if (curcel->element && curcel->element->_Type==HtmlEl && curcel->terminator &&
+                (*(HtmlElement*)curcel->element) == ((HtmlElement*)termel->element)) {
                 if(i==0)
                     return curcel;
                 else
@@ -313,50 +310,51 @@ void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *srcel){
         return (DocElements*) nullptr;
     };
 NEXTDOCEL:
-    if(!start->terminator){
-        if(prev){
-            start->element->_prevElement=prev->element;
-            prev=start;
+        if(start){
+            for(DocElements *tmps=start; tmps!=end; tmps=tmps->nextel){
+                if(!tmps->terminator){
+                    start=tmps;
+                    break;
+                }
+            }
         }
-    }
 
-    if(!start->terminator && start->element->_Type==HtmlEl){
-        DocElements *parent=checkterminator(start,end);
-        if(parent){
-            ((HtmlElement*)start->element)->_childElement =next->element;
-            cpyel cpy;
-            cpy.prev=nullptr;
-            cpy.next=next->nextel;
-            cpy.start=next;
-            cpy.end=parent;
-            cpylist.push(cpy);
-            next=parent->nextel;
+        if(start && ((Element*)(start->element))->getType()==HtmlEl){
+            DocElements *parent=checkterminator(start,end);
+            if(parent){
+                ((HtmlElement*)(start->element))->_childElement=start->nextel->element;
+                cpyel childel;
+                childel.start= parent!=start->nextel ? start->nextel : nullptr;
+                childel.next = parent!=next->nextel ? next->nextel : nullptr;
+                childel.end=parent;
+                cpylist.push(childel);
+                next=parent->nextel;
+            }
         }
-    };
 
-    while(next!=end){
-        if(!next->terminator){
-            start->element->_nextElement=next->element;
-            prev=start;
-            start=next;
-            next=next->nextel;
-            goto NEXTDOCEL;
+        if(next){
+            for(DocElements *tmps=next; tmps!=end; tmps=tmps->nextel){
+                if(!tmps->terminator){
+                    start->element->_nextElement=tmps->element;
+                    tmps->element->_prevElement=start->element;
+                    start=tmps;
+                    next=tmps->nextel;
+                    std::cerr << start->element->getType() << std::endl;
+                    goto NEXTDOCEL;
+                }
+            }
         }
-        next=next->nextel;
-    }
 
-    while(!cpylist.empty()){
-            cpyel cpy;
-            cpy=cpylist.top();
-            prev=cpy.prev;
-            next=cpy.next;
-            start=cpy.start;
-            end=cpy.end;
+        if(!cpylist.empty()){
+            cpyel childel(cpylist.top());
+            start=childel.start;
+            next=childel.next;
+            end=childel.end;
             cpylist.pop();
             goto NEXTDOCEL;
-    }
+        }
 }
-#include <iostream>
+
 libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     DocElements *firstEl = nullptr, *lastEl = nullptr;
 
@@ -384,6 +382,8 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         lastEl->spos = _HTable[i][0];
         lastEl->epos = _HTable[i][2];
 
+        lastEl->epos++;
+
         if (_HTable[i][1] != -1){
             lastEl->terminator = true;
         }
@@ -400,27 +400,22 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         if(!comment){
             std::vector<char> el;
             std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
-
             lastEl->element=new HtmlElement();
 
             _serialelize(el,(HtmlElement*)lastEl->element);
         }else{
             lastEl->element=new CommentElement();
-            std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
+            std::copy(_Data.begin()+lastEl->spos+4,_Data.begin()+lastEl->epos-2,
                         std::inserter<std::vector<char>>(((CommentElement*) lastEl->element)->_Comment,((CommentElement*) lastEl->element)->_Comment.begin()));
             ++i;
             continue;
         }
 
         ++i;
-        std::cout << i << ": " << _HTableSize << std::endl;
 
-        ssize_t epos = i < _HTableSize ? _HTable[i][0] :  _Data.size();
-        --epos;
+        size_t epos = i < _HTableSize ? _HTable[i][0] :  _Data.size();
 
-        ssize_t spos = _HTable[i-1][2]+1;
-
-        std::cout << spos << ":" << epos << ": "<< int(epos - spos)  << std::endl;
+        size_t spos = _HTable[i-1][2]+1;
 
         if(int(epos - spos) > 0){
             addelement(&firstEl,&lastEl);
@@ -432,7 +427,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
         }
     }
 
-    _buildtreenode(firstEl);
+    _buildtreenode(firstEl,lastEl);
 
     DocElements *dnext=nullptr,*dcurel=firstEl;
 
@@ -446,7 +441,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
     return rootnode;
 }
-#include <iostream>
 
 void libhtmlpp::HtmlString::_serialelize(std::vector<char> in, libhtmlpp::HtmlElement *out) {
     size_t st=0,et=0;
@@ -566,9 +560,11 @@ void libhtmlpp::HtmlString::_parseTree(){
                     _HTable[ip][1]=ii;
                 break;
             case HTMLTAG_CLOSE:
+                if(open){
                     _HTable[ip][2] = ii;
                     ++ip;
                     open = false;
+                }
                 break;
             case ' ':
                 break;
@@ -1123,7 +1119,9 @@ PRINTNEXTEL:
             }
         }break;
         case CommentEl: {
+            output.append("<!--");
             output.append(((CommentElement*)el)->_Comment.data(),((CommentElement*)el)->_Comment.size());
+            output.append("-->");
 
             if (el->_nextElement) {
                 el=el->_nextElement;

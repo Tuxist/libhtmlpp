@@ -263,7 +263,7 @@ bool libhtmlpp::HtmlString::validate(std::string *err){
     }
     return false;
 }
-#include <iostream>
+
 void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *firstel,libhtmlpp::DocElements *lastel){
 
     struct cpyel {
@@ -310,12 +310,10 @@ void libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *firstel,libht
         return (DocElements*) nullptr;
     };
 NEXTDOCEL:
-        if(start){
-            for(DocElements *tmps=start; tmps!=end; tmps=tmps->nextel){
-                if(!tmps->terminator){
-                    start=tmps;
-                    break;
-                }
+       for(DocElements *tmps=start; tmps!=end; tmps=tmps->nextel){
+             if(!tmps->terminator){
+                start=tmps;
+                break;
             }
         }
 
@@ -339,7 +337,6 @@ NEXTDOCEL:
                     tmps->element->_prevElement=start->element;
                     start=tmps;
                     next=tmps->nextel;
-                    std::cerr << start->element->getType() << std::endl;
                     goto NEXTDOCEL;
                 }
             }
@@ -750,6 +747,9 @@ NEWEL:
                 }else if(hsrc->_childElement->getType()==TextEl){
                     hdest->_childElement= new TextElement;
                     hdest->_Type=TextEl;
+                }else if(hsrc->_childElement->getType()==CommentEl){
+                    hdest->_childElement= new CommentElement;
+                    hdest->_Type=CommentEl;
                 }
                 cpyel childel;
                 childel.destin=hdest->_childElement;;
@@ -768,10 +768,12 @@ NEWEL:
         Element* next=src->nextElement();
 
         if(next){
-             if(next->getType()==HtmlEl)
+            if(next->getType()==HtmlEl)
                 dest->_nextElement= new HtmlElement();
-             else if(next->getType()==TextEl)
+            else if(next->getType()==TextEl)
                 dest->_nextElement= new TextElement();
+            else if(next->getType()==CommentEl)
+                dest->_nextElement= new CommentElement();
              prev=dest;
              src=next;
              dest=dest->_nextElement;

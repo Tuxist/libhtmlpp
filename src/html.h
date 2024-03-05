@@ -220,7 +220,7 @@ namespace libhtmlpp {
         void               _parseTree();
         void               _serialelize(std::vector<char> in, HtmlElement* out);
         Element*           _buildTree(ssize_t& pos);
-        void               _buildtreenode(DocElements *firstel,DocElements *lastel);
+        Element*           _buildtreenode(DocElements *firstel,DocElements *lastel);
         std::vector<char>  _Data;
         std::vector<char>  _CStr;
         ssize_t**          _HTable;

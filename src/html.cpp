@@ -284,13 +284,16 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements
 
     DocElements *prev=nullptr;
     DocElements *start=firstel;
-    DocElements *next=start->nextel;
     DocElements *end=lastel;
 
     Element* first=start->element;
 
     auto checkterminator = [](DocElements *termel, DocElements *end){
         int i=0;
+
+        if(((Element*)(termel->element))->getType()!=HtmlEl)
+            return (DocElements*) nullptr;
+
         for (DocElements* curcel=termel->nextel; curcel; curcel=curcel->nextel) {
 
             if (curcel->element && curcel->element->_Type==HtmlEl && !curcel->terminator &&
@@ -301,7 +304,6 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements
             if (curcel->element && curcel->element->_Type==HtmlEl && curcel->terminator &&
                 *((HtmlElement*)curcel->element) == ((HtmlElement*)termel->element)) {
                 if(i==0){
-                    std::cout <<  ((HtmlElement*)curcel->element)->getTagname() << std::endl;
                     return curcel;
                 }else{
                     --i;
@@ -314,50 +316,50 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements
     };
 
 NEXTDOCEL:
+    DocElements *parent=checkterminator(start,end);
 
-
-    if(start->element && prev){
-        start->element->_prevElement=prev->element;
-        prev->element->_nextElement=start->element;
-        prev->prevel=nullptr;
-        prev->nextel=nullptr;
-        delete prev;
+    if(parent && parent!=start->nextel){
+        ((HtmlElement*)(start->element))->_childElement=start->nextel->element;
+        cpyel childel;
+        childel.start=start->nextel;
+        childel.end=parent;
+        cpylist.push(childel);
+        start=parent;
     }
 
-    if(start && ((Element*)(start->element))->getType()==HtmlEl){
-        DocElements *parent=checkterminator(start,end);
-        if(parent){
-            DocElements *child=start->nextel;
-            if(child!=parent){
-                ((HtmlElement*)(start->element))->_childElement=child->element;
-                cpyel childel;
-                childel.start=child;
-                childel.end=parent;
-                cpylist.push(childel);
-                next=parent->nextel;
+    if(start!=end){
+        if(!start->terminator){
+            if(!start->nextel->terminator){
+                start->element->_nextElement=start->nextel->element;
             }
-        }
-    }
-
-    if(next && next!=end){
-        if(!next->terminator && next->element){
+            if(prev){
+                start->element->_prevElement=prev->element;
+            }
             prev=start;
-            start=next;
         }
-        next=next->nextel;
+        start=start->nextel;
         goto NEXTDOCEL;
     }
-
 
     if(!cpylist.empty()){
         cpyel childel(cpylist.top());
         prev=nullptr;
         start=childel.start;
-        next=childel.start->nextel;
         end=childel.end;
         cpylist.pop();
         goto NEXTDOCEL;
     }
+
+    while(lastel){
+        DocElements *prev=lastel->prevel;
+        lastel->prevel=nullptr;
+        if(!lastel->terminator)
+            lastel->element=nullptr;
+        delete lastel;
+        lastel=prev;
+    }
+
+    firstel=nullptr;
 
     return first;
 }

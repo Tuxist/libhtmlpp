@@ -1282,9 +1282,10 @@ libhtmlpp::HtmlTable::HtmlTable(){
 libhtmlpp::HtmlTable::~HtmlTable(){
     Row *next=_firstRow,*curel=nullptr;
     while(next){
-        next=curel->_nextRow;
-        curel->_nextRow =nullptr;
-        delete curel;
+        curel=next->_nextRow;
+        next->_nextRow=nullptr;
+        delete next;
+        next=curel;
     }
 }
 

@@ -263,7 +263,7 @@ bool libhtmlpp::HtmlString::validate(std::string *err){
     }
     return false;
 }
-#include <iostream>
+
 libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements *firstel,libhtmlpp::DocElements *lastel){
 
     struct cpyel {
@@ -337,10 +337,6 @@ NEXTDOCEL:
         e[HTMLException::Critical] << "Html Dom Incorrect!";
         throw e;
     }
-
-    if(start->element->getType()==TextEl)
-        std::cout << ((TextElement*)(start->element))->getText() << std::endl;
-
 
     while(next!=end){
         if(!next->terminator){
@@ -1159,16 +1155,15 @@ PRINTNEXTEL:
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{
-    std::stack <Element*> *childs=new std::stack <Element*>;
+    std::stack <Element*> childs;
     const Element *curel=this;
 SEARCHBYID:
     if(curel->getType()==HtmlEl){
         if(((HtmlElement*)curel)->_childElement){
-            childs->push(((HtmlElement*)curel)->_childElement);
+            childs.push(((HtmlElement*)curel)->_childElement);
         }
         const char *key=((HtmlElement*)curel)->getAtributte("id");
         if(key && strcmp(key,id)==0){
-            delete childs;
             return (HtmlElement*)curel;
         }
     }
@@ -1178,25 +1173,22 @@ SEARCHBYID:
         goto SEARCHBYID;
     }
 
-    if(!childs->empty()){
-        curel=childs->top();
-        childs->pop();
+    if(!childs.empty()){
+        curel=childs.top();
+        childs.pop();
         goto SEARCHBYID;
     }
 
-    delete childs;
     return nullptr;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyTag(const char *tag) const{
-    std::stack <Element*> *childs=new std::stack <Element*>;
+    std::stack <Element*> childs;
     const Element *curel=this;
 SEARCHBYTAG:
     if(curel->getType()==HtmlEl){
         if(((HtmlElement*)curel)->_childElement){
-            HtmlElement *find=((HtmlElement*)((HtmlElement*)curel)->_childElement)->getElementbyTag(tag);
-            if(find)
-                return find;
+            childs.push(((HtmlElement*)curel)->_childElement);
         }
         const char *tname=((HtmlElement*)curel)->getTagname();
         if(tname && strcmp(tname,tag)==0){
@@ -1209,13 +1201,11 @@ SEARCHBYTAG:
         goto SEARCHBYTAG;
     }
 
-    if(!childs->empty()){
-        curel=childs->top();
-        childs->pop();
+    if(!childs.empty()){
+        curel=childs.top();
+        childs.pop();
         goto SEARCHBYTAG;
     }
-
-    delete childs;
     return nullptr;
 }
 

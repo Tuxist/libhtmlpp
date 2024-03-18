@@ -284,6 +284,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements
 
     DocElements *prev=nullptr;
     DocElements *start=firstel;
+    DocElements *next=firstel->nextel;
     DocElements *end=lastel;
 
     Element* first=start->element;
@@ -318,34 +319,46 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildtreenode(libhtmlpp::DocElements
 NEXTDOCEL:
     DocElements *parent=checkterminator(start,end);
 
-    if(parent && parent!=start->nextel){
-        ((HtmlElement*)(start->element))->_childElement=start->nextel->element;
-        cpyel childel;
-        childel.start=start->nextel;
-        childel.end=parent;
-        cpylist.push(childel);
-        start=parent;
+    if(prev && !start->terminator){
+        start->element->_prevElement=prev->element;
     }
 
-    if(start!=end){
-        if(!start->terminator){
-            if(!start->nextel->terminator){
-                start->element->_nextElement=start->nextel->element;
-            }
-            if(prev){
-                start->element->_prevElement=prev->element;
-            }
-            prev=start;
-        }
-        start=start->nextel;
-        goto NEXTDOCEL;
+    if(parent && parent!=next){
+        ((HtmlElement*)(start->element))->_childElement=next->element;
+        cpyel childel;
+        childel.start=next;
+        childel.end=parent;
+        cpylist.push(childel);
+        next=parent;
     }
+
+    if(!next){
+        HTMLException e;
+        e[HTMLException::Critical] << "Html Dom Incorrect!";
+        throw e;
+    }
+
+    if(start->element->getType()==TextEl)
+        std::cout << ((TextElement*)(start->element))->getText() << std::endl;
+
+
+    while(next!=end){
+        if(!next->terminator){
+            start->element->_nextElement=next->element;
+            prev=start;
+            start=next;
+            next=next->nextel;
+            goto NEXTDOCEL;
+        }
+        next=next->nextel;
+    };
 
     if(!cpylist.empty()){
         cpyel childel(cpylist.top());
         prev=nullptr;
         start=childel.start;
         end=childel.end;
+        next=childel.start->nextel;
         cpylist.pop();
         goto NEXTDOCEL;
     }
@@ -422,6 +435,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
             lastEl->element=new TextElement();
             lastEl->spos = spos;
             lastEl->epos = epos;
+
             std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,
                         std::inserter<std::vector<char>>(((TextElement*) lastEl->element)->_Text,((TextElement*) lastEl->element)->_Text.begin()));
         }
@@ -1046,7 +1060,7 @@ void libhtmlpp::HtmlPage::_CheckHeader(const HtmlString &page){
 
 void libhtmlpp::print(Element* el, HtmlString &output) {
 
-    std::stack<libhtmlpp::Element*> *cpylist = new std::stack<libhtmlpp::Element*>;
+    std::stack<libhtmlpp::Element*> cpylist;
 
 PRINTNEXTEL:
     switch(el->_Type){
@@ -1065,8 +1079,9 @@ PRINTNEXTEL:
             output.append(">");
 
             if (((HtmlElement*) el)->_childElement) {
-                cpylist->push(el);
+                cpylist.push(el);
                 el=((HtmlElement*) el)->_childElement;
+                goto PRINTNEXTEL;
             }
 
             if (el->_nextElement) {
@@ -1074,14 +1089,14 @@ PRINTNEXTEL:
                 goto PRINTNEXTEL;
             }
 
-            while(!cpylist->empty()){
-                el=cpylist->top();
+            while(!cpylist.empty()){
+                el=cpylist.top();
 
                 output.append("</");
                 output.append(((HtmlElement*) el)->getTagname());
                 output.append(">");
 
-                cpylist->pop();
+                cpylist.pop();
                 if(el->_nextElement){
                     el=el->_nextElement;
                     goto PRINTNEXTEL;
@@ -1097,14 +1112,14 @@ PRINTNEXTEL:
                 goto PRINTNEXTEL;
             }
 
-            while(!cpylist->empty()){
-                el=cpylist->top();
+            while(!cpylist.empty()){
+                el=cpylist.top();
 
                 output.append("</");
                 output.append(((HtmlElement*) el)->_TagName.data(),((HtmlElement*) el)->_TagName.size());
                 output.append(">");
 
-                cpylist->pop();
+                cpylist.pop();
                 if(el->_nextElement){
                     el=el->_nextElement;
                     goto PRINTNEXTEL;
@@ -1121,14 +1136,14 @@ PRINTNEXTEL:
                 goto PRINTNEXTEL;
             }
 
-            while(!cpylist->empty()){
-                el=cpylist->top();
+            while(!cpylist.empty()){
+                el=cpylist.top();
 
                 output.append("</");
                 output.append(((HtmlElement*) el)->_TagName.data(),((HtmlElement*) el)->_TagName.size());
                 output.append(">");
 
-                cpylist->pop();
+                cpylist.pop();
                 if(el->_nextElement){
                     el=el->_nextElement;
                     goto PRINTNEXTEL;
@@ -1141,7 +1156,6 @@ PRINTNEXTEL:
             throw excp;
             break;
     }
-    delete cpylist;
 }
 
 libhtmlpp::HtmlElement *libhtmlpp::HtmlElement::getElementbyID(const char *id) const{

@@ -706,6 +706,7 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     return *this;
 }
 
+#include <iostream>
 namespace libhtmlpp {
 
     void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -728,33 +729,29 @@ namespace libhtmlpp {
 
         std::stack<cpyel> cpylist;
 
+        Element *firstdest=dest;
+
 NEWEL:
         if(src->getType()==libhtmlpp::HtmlEl && dest->getType()==libhtmlpp::HtmlEl){
-            libhtmlpp::HtmlElement *hdest=(libhtmlpp::HtmlElement*)dest;
-            libhtmlpp::HtmlElement *hsrc=(libhtmlpp::HtmlElement*)src;
-
-            hdest->setTagname(hsrc->getTagname());
-            for(libhtmlpp::HtmlElement::Attributes *cattr=hsrc->_firstAttr; cattr; cattr=cattr->_nextAttr){
+            ((libhtmlpp::HtmlElement*)dest)->setTagname(((libhtmlpp::HtmlElement*)src)->getTagname());
+            for(libhtmlpp::HtmlElement::Attributes *cattr=((libhtmlpp::HtmlElement*)src)->_firstAttr; cattr; cattr=cattr->_nextAttr){
                 if(!cattr->_Value.empty())
-                    hdest->setAttribute(cattr->_Key.data(),cattr->_Key.size(),cattr->_Value.data(),cattr->_Value.size());
+                    ((libhtmlpp::HtmlElement*)dest)->setAttribute(cattr->_Key.data(),cattr->_Key.size(),cattr->_Value.data(),cattr->_Value.size());
                 else
-                    hdest->setAttribute(cattr->_Key.data(),cattr->_Key.size(),nullptr,0);
+                    ((libhtmlpp::HtmlElement*)dest)->setAttribute(cattr->_Key.data(),cattr->_Key.size(),nullptr,0);
             }
 
-            if(hsrc->_childElement){
-                if(hsrc->_childElement->getType()==HtmlEl){
-                    hdest->_childElement= new HtmlElement;
-                    hdest->_Type=HtmlEl;
-                }else if(hsrc->_childElement->getType()==TextEl){
-                    hdest->_childElement= new TextElement;
-                    hdest->_Type=TextEl;
-                }else if(hsrc->_childElement->getType()==CommentEl){
-                    hdest->_childElement= new CommentElement;
-                    hdest->_Type=CommentEl;
+            if(((libhtmlpp::HtmlElement*)src)->_childElement){
+                if(((libhtmlpp::HtmlElement*)src)->_childElement->getType()==HtmlEl){
+                    ((libhtmlpp::HtmlElement*)dest)->_childElement= new HtmlElement;
+                }else if(((libhtmlpp::HtmlElement*)src)->_childElement->getType()==TextEl){
+                    ((libhtmlpp::HtmlElement*)dest)->_childElement = new TextElement;
+                }else if(((libhtmlpp::HtmlElement*)src)->_childElement->getType()==CommentEl){
+                    ((libhtmlpp::HtmlElement*)dest)->_childElement = new CommentElement;
                 }
                 cpyel childel;
-                childel.destin=hdest->_childElement;;
-                childel.source=hsrc->_childElement;
+                childel.destin=((libhtmlpp::HtmlElement*)dest)->_childElement;;
+                childel.source=((libhtmlpp::HtmlElement*)src)->_childElement;
                 cpylist.push(childel);
             }
         }else if(src->getType()==libhtmlpp::TextEl && dest->getType()== libhtmlpp::TextEl){
@@ -778,6 +775,7 @@ NEWEL:
              prev=dest;
              src=next;
              dest=dest->_nextElement;
+             std::cout << "next" << std::endl;
              goto NEWEL;
         }
 
@@ -787,8 +785,11 @@ NEWEL:
             dest=childel.destin;
             src=childel.source;
             cpylist.pop();
+            std::cout << "child" << std::endl;
             goto NEWEL;
         }
+
+        dest=firstdest;
     }
 };
 

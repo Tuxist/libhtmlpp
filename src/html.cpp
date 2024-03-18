@@ -706,7 +706,6 @@ libhtmlpp::HtmlElement & libhtmlpp::HtmlElement::operator=(const libhtmlpp::Elem
     return *this;
 }
 
-#include <iostream>
 namespace libhtmlpp {
 
     void _copy(libhtmlpp::Element *dest,const libhtmlpp::Element *src){
@@ -775,7 +774,6 @@ NEWEL:
              prev=dest;
              src=next;
              dest=dest->_nextElement;
-             std::cout << "next" << std::endl;
              goto NEWEL;
         }
 
@@ -785,7 +783,6 @@ NEWEL:
             dest=childel.destin;
             src=childel.source;
             cpylist.pop();
-            std::cout << "child" << std::endl;
             goto NEWEL;
         }
 

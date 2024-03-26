@@ -8,9 +8,6 @@ set(libhtmlSrcs
     html.cpp
     request.cpp
     exception.cpp
-    request/ajax.cpp
-    request/httpform.cpp
-    request/websocket.cpp
 )
 
 add_library(htmlpp        SHARED ${libhtmlSrcs} )

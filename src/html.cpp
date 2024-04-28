@@ -1070,8 +1070,11 @@ PRINTNEXTEL:
                     output.append("\"");
                 }
             }
-            output.append(">");
-
+            if(((HtmlElement*) el)->_childElement || el->_nextElement ){
+                output.append(">");
+            }else{
+                output.append(" />");
+            }
             if (((HtmlElement*) el)->_childElement) {
                 cpylist.push(el);
                 el=((HtmlElement*) el)->_childElement;

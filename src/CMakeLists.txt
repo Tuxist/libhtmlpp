@@ -51,13 +51,6 @@ install(FILES
     DESTINATION include/htmlpp
     COMPONENT Devel
 )
-install(FILES
-    request/ajax.h
-    request/httpform.h
-    request/websocket.h
-    DESTINATION include/htmlpp/request
-    COMPONENT Devel
-)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(

@@ -388,7 +388,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
     };
 
     for(size_t i = 0; i < _HTableSize; ++i) {
-        if(_HTable[i][0] == -1 || _HTable[i][2] == -1){
+        if(_HTable[i][0] == -1){
             continue;
         }
 
@@ -412,7 +412,7 @@ libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
 
         if(!comment){
             std::vector<char> el;
-            std::copy(_Data.begin()+lastEl->spos,_Data.begin()+lastEl->epos,std::inserter<std::vector<char>>(el,el.begin()));
+            std::copy(_Data.begin()+lastEl->spos,_Data.begin()+(lastEl->epos+1),std::inserter<std::vector<char>>(el,el.begin()));
             lastEl->element=new HtmlElement();
 
             _serialelize(el,(HtmlElement*)lastEl->element);

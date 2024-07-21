@@ -17,7 +17,6 @@ add_library(htmlpp-static STATIC ${libhtmlSrcs} )
 
 generate_export_header(htmlpp)
 
-
 target_link_libraries(htmlpp c)
 target_link_libraries(htmlpp-static c)
 
@@ -35,9 +34,10 @@ install(TARGETS htmlpp EXPORT htmlppTargets
   INCLUDES DESTINATION include
 )
 
-install(TARGETS htmlpp-static
+install(TARGETS htmlpp-static EXPORT htmlppTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
 )
 
 install(FILES

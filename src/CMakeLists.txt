@@ -61,7 +61,7 @@ write_basic_package_version_file(
 
 export(EXPORT htmlppTargets
   FILE "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppTargets.cmake"
-  NAMESPACE Upstream::
+  NAMESPACE htmlpp::
 )
 
 configure_file(cmake/htmlppConfig.cmake
@@ -74,7 +74,7 @@ install(EXPORT htmlppTargets
   FILE
     htmlppTargets.cmake
   NAMESPACE
-    Upstream::
+   htmlpp::
   DESTINATION
     ${ConfigPackageLocation}
 )

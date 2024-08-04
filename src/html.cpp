@@ -56,8 +56,8 @@ namespace libhtmlpp {
         bool                    terminator;
         class DocElements*      nextel;
         class DocElements*      prevel;
-        ssize_t                 spos;
-        ssize_t                 epos;
+        long                    spos;
+        long                    epos;
 
         DocElements() {
             nextel = nullptr;
@@ -242,7 +242,7 @@ const char * libhtmlpp::HtmlString::c_str(){
 libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
     HTMLException excp;
     _parseTree();
-    ssize_t pos = 0;
+    long pos = 0;
     if(_RootNode)
         delete _RootNode;
     _RootNode = (HtmlElement*)_buildTree(pos);
@@ -252,7 +252,7 @@ libhtmlpp::HtmlElement* libhtmlpp::HtmlString::parse() {
 bool libhtmlpp::HtmlString::validate(std::string *err){
     try{
         _parseTree();
-        ssize_t pos = 0;
+        long pos = 0;
         HtmlElement *el=(HtmlElement*)_buildTree(pos);
         if(el){
             delete el;
@@ -373,7 +373,7 @@ NEXTDOCEL:
     return first;
 }
 
-libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(ssize_t& pos) {
+libhtmlpp::Element* libhtmlpp::HtmlString::_buildTree(long& pos) {
     DocElements *firstEl = nullptr, *lastEl = nullptr;
 
     auto addelement = [](DocElements **first,DocElements **last){
@@ -533,9 +533,9 @@ void libhtmlpp::HtmlString::_parseTree(){
 
     _HTableSize = closetag;
 
-    _HTable = new ssize_t*[_HTableSize];
+    _HTable = new long*[_HTableSize];
     for (size_t is = 0; is < _HTableSize; is++) {
-        _HTable[is] = new ssize_t[3];
+        _HTable[is] = new long[3];
         _HTable[is][0] = -1;
         _HTable[is][1] = -1;
         _HTable[is][2] = -1;

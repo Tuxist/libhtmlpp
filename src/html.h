@@ -219,11 +219,11 @@ namespace libhtmlpp {
     private:
         void               _parseTree();
         void               _serialelize(std::vector<char> in, HtmlElement* out);
-        Element*           _buildTree(ssize_t& pos);
+        Element*           _buildTree(long& pos);
         Element*           _buildtreenode(DocElements *firstel,DocElements *lastel);
         std::vector<char>  _Data;
         std::vector<char>  _CStr;
-        ssize_t**          _HTable;
+        long**             _HTable;
         size_t             _HTableSize;
         HtmlElement*       _RootNode;
         friend void HtmlEncode(const char *input,HtmlString *output);

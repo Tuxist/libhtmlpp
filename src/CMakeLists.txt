@@ -17,8 +17,8 @@ add_library(htmlpp-static STATIC ${libhtmlSrcs} )
 
 generate_export_header(htmlpp)
 
-target_link_libraries(htmlpp c)
-target_link_libraries(htmlpp-static c)
+target_link_libraries(htmlpp)
+target_link_libraries(htmlpp-static)
 
 
 SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")

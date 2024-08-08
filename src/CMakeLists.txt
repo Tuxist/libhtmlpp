@@ -27,12 +27,12 @@ set_property(TARGET htmlpp PROPERTY VERSION ${Upstream_VERSION})
 set_property(TARGET htmlpp PROPERTY SOVERSION ${LIBV})
 set_property(TARGET htmlpp PROPERTY INTERFACE_htmlpp_MAJOR_VERSION ${LIBV})
 set_property(TARGET htmlpp APPEND PROPERTY COMPATIBLE_INTERFACE_STRING htmlpp_MAJOR_VERSION)
-
-install(TARGETS htmlpp EXPORT htmlppTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
-)
+ 
+if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
+   install(TARGETS htmlpp EXPORT htmlppTargets RUNTIME DESTINATION lib INCLUDES DESTINATION include)
+else()
+   install(TARGETS htmlpp EXPORT htmlppTargets LIBRARY DESTINATION lib INCLUDES DESTINATION include)
+endif()
 
 install(TARGETS htmlpp-static EXPORT htmlppTargets
   LIBRARY DESTINATION lib

@@ -29,16 +29,12 @@ set_property(TARGET htmlpp PROPERTY INTERFACE_htmlpp_MAJOR_VERSION ${LIBV})
 set_property(TARGET htmlpp APPEND PROPERTY COMPATIBLE_INTERFACE_STRING htmlpp_MAJOR_VERSION)
  
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
-   install(TARGETS htmlpp EXPORT htmlppTargets RUNTIME DESTINATION lib INCLUDES DESTINATION include)
+   install(TARGETS htmlpp EXPORT htmlppTargets RUNTIME DESTINATION lib)
 else()
-   install(TARGETS htmlpp EXPORT htmlppTargets LIBRARY DESTINATION lib INCLUDES DESTINATION include)
+   install(TARGETS htmlpp EXPORT htmlppTargets LIBRARY DESTINATION lib)
 endif()
 
-install(TARGETS htmlpp-static EXPORT htmlppTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
-)
+install(TARGETS htmlpp-static DESTINATION lib  EXPORT htmlppTargets)
 
 install(FILES
     css.h
@@ -54,35 +50,36 @@ install(FILES
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/libhtmlpp/htmlppConfigVersion.cmake"
   VERSION ${Upstream_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
 
 export(EXPORT htmlppTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppTargets.cmake"
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/libhtmlpp/htmlppTargets.cmake"
   NAMESPACE htmlpp::
 )
 
 configure_file(cmake/htmlppConfig.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/libhtmlpp/htmlppConfig.cmake"
   @ONLY
 )
 
-set(ConfigPackageLocation lib/cmake/htmlpp)
+set(ConfigPackageLocation lib/cmake/libhtmlpp)
+
 install(EXPORT htmlppTargets
   FILE
     htmlppTargets.cmake
   NAMESPACE
-   htmlpp::
+    htmlpp::
   DESTINATION
     ${ConfigPackageLocation}
 )
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/htmlpp/htmlppConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/libhtmlpp/htmlppConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/libhtmlpp/htmlppConfigVersion.cmake"
   DESTINATION
     ${ConfigPackageLocation}
   COMPONENT
@@ -91,6 +88,7 @@ install(
 
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
     set(CPACK_GENERATOR WIX)
+    set(CPACK_WIX_VERSION 3)
     set(CPACK_PACKAGE_NAME "libhtmlpp")
     set(CPACK_PACKAGE_VENDOR "tuxist.de")
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
